@@ -1,0 +1,45 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>iOS layout fixture</title>
+<script>
+// Local-only fixture. Uses an isolated test save in memory and never starts autosaving.
+(async () => {
+  const mode = new URLSearchParams(location.search).get('mode') || 'installed';
+  const source = await (await fetch('../index.html', {cache:'no-store'})).text();
+  const setup = () => {
+    const mode = MODE;
+    const surface = new URLSearchParams(location.search).get('surface');
+    const nativeHeight = Object.getOwnPropertyDescriptor(window, 'innerHeight');
+    const actualHeight = () => nativeHeight.get.call(window);
+    if (mode === 'installed') {
+      Object.defineProperty(navigator, 'standalone', {configurable:true, value:true});
+      Object.defineProperty(window, 'innerHeight', {configurable:true, get:() => actualHeight() - (window.innerWidth < 600 ? 59 : 21)});
+      Object.defineProperty(window, 'screen', {configurable:true, value:{get width(){return window.innerWidth},get height(){return actualHeight()}}});
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        SAVE_PAUSED = true;
+        newWorld(20261018, 'Dalian Yingbo');
+        VIEW = 'save'; enterGame(); fitAppHeight();
+        if(surface==='modal') openModal('安全区布局验收','<label>测试输入框</label><input id="qa-input" type="text"><p>此弹窗只用于本机布局验收。</p>','<button onclick="closeModal()">关闭</button>');
+        const report = document.createElement('script'); report.type='application/json'; report.id='qa-layout-report'; document.body.appendChild(report);
+        window.qaLayoutReport = () => {
+          const rect = id => document.getElementById(id).getBoundingClientRect().toJSON();
+          const side = document.getElementById('side');
+          const navs = [...side.querySelectorAll('.nav')];
+          const last = navs[navs.length-1].getBoundingClientRect();
+          report.textContent=JSON.stringify({mode,innerHeight:window.innerHeight,actualHeight:actualHeight(),app:rect('app'),side:rect('side'),view:rect('view'),topbar:rect('topbar'),modal:rect('modal'),loadscr:rect('loadscr'),rootWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth,bottomPadding:getComputedStyle(side).paddingBottom,lastButtonBottom:last.bottom,navCount:navs.length,savePaused:SAVE_PAUSED});
+        };
+        window.qaLayoutReport();
+        document.getElementById('view').scrollTop=1e6;
+        window.addEventListener('resize',()=>setTimeout(window.qaLayoutReport,500));
+        document.addEventListener('click',()=>setTimeout(window.qaLayoutReport,300));
+      },600);
+    });
+  };
+  const setupScript='('+setup.toString().replace('MODE',JSON.stringify(mode))+')();';
+  const safeStyle=mode==='installed' ? '<style>:root{--sat:59px;--sab:34px;--sal:0px;--sar:0px}@media(orientation:landscape){:root{--sat:0px;--sab:21px;--sal:59px;--sar:59px}}</style>' : '';
+  const result=source.replace('</head>',safeStyle+'<script>'+setupScript+'<\/script></head>');
+  document.open();document.write(result);document.close();
+})();
+</script>

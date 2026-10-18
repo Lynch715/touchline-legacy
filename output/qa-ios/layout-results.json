@@ -1,0 +1,361 @@
+{
+  "reports": [
+    {
+      "mode": "installed",
+      "innerHeight": 372,
+      "actualHeight": 393,
+      "app": {
+        "x": 0,
+        "y": 0,
+        "width": 852,
+        "height": 393,
+        "top": 0,
+        "right": 852,
+        "bottom": 393,
+        "left": 0
+      },
+      "side": {
+        "x": 0,
+        "y": 293.203125,
+        "width": 852,
+        "height": 99.796875,
+        "top": 293.203125,
+        "right": 852,
+        "bottom": 393,
+        "left": 0
+      },
+      "view": {
+        "x": 0,
+        "y": 40,
+        "width": 852,
+        "height": 253.203125,
+        "top": 40,
+        "right": 852,
+        "bottom": 293.203125,
+        "left": 0
+      },
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 852,
+        "height": 40,
+        "top": 0,
+        "right": 852,
+        "bottom": 40,
+        "left": 0
+      },
+      "modal": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "loadscr": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "rootWidth": 852,
+      "scrollWidth": 852,
+      "bottomPadding": "21px",
+      "lastButtonBottom": 370,
+      "navCount": 18,
+      "savePaused": true
+    },
+    {
+      "mode": "installed",
+      "innerHeight": 681,
+      "actualHeight": 740,
+      "app": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 740,
+        "top": 0,
+        "right": 320,
+        "bottom": 740,
+        "left": 0
+      },
+      "side": {
+        "x": 0,
+        "y": 627.203125,
+        "width": 320,
+        "height": 112.796875,
+        "top": 627.203125,
+        "right": 320,
+        "bottom": 740,
+        "left": 0
+      },
+      "view": {
+        "x": 0,
+        "y": 105,
+        "width": 320,
+        "height": 522.203125,
+        "top": 105,
+        "right": 320,
+        "bottom": 627.203125,
+        "left": 0
+      },
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 105,
+        "top": 0,
+        "right": 320,
+        "bottom": 105,
+        "left": 0
+      },
+      "modal": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "loadscr": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "rootWidth": 320,
+      "scrollWidth": 320,
+      "bottomPadding": "34px",
+      "lastButtonBottom": 704,
+      "navCount": 18,
+      "savePaused": true
+    },
+    {
+      "mode": "installed",
+      "innerHeight": 793,
+      "actualHeight": 852,
+      "app": {
+        "x": 0,
+        "y": 0,
+        "width": 393,
+        "height": 852,
+        "top": 0,
+        "right": 393,
+        "bottom": 852,
+        "left": 0
+      },
+      "side": {
+        "x": 0,
+        "y": 739.203125,
+        "width": 393,
+        "height": 112.796875,
+        "top": 739.203125,
+        "right": 393,
+        "bottom": 852,
+        "left": 0
+      },
+      "view": {
+        "x": 0,
+        "y": 105,
+        "width": 393,
+        "height": 634.203125,
+        "top": 105,
+        "right": 393,
+        "bottom": 739.203125,
+        "left": 0
+      },
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 393,
+        "height": 105,
+        "top": 0,
+        "right": 393,
+        "bottom": 105,
+        "left": 0
+      },
+      "modal": {
+        "x": 0,
+        "y": 0,
+        "width": 393,
+        "height": 852,
+        "top": 0,
+        "right": 393,
+        "bottom": 852,
+        "left": 0
+      },
+      "loadscr": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "rootWidth": 393,
+      "scrollWidth": 393,
+      "bottomPadding": "34px",
+      "lastButtonBottom": 816,
+      "navCount": 18,
+      "savePaused": true
+    },
+    {
+      "mode": "browser",
+      "innerHeight": 793,
+      "actualHeight": 793,
+      "app": {
+        "x": 0,
+        "y": 0,
+        "width": 393,
+        "height": 793,
+        "top": 0,
+        "right": 393,
+        "bottom": 793,
+        "left": 0
+      },
+      "side": {
+        "x": 0,
+        "y": 711.203125,
+        "width": 393,
+        "height": 81.796875,
+        "top": 711.203125,
+        "right": 393,
+        "bottom": 793,
+        "left": 0
+      },
+      "view": {
+        "x": 0,
+        "y": 46,
+        "width": 393,
+        "height": 665.203125,
+        "top": 46,
+        "right": 393,
+        "bottom": 711.203125,
+        "left": 0
+      },
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 393,
+        "height": 46,
+        "top": 0,
+        "right": 393,
+        "bottom": 46,
+        "left": 0
+      },
+      "modal": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "loadscr": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "rootWidth": 393,
+      "scrollWidth": 393,
+      "bottomPadding": "3px",
+      "lastButtonBottom": 788,
+      "navCount": 18,
+      "savePaused": true
+    },
+    {
+      "mode": "browser",
+      "innerHeight": 800,
+      "actualHeight": 800,
+      "app": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 800,
+        "top": 0,
+        "right": 1280,
+        "bottom": 800,
+        "left": 0
+      },
+      "side": {
+        "x": 0,
+        "y": 52,
+        "width": 172,
+        "height": 748,
+        "top": 52,
+        "right": 172,
+        "bottom": 800,
+        "left": 0
+      },
+      "view": {
+        "x": 172,
+        "y": 52,
+        "width": 1108,
+        "height": 748,
+        "top": 52,
+        "right": 1280,
+        "bottom": 800,
+        "left": 172
+      },
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 52,
+        "top": 0,
+        "right": 1280,
+        "bottom": 52,
+        "left": 0
+      },
+      "modal": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "loadscr": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "rootWidth": 1280,
+      "scrollWidth": 1280,
+      "bottomPadding": "0px",
+      "lastButtonBottom": 842,
+      "navCount": 18,
+      "savePaused": true
+    }
+  ],
+  "errors": [],
+  "scope": "IAB browser fixture and simulated safe area; not physical iOS standalone acceptance"
+}

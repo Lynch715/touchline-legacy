@@ -26,7 +26,7 @@
   --sar:env(safe-area-inset-right,0px);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
+html,body{height:100%;overflow:hidden}
 html{
   background:#121821;               /* 与底栏底色一致，万一差几像素也看不出 */
   touch-action:pan-x pan-y;          /* 允许滚动，禁止双指缩放与双击放大 */
@@ -34,7 +34,7 @@ html{
   -webkit-text-size-adjust:100%;text-size-adjust:100%;
 }
 body{
-  background:var(--bg);color:var(--txt);
+  background:#121821;color:var(--txt);
   font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
   overflow:hidden;-webkit-font-smoothing:antialiased;
   overscroll-behavior:none;
@@ -48,8 +48,9 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
 ::-webkit-scrollbar-thumb:hover{background:#465264}
 
 /* ---------- 布局 ---------- */
-/* 用 fixed+inset 铺满，不用 100vh/100svh：iOS 主屏启动（black-translucent）时 svh 会少算状态栏那一截，底部空出一条黑边 */
+/* 普通浏览器沿用 fixed；iOS 主屏模式由 fitAppHeight 校正缩水的布局视口。 */
 #app{display:flex;flex-direction:column;position:fixed;inset:0;overflow:hidden}
+#app,#loadscr,#modal{height:var(--app-height,100%);bottom:auto}
 #topbar{
   height:calc(52px + var(--sat));flex:0 0 calc(52px + var(--sat));
   background:linear-gradient(180deg,#1b2430,#141b24);
@@ -299,8 +300,8 @@ img.crest{display:inline-block}
     overflow:hidden;overflow-anchor:none;
     border-right:none;border-top:1px solid var(--line);
     background:linear-gradient(180deg,#18202b,#121821);
-    /* 安全区只留一小截，别整条空着 */
-    padding:1px var(--sar) max(calc(var(--sab) - 14px), 3px) var(--sal);
+    /* 背景铺到底，按钮完整避开 Home 手势区。 */
+    padding:1px var(--sar) max(var(--sab), 3px) var(--sal);
     scrollbar-width:none}
   #side::-webkit-scrollbar{display:none}
   .nav-grp{display:none}
@@ -345,7 +346,7 @@ img.crest{display:inline-block}
 
   /* 弹窗全屏 */
   #modal{padding:0;align-items:stretch}
-  #modal-box{max-height:100vh;max-height:100svh;border-radius:0;width:100%;min-width:0;max-width:none}
+  #modal-box{max-height:100%;border-radius:0;width:100%;min-width:0;max-width:none}
   #modal-hd{padding-top:calc(13px + var(--sat));
     padding-left:calc(16px + var(--sal));padding-right:calc(16px + var(--sar))}
   #modal-bd{padding:12px calc(12px + var(--sar)) 12px calc(12px + var(--sal))}
@@ -398,7 +399,7 @@ img.crest{display:inline-block}
     width:100%;height:auto;flex:0 0 auto;
     display:grid;grid-template-columns:repeat(9,minmax(0,1fr));align-items:stretch;
     overflow:hidden;border-right:none;border-top:1px solid var(--line);
-    padding:1px var(--sar) max(calc(var(--sab) - 14px), 3px) var(--sal)}
+    padding:1px var(--sar) max(var(--sab), 3px) var(--sal)}
   html:not(.kb) .nav{min-width:0;margin:2px 1px;border-radius:8px;padding:3px 0 2px;font-size:9px;border:none}
   html:not(.kb) .nav.on{background:rgba(0,212,126,.13);color:var(--acc)}
   html:not(.kb) #view{padding:9px calc(11px + var(--sar)) calc(16px + var(--sab)) 11px}
@@ -411,7 +412,7 @@ img.crest{display:inline-block}
   html:not(.kb) .tac-pitch>div[style*="aspect-ratio"]{max-height:260px !important;min-height:200px !important}
   html:not(.kb) .grid2{grid-template-columns:1fr 1fr}
   html:not(.kb) .grid4{grid-template-columns:repeat(4,1fr)}
-  html:not(.kb) #modal-box{max-height:100svh}
+  html:not(.kb) #modal-box{max-height:100%}
 }
 /* 可点击的球队名/球员名链接 */
 a.clink,a.plink{color:#4a9eff;text-decoration:underline;cursor:pointer;font-weight:inherit}
@@ -15512,12 +15513,29 @@ function lockZoom(){
 
 // 屏幕旋转：等布局稳定后重绘一次，避免残留滚动偏移与半旧布局
 let _oriT=0, _oriLast="";
-// 兜底：个别机型 fixed 仍比可视高度矮时，按 innerHeight 撑满（只撑大不缩小）
-function fitAppHeight(){
-  const a=document.getElementById("app"); if(!a) return;
-  a.style.height=""; a.style.bottom="";
+// black-translucent 主屏模式下，fixed 和 innerHeight 都可能少算状态栏高度。
+// 仅全屏 iOS 使用匹配方向的屏幕高度；普通网页、分屏窗口仍采用自己的视口。
+function appViewportHeight(){
   const h=window.innerHeight;
-  if(h && h>a.clientHeight+1){ a.style.bottom="auto"; a.style.height=h+"px"; }
+  if(!(h>0)) return 0;
+  const vv=window.visualViewport;
+  if(vv && Math.abs(vv.scale-1)>0.01) return 0;
+  let fullHeight=h;
+  if(navigator.standalone===true && window.screen){
+    const sw=window.screen.width, sh=window.screen.height, w=window.innerWidth;
+    const screenHeight=Math.abs(w-sw)<=1 ? sh : Math.abs(w-sh)<=1 ? sw : 0;
+    // 无浏览器工具栏且宽度等于屏幕时，才允许补回主屏应用漏掉的那一段。
+    if(screenHeight>=h) fullHeight=screenHeight;
+  }
+  const visibleHeight=vv ? Math.min(h,vv.height+vv.offsetTop) : h;
+  // 硬件键盘或单纯聚焦不应收回安全区补偿；软键盘会明显压缩可视高度。
+  if(isTextInput(document.activeElement) && fullHeight-visibleHeight>120) return visibleHeight;
+  return fullHeight;
+}
+function fitAppHeight(){
+  const h=appViewportHeight(); if(!(h>0)) return;
+  const r=document.documentElement, value=h+"px";
+  if(r.style.getPropertyValue("--app-height")!==value) r.style.setProperty("--app-height",value);
 }
 function isTextInput(e){
   return !!e && (e.tagName==="TEXTAREA" || e.isContentEditable ||
@@ -15535,6 +15553,14 @@ function watchOrientation(){
   kbGuard();
   fitAppHeight(); setTimeout(fitAppHeight,400);
   window.addEventListener("resize",()=>setTimeout(fitAppHeight,80));
+  if(window.visualViewport) window.visualViewport.addEventListener("resize",fitAppHeight);
+  window.addEventListener("pageshow",()=>{ fitAppHeight(); setTimeout(fitAppHeight,400); });
+  document.addEventListener("visibilitychange",()=>{
+    if(!document.hidden){ fitAppHeight(); setTimeout(fitAppHeight,400); }
+  });
+  ["focusin","focusout"].forEach(t=>document.addEventListener(t,()=>{
+    setTimeout(fitAppHeight,80); setTimeout(fitAppHeight,400);
+  }));
   // 不能用 innerWidth>innerHeight：安卓/鸿蒙弹出键盘会把视口压扁，被当成横屏 → 重绘 → 输入框被销毁、键盘收起、页面跳回顶部
   const key=()=>{
     try{ if(screen.orientation && screen.orientation.type) return screen.orientation.type.indexOf("landscape")===0?"L":"P"; }catch(e){}
