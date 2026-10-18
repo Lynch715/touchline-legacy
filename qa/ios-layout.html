@@ -16,8 +16,7 @@
     if (mode === 'installed' || mode === 'reported') {
       Object.defineProperty(navigator, 'standalone', {configurable:true, value:true});
       if(mode==='installed'){
-        Object.defineProperty(window, 'innerHeight', {configurable:true, get:() => actualHeight() - (window.innerWidth < 600 ? 59 : 21)});
-        Object.defineProperty(window, 'screen', {configurable:true, value:{get width(){return window.innerWidth},get height(){return actualHeight()}}});
+        Object.defineProperty(window, 'screen', {configurable:true, value:{get width(){return window.innerWidth},get height(){return actualHeight()+(window.innerWidth<600?59:21)}}});
       }else{
         Object.defineProperty(navigator,'userAgent',{configurable:true,value:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15'});
         Object.defineProperty(window,'innerWidth',{configurable:true,value:462});
@@ -39,17 +38,23 @@
           const side = document.getElementById('side');
           const navs = [...side.querySelectorAll('.nav')];
           const last = navs[navs.length-1].getBoundingClientRect();
-          report.textContent=JSON.stringify({mode,innerHeight:window.innerHeight,actualHeight:actualHeight(),app:rect('app'),side:rect('side'),view:rect('view'),topbar:rect('topbar'),modal:rect('modal'),loadscr:rect('loadscr'),rootWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth,bottomPadding:getComputedStyle(side).paddingBottom,lastButtonBottom:last.bottom,navCount:navs.length,savePaused:SAVE_PAUSED,device:layoutSnapshot()});
+          const buttons=navs.map(n=>{const b=n.getBoundingClientRect(),hit=document.elementFromPoint(b.x+b.width/2,b.y+b.height/2);return {text:n.textContent.trim(),top:b.top,bottom:b.bottom,inside:b.top>=0&&b.bottom<=actualHeight()+1,hit:!!hit&&(hit===n||n.contains(hit))}});
+          report.textContent=JSON.stringify({mode,innerHeight:window.innerHeight,actualHeight:actualHeight(),app:rect('app'),side:rect('side'),view:rect('view'),topbar:rect('topbar'),modal:rect('modal'),loadscr:rect('loadscr'),rootWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth,bottomPadding:getComputedStyle(side).paddingBottom,lastButtonBottom:last.bottom,navCount:navs.length,buttons,savePaused:SAVE_PAUSED,device:layoutSnapshot()});
         };
         window.qaLayoutReport();
         document.getElementById('view').scrollTop=1e6;
         window.addEventListener('resize',()=>setTimeout(window.qaLayoutReport,500));
         document.addEventListener('click',()=>setTimeout(window.qaLayoutReport,300));
+        document.addEventListener('click',e=>{
+          if(!e.target.closest('[data-theme-choice]'))return;
+          const before=JSON.stringify(WORLD);
+          queueMicrotask(()=>{document.documentElement.dataset.qaThemeWorldUnchanged=String(before===JSON.stringify(WORLD));});
+        },true);
       },600);
     });
   };
   const setupScript='('+setup.toString().replace('MODE',JSON.stringify(mode))+')();';
-  const safeStyle=mode==='installed'||mode==='reported' ? '<style>:root{--sat:59px;--sab:'+inset+'px;--sal:0px;--sar:0px}'+(baseline?(mode==='reported'?'#app{height:932px!important;bottom:auto!important}':'#side{padding-bottom:max(var(--sab),3px)!important}'):'')+'@media(orientation:landscape){:root{--sat:0px;--sab:21px;--sal:59px;--sar:59px}}</style>' : '';
+  const safeStyle=mode==='installed'||mode==='reported' ? '<style>:root{--sat:'+(mode==='reported'?59:0)+'px;--sab:'+inset+'px;--sal:0px;--sar:0px}'+(baseline?(mode==='reported'?'#app{height:1001.59px!important;bottom:auto!important}':'#side{padding-bottom:max(var(--sab),3px)!important}'):'')+'@media(orientation:landscape){:root{--sat:0px;--sab:21px;--sal:59px;--sar:59px}}</style>' : '';
   const result=source.replace('</head>',safeStyle+'<script>'+setupScript+'<\/script></head>');
   document.open();document.write(result);document.close();
 })();

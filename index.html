@@ -6,19 +6,29 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0d1117">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="执掌绿茵">
 
 
 
 
 <title>执掌绿茵 · Touchline Legacy</title>
+<script>
+// 外观独立于游戏存档；首次绘制前恢复，避免白底闪回黑底。
+(()=>{let theme="dark";try{if(localStorage.getItem("touchline-theme")==="light")theme="light";}catch(e){}
+document.documentElement.dataset.theme=theme;
+const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=theme==="light"?"#f5f7f8":"#0d1117";})();
+</script>
 <style>
 :root{
+  color-scheme:dark;
   --bg:#0d1117; --bg2:#151b24; --bg3:#1c2430; --line:#2a3441;
   --txt:#e6edf3; --dim:#8b98a8; --dim2:#5f6b7a;
   --acc:#00d47e; --acc2:#0a8f57; --warn:#f0a020; --bad:#e5484d; --info:#4a9eff;
   --gold:#ffcc44;
+  --shell:#121821;--header-start:#1b2430;--header-end:#141b24;
+  --nav-start:#18202b;--nav-end:#121821;--row-line:#1d242e;--row-hover:#1a222c;
+  --button-hover:#28323f;--track:#252d38;--selected-bg:#16301f;--selected-muted:#1a2436;
   /* 刘海 / 灵动岛 / home 指示条安全区 */
   --sat:env(safe-area-inset-top,0px);
   --sab:env(safe-area-inset-bottom,0px);
@@ -27,16 +37,25 @@
   /* 部分 Safari 把隐藏工具栏计入 bottom inset；导航只为 Home 手势留白。 */
   --nav-safe-bottom:min(var(--sab),34px);
 }
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f5f7f8;--bg2:#fff;--bg3:#edf2f4;--line:#d2dce0;
+  --txt:#16242c;--dim:#52626b;--dim2:#687983;
+  --acc:#007f50;--acc2:#087849;--warn:#915300;--bad:#bd303b;--info:#1768b3;--gold:#866000;
+  --shell:#edf2f4;--header-start:#fff;--header-end:#f1f5f6;
+  --nav-start:#fff;--nav-end:#edf2f4;--row-line:#e2e9ed;--row-hover:#edf4f1;
+  --button-hover:#e0e9ed;--track:#d8e2e7;--selected-bg:#e0f1e7;--selected-muted:#e7eff9;
+}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
 html{
-  background:#121821;               /* 与底栏底色一致，万一差几像素也看不出 */
+  background:var(--shell);
   touch-action:pan-x pan-y;          /* 允许滚动，禁止双指缩放与双击放大 */
   overscroll-behavior:none;          /* 禁止下拉刷新与橡皮筋回弹 */
   -webkit-text-size-adjust:100%;text-size-adjust:100%;
 }
 body{
-  background:#121821;color:var(--txt);
+  background:var(--shell);color:var(--txt);
   font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
   overflow:hidden;-webkit-font-smoothing:antialiased;
   overscroll-behavior:none;
@@ -50,12 +69,12 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
 ::-webkit-scrollbar-thumb:hover{background:#465264}
 
 /* ---------- 布局 ---------- */
-/* 普通浏览器沿用 fixed；iOS 主屏模式由 fitAppHeight 校正缩水的布局视口。 */
+/* 界面始终留在可视视口内；状态栏空间交给 iOS，不按物理屏幕撑高。 */
 #app{display:flex;flex-direction:column;position:fixed;inset:0;overflow:hidden}
 #app,#loadscr,#modal{height:var(--app-height,100%);bottom:auto}
 #topbar{
   height:calc(52px + var(--sat));flex:0 0 calc(52px + var(--sat));
-  background:linear-gradient(180deg,#1b2430,#141b24);
+  background:linear-gradient(180deg,var(--header-start),var(--header-end));
   border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;
   padding:var(--sat) calc(14px + var(--sar)) 0 calc(14px + var(--sal));
 }
@@ -138,8 +157,8 @@ th{
 }
 th:hover{color:var(--txt)}
 th.nos{cursor:default}
-td{padding:5px 7px;border-bottom:1px solid #1d242e;white-space:nowrap}
-tbody tr:hover{background:#1a222c}
+td{padding:5px 7px;border-bottom:1px solid var(--row-line);white-space:nowrap}
+tbody tr:hover{background:var(--row-hover)}
 tr.clickable{cursor:pointer}
 .num{text-align:right;font-variant-numeric:tabular-nums}
 @media(min-width:901px){th.flexcol{width:100%}}
@@ -153,7 +172,7 @@ button,.btn{
 select{min-height:32px}
 input[type=checkbox]{width:18px;height:18px;vertical-align:-4px;accent-color:var(--acc);margin:0 4px 0 0}
 .tb-stat b,.tb-stat span{white-space:nowrap}
-button:hover,.btn:hover{background:#28323f;border-color:#3c4756}
+button:hover,.btn:hover{background:var(--button-hover);border-color:var(--dim2)}
 button:disabled{opacity:.4;cursor:not-allowed}
 button.pri{background:var(--acc2);border-color:var(--acc2);color:#fff;font-weight:600}
 button.pri:hover{background:#0aa866;border-color:#0aa866}
@@ -183,11 +202,11 @@ label{font-size:11px;color:var(--dim);display:block;margin-bottom:3px}
 .t-w{background:#3d3010;color:var(--warn)}
 .t-b{background:#3d1618;color:#ff8080}
 .t-i{background:#12293d;color:var(--info)}
-.t-n{background:#252d38;color:var(--dim)}
+.t-n{background:var(--track);color:var(--dim)}
 .t-eu{background:#2a1f45;color:#c9a6ff}
 .t-wcl{background:#3a2a10;color:#ffd24a}
 
-.bar{height:5px;background:#252d38;border-radius:3px;overflow:hidden;min-width:44px}
+.bar{height:5px;background:var(--track);border-radius:3px;overflow:hidden;min-width:44px}
 .bar>i{display:block;height:100%;border-radius:3px}
 .hint{color:var(--dim);font-size:11px}
 .big{font-size:22px;font-weight:800;line-height:1.1}
@@ -231,7 +250,7 @@ img.crest{display:inline-block}
 /* ---------- 提示条 ---------- */
 #toast{position:fixed;bottom:calc(20px + var(--sab));left:50%;transform:translateX(-50%);z-index:200;
   display:flex;flex-direction:column;gap:7px;align-items:center;pointer-events:none}
-.toast{background:#1f2937;border:1px solid var(--line);border-left:3px solid var(--acc);
+.toast{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--acc);
   border-radius:6px;padding:9px 15px;font-size:12px;box-shadow:0 6px 20px rgba(0,0,0,.5);
   animation:tin .25s ease}
 .toast.bad{border-left-color:var(--bad)}
@@ -246,7 +265,7 @@ img.crest{display:inline-block}
 #mscore .tn{font-weight:700;font-size:14px;width:190px}
 #mscore .tn.a{text-align:right}
 #mscore .sc{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;
-  background:#0b0f14;padding:2px 14px;border-radius:6px;letter-spacing:1px}
+  background:var(--bg);padding:2px 14px;border-radius:6px;letter-spacing:1px}
 #mclock{text-align:center;font-size:12px;color:var(--acc);font-weight:700;font-variant-numeric:tabular-nums}
 #mfeed{height:230px;overflow-y:auto;background:var(--bg2);border:1px solid var(--line);
   border-radius:8px;padding:9px 12px;font-size:12px}
@@ -301,7 +320,7 @@ img.crest{display:inline-block}
     display:grid;grid-template-columns:repeat(9,minmax(0,1fr));align-items:stretch;align-content:start;
     overflow:hidden;overflow-anchor:none;
     border-right:none;border-top:1px solid var(--line);
-    background:linear-gradient(180deg,#18202b,#121821);
+    background:linear-gradient(180deg,var(--nav-start),var(--nav-end));
     /* 背景铺到底，按钮完整避开 Home 手势区。 */
     padding:1px var(--sar) max(var(--nav-safe-bottom), 3px) var(--sal);
     scrollbar-width:none}
@@ -434,6 +453,27 @@ a.plink:hover{color:#ffffff}
 #game-credits .credit-contact{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 #wx-id{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:20px;letter-spacing:1px;color:var(--acc);user-select:all}
 @media(max-width:360px){.more-grid{gap:9px}.more-entry{padding:12px;gap:8px}#game-credits dl{gap:12px}}
+.theme-choices{display:flex;gap:10px;flex-wrap:wrap}
+.theme-choice{flex:1;display:flex;align-items:center;justify-content:center;gap:9px;min-height:44px}
+.theme-choice[aria-pressed="true"]{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc);font-weight:700}
+.theme-swatch{width:18px;height:18px;border-radius:50%;border:1px solid #87969e;flex:0 0 18px}
+.theme-swatch.dark{background:#0d1117}.theme-swatch.light{background:#fff}
+:root[data-theme="light"] a.clink{color:var(--info)}
+:root[data-theme="light"] a.plink{color:#254d63}
+:root[data-theme="light"] a.plink:hover{color:#0d5f8b}
+:root[data-theme="light"] .fold.open{border-color:#a8c8b7}
+:root[data-theme="light"] .fold .chip.hot{color:#8d4a16;background:#fff2e5;border-color:#e9bc91}
+:root[data-theme="light"] .fmt-slot.sel .n{background:var(--acc2);color:#fff}
+:root[data-theme="light"] [style*="color:#00d47e"],
+:root[data-theme="light"] [style*="color:#7ed957"],
+:root[data-theme="light"] [style*="color:#5fd48f"]{color:#087849!important}
+:root[data-theme="light"] [style*="color:#ffd24a"],
+:root[data-theme="light"] [style*="color:#ffcc44"],
+:root[data-theme="light"] [style*="color:#f0a020"]{color:#8b5600!important}
+:root[data-theme="light"] .ev.goal{color:#075c38;background:#e1f3e8}
+:root[data-theme="light"] .theme-card{box-shadow:0 2px 12px rgba(22,36,44,.04)}
+:root[data-theme="light"] [style*="background:#6b4e00"][style*="color:#ffd24a"]{color:#ffe39b!important}
+:root[data-theme="light"] [style*="color:#9aa0a6"]{color:#5c6d75!important}
 </style>
 </head>
 <body>
@@ -6357,7 +6397,7 @@ function poCard(po){
       }
       card.appendChild(el("div","",`<div style="font-size:12px;padding:3px 0">
         <span style="${t.w===t.a?'font-weight:700':''}">${nm(t.a)}</span>
-        <b style="background:#0b0f14;padding:1px 7px;border-radius:4px">${mid}</b>
+        <b style="background:var(--bg);padding:1px 7px;border-radius:4px">${mid}</b>
         <span style="${t.w===t.b?'font-weight:700':''}">${nm(t.b)}</span> <span class="hint">${note}</span></div>`));
     });
   });
@@ -12185,7 +12225,7 @@ function vHome(v){
   const lv=coachRepLevel(coachRep());
   const repCard=el("div","card");
   repCard.style.cssText="margin-top:8px;border-left:3px solid "+lv.color;
-  repCard.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><div><div class="hint">👔 教练声望</div><div class="big" style="margin:2px 0;color:${lv.color}">${lv.name} <small style="font-size:13px;color:var(--dim)">${coachRep()}/100</small></div>${WORLD.userNation?`<div class="hint">🇺🇳 兼任 ${esc(WORLD.userNation)} 国家队主教练</div>`:``}</div><div style="width:120px"><div style="height:8px;background:#333;border-radius:4px;overflow:hidden"><div style="height:100%;width:${coachRep()}%;background:${lv.color}"></div></div></div></div>`;
+  repCard.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><div><div class="hint">👔 教练声望</div><div class="big" style="margin:2px 0;color:${lv.color}">${lv.name} <small style="font-size:13px;color:var(--dim)">${coachRep()}/100</small></div>${WORLD.userNation?`<div class="hint">🇺🇳 兼任 ${esc(WORLD.userNation)} 国家队主教练</div>`:``}</div><div style="width:120px"><div style="height:8px;background:var(--track);border-radius:4px;overflow:hidden"><div style="height:100%;width:${coachRep()}%;background:${lv.color}"></div></div></div></div>`;
   v.appendChild(repCard);
 
   const row=el("div","grid2");
@@ -12235,7 +12275,7 @@ function vHome(v){
   const list=WORLD.inbox.slice(0,6);
   if(!list.length) nw.appendChild(el("div","empty","暂无消息"));
   list.forEach(m=>{
-    const d=el("div","",`<div style="padding:5px 0;border-bottom:1px solid #1d242e;cursor:pointer">
+    const d=el("div","",`<div style="padding:5px 0;border-bottom:1px solid var(--row-line);cursor:pointer">
       <b style="color:${m.cat==='bad'?'#e5484d':m.cat==='good'?'#00d47e':m.cat==='warn'?'#f0a020':'#e6edf3'}">${esc(m.title)}</b>
       <span class="hint" style="float:right">${fmtDateShort(dateOf(m.d))}</span>
       <div class="hint" style="margin-top:2px">${esc(m.body.slice(0,80))}${m.body.length>80?"…":""}</div></div>`);
@@ -12253,7 +12293,7 @@ function vInbox(v){
   const box=el("div","card"); box.style.marginTop="12px";
   if(!WORLD.inbox.length) box.appendChild(el("div","empty","暂无消息"));
   WORLD.inbox.forEach(m=>{
-    const d=el("div","",`<div style="padding:8px 0;border-bottom:1px solid #1d242e;cursor:pointer;${m.read?'opacity:.6':''}">
+    const d=el("div","",`<div style="padding:8px 0;border-bottom:1px solid var(--row-line);cursor:pointer;${m.read?'opacity:.6':''}">
       <b style="color:${m.cat==='bad'?'#e5484d':m.cat==='good'?'#00d47e':m.cat==='warn'?'#f0a020':'#e6edf3'}">${m.read?"":"● "}${esc(m.title)}</b>
       <span class="hint" style="float:right">${fmtDateShort(dateOf(m.d))}</span>
       <div class="hint" style="margin-top:3px">${esc(m.body)}</div></div>`);
@@ -12361,7 +12401,7 @@ function showPlayer(pid){
         ${club?crestHTML(club,34):'<span class="crest" style="width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#1c2530,#2a3542);border:1px solid #7a8a99;display:inline-flex;align-items:center;justify-content:center;overflow:hidden"><svg viewBox="0 0 34 34" width="34" height="34"><circle cx="17" cy="17" r="15" fill="#141a21" stroke="#c9a227" stroke-width="1.2"/><circle cx="17" cy="12.5" r="4.2" fill="#c9a227"/><path d="M9 28c1.2-5 4.4-7.5 8-7.5s6.8 2.5 8 7.5" fill="#c9a227"/><circle cx="17" cy="17" r="2.6" fill="none" stroke="#8a9aa8" stroke-width="0.8" opacity="0.6"/></svg></span>'}
         <div><b style="font-size:15px">${esc(p.cn)}</b>${p.legend&&(own||know>=95)?' <span class="tag" style="background:#6b4e00;color:#ffd24a">传奇之种</span>':''}<div class="hint">${esc(p.name)}</div></div>
       </div>
-      ${p.playstyles&&p.playstyles.length?`<div style="margin:0 0 10px;padding:8px;background:#141a21;border-radius:8px;border:1px solid #232d38">
+      ${p.playstyles&&p.playstyles.length?`<div style="margin:0 0 10px;padding:8px;background:var(--bg3);border-radius:8px;border:1px solid #232d38">
         <div class="hint" style="margin-bottom:5px;font-size:11px">🏅 球员徽章</div>
         <div style="display:flex;flex-wrap:wrap;gap:5px">${p.playstyles.map(id=>{const ps=psInfo(id);const isPlus=(p.playstylesPlus||[]).includes(id);const b=PS_BOOST[id];return `<span class="tag" title="${ps.name}：${ALL_ATTRS[b.attr]} +${isPlus?b.gold:b.silver}（${isPlus?'金徽章':'银徽章'}）" style="${isPlus?'background:linear-gradient(135deg,#8a6d00,#e8c96a);color:#1a1400;font-weight:bold;border:1px solid #ffd24a;':'background:#2a3540;color:#cfd8e3;border:1px solid #7a8a99;'}">${ps.icon} ${ps.name}${isPlus?' <b>金</b>':' <span style="color:#9fb0c0">银</span>'}</span>`;}).join("")}</div>
       </div>`:""}
@@ -12518,7 +12558,7 @@ function pitchDialog(pid){
   const cands=pitchCands(p), price=sellPrice(p);
   if(!cands.length){ toast("目前没有球队适合推销他","bad"); return; }
   const lvlTag=x=>x.lvl===2?'<span class="tag t-ok">兴趣 高</span>':x.lvl===1?'<span class="tag t-i">兴趣 中</span>':'<span class="tag t-n">兴趣 低</span>';
-  const rows=cands.map(x=>`<label style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #1d242e;flex-wrap:wrap;cursor:pointer">
+  const rows=cands.map(x=>`<label style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--row-line);flex-wrap:wrap;cursor:pointer">
       <input type="checkbox" class="pitch-cb" value="${x.c.id}" ${left<=0?"disabled":""}>
       ${crestHTML(x.c)}<b>${esc(x.c.cn)}</b><span class="tag t-n">${LGS(x.c)}</span>
       ${x.need>=2?'<span class="tag t-w">缺该位置</span>':''}${x.start?'<span class="tag t-i">能首发</span>':''}
@@ -12819,7 +12859,7 @@ function vTactics(v){
               .sort((a,b)=> want? playerScore(b,want)-playerScore(a,want) : b.ca-a.ca);
   avail.forEach(p=>{
     const sub=c.subs.includes(p.id);
-    const d=el("div"); d.style.cssText=`display:flex;align-items:center;gap:8px;padding:4px 6px;border-bottom:1px solid #1d242e;cursor:pointer;${sub?'background:#1a2436':''}`;
+    const d=el("div"); d.style.cssText=`display:flex;align-items:center;gap:8px;padding:4px 6px;border-bottom:1px solid var(--row-line);cursor:pointer;${sub?'background:var(--selected-muted)':''}`;
     const fit=want?posFit(p,want):1;
     d.innerHTML=`<span class="tag t-${POS_GRP[p.pos]}">${POS_CN[p.pos]}</span>
       <span style="flex:1">${esc(p.cn)}</span>
@@ -12979,7 +13019,7 @@ function vTransfer(v){
       const p=P(of.pid); if(!p) return; const b=C(of.club);
       const left=Math.max(0,(of.until!=null?of.until:of.day+7)-WORLD.day);
       if(of.type==="loan"){
-        const d=el("div"); d.style.cssText="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #1d242e;flex-wrap:wrap";
+        const d=el("div"); d.style.cssText="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--row-line);flex-wrap:wrap";
         d.innerHTML=`${crestHTML(b)}<b>${esc(b.cn)}</b><span class="tag t-n">${LGS(b)}</span><span class="tag t-i">租借请求</span>
           <b style="cursor:pointer" onclick="showPlayer(${p.id})">${esc(p.cn)}</b><span class="tag t-${POS_GRP[p.pos]}">${POS_CN[p.pos]}</span>${p.wantsLoan?'<span class="tag t-w">希望外租</span>':''}
           <span style="flex:1"></span>
@@ -12991,7 +13031,7 @@ function vTransfer(v){
         d.appendChild(acts); o.appendChild(d); return;
       }
       const att = b.rep>c.rep+8?'<span class="tag t-w">球员渴望加盟</span>': b.rep>=c.rep-3?'<span class="tag t-n">球员愿意考虑</span>':'<span class="tag t-n">球员有些犹豫</span>';
-      const d=el("div"); d.style.cssText="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #1d242e;flex-wrap:wrap";
+      const d=el("div"); d.style.cssText="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--row-line);flex-wrap:wrap";
       d.innerHTML=`${crestHTML(b)}<b>${esc(b.cn)}</b><span class="tag t-n">${LGS(b)}</span>
         <span class="hint">报价</span><b style="cursor:pointer" onclick="showPlayer(${p.id})">${esc(p.cn)}</b>
         <span class="tag t-${POS_GRP[p.pos]}">${POS_CN[p.pos]}</span>${perfTag(p)}${att}${of.final?'<span class="tag t-w">最终报价</span>':''}
@@ -13018,7 +13058,7 @@ function vTransfer(v){
   hot.forEach(p=>{
     const suit=its.filter(it=>it.pid===p.id).map(it=>C(it.club));
     const h=heatOf(p);
-    const d=el("div"); d.style.cssText="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #1d242e;flex-wrap:wrap";
+    const d=el("div"); d.style.cssText="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--row-line);flex-wrap:wrap";
     d.innerHTML=`<b style="cursor:pointer;min-width:64px;padding:5px 0" onclick="showPlayer(${p.id})">${esc(p.cn)}</b><span class="tag t-${POS_GRP[p.pos]}">${POS_CN[p.pos]}</span>${perfTag(p)}
       ${p.listed?`<span class="tag t-w">挂牌 ${money(sellPrice(p))}</span>${p.autoSell?'<span class="tag t-ok">自动成交</span>':''}`:''}${p.untouchable?'<span class="tag t-i">非卖品</span>':''}${(p.unrest||0)>=2?'<span class="tag t-b">要求转会</span>':''}
       <span style="display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap">
@@ -13128,7 +13168,7 @@ function vTransfer(v){
   const L=WORLD.transferLog.slice(0,30);
   if(!L.length) log.appendChild(el("div","empty","暂无转会"));
   L.forEach(t=>{
-    log.appendChild(el("div","",`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:4px 0;border-bottom:1px solid #1d242e;font-size:12px">
+    log.appendChild(el("div","",`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:4px 0;border-bottom:1px solid var(--row-line);font-size:12px">
       <span style="flex:1;min-width:0"><span class="hint">${fmtDateShort(dateOf(t.d))}</span>
       <b> ${esc(t.name)}</b> <span class="tag t-${POS_GRP[t.pos]}">${POS_CN[t.pos]}</span>
       ${t.from>=0?clubLink(C(t.from)):"自由身"} → <b>${clubLink(C(t.to))}</b></span>
@@ -13479,7 +13519,7 @@ function vFinance(v){
   const led=el("div","card"); led.innerHTML="<h3>最近账目</h3>";
   const sc=el("div","scroll"); sc.style.maxHeight="260px";
   f.ledger.slice(0,40).forEach(l=>{
-    sc.appendChild(el("div","",`<div style="display:flex;padding:3px 0;border-bottom:1px solid #1d242e;font-size:12px">
+    sc.appendChild(el("div","",`<div style="display:flex;padding:3px 0;border-bottom:1px solid var(--row-line);font-size:12px">
       <span class="hint" style="width:44px">${fmtDateShort(dateOf(l.d))}</span>
       <span style="flex:1">${esc(l.memo)}</span>
       <span class="${l.amt>=0?'pos':'neg'} mono">${money(l.amt)}</span></div>`));
@@ -13525,7 +13565,7 @@ function vBuild(v){
   ps.forEach(p=>{
     const done=1-p.left/p.total;
     const label=p.type==="fac"?`${p.n} → ${p.to} 级`:`${p.n} +${p.seats.toLocaleString()} 座`;
-    cur.appendChild(el("div","",`<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid #1d242e;font-size:12px">
+    cur.appendChild(el("div","",`<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--row-line);font-size:12px">
       <span style="flex:0 0 150px">${esc(label)}</span>
       <span style="flex:1">${barHTML(done,1,"#4a9eff")}</span>
       <span class="hint mono" style="flex:0 0 90px;text-align:right">剩余 ${p.left} 天</span>
@@ -13761,7 +13801,7 @@ function vEuro(v){
         const wa=t.winner===t.a;
         wrap.appendChild(el("div","",`<div style="font-size:12px;padding:3px 0">
           <span style="${wa?'font-weight:700':''}">${crestHTML(C(t.a))}${esc(C(t.a).short)}</span>
-          <b style="background:#0b0f14;padding:1px 7px;border-radius:4px">${t.agg?t.agg[0]+" - "+t.agg[1]:t.g1[0]+" - "+t.g1[1]}</b>
+          <b style="background:var(--bg);padding:1px 7px;border-radius:4px">${t.agg?t.agg[0]+" - "+t.agg[1]:t.g1[0]+" - "+t.g1[1]}</b>
           <span style="${!wa?'font-weight:700':''}">${crestHTML(C(t.b))}${esc(C(t.b).short)}</span>
           <span class="hint">${t.g2?`（${t.g1[0]}-${t.g1[1]}，${t.g2[0]}-${t.g2[1]}）`:""}${t.pens?` 点球 ${t.pens[0]}-${t.pens[1]}`:""}</span></div>`));
       });
@@ -13784,7 +13824,7 @@ function vEuro(v){
     const t=euroGroupTable(E,gi);
     const c=el("div","card"); c.innerHTML=`<h3>${String.fromCharCode(65+gi)} 组</h3>`;
     c.innerHTML+=`<table style="font-size:12px"><thead><tr><th>球队</th><th class="num">场</th><th class="num">净</th><th class="num">分</th></tr></thead><tbody>`+
-      t.map(r=>`<tr style="${r.id===WORLD.userClub?'background:#16301f':''};${r.rank<=2?'border-left:3px solid #00d47e':''}"><td>${crestHTML(C(r.id))}${esc(C(r.id).short)}</td><td class="num">${r.p}</td><td class="num">${(r.gd>0?"+":"")+r.gd}</td><td class="num"><b>${r.pts}</b></td></tr>`).join("")+`</tbody></table>`;
+      t.map(r=>`<tr style="${r.id===WORLD.userClub?'background:var(--selected-bg)':''};${r.rank<=2?'border-left:3px solid #00d47e':''}"><td>${crestHTML(C(r.id))}${esc(C(r.id).short)}</td><td class="num">${r.p}</td><td class="num">${(r.gd>0?"+":"")+r.gd}</td><td class="num"><b>${r.pts}</b></td></tr>`).join("")+`</tbody></table>`;
     g.appendChild(c);
   });
   v.appendChild(g);
@@ -13891,12 +13931,12 @@ function vWorld(v){
 
 function fixtureRow(f){
   const d=el("div","clickable");
-  d.style.cssText="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid #1d242e;font-size:12px;cursor:pointer";
+  d.style.cssText="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--row-line);font-size:12px;cursor:pointer";
   const hw=f.hg>f.ag, aw=f.ag>f.hg;
   d.innerHTML=`<span class="hint" style="width:38px">${fmtDateShort(dateOf(f.day))}</span>
     <span style="flex:1;text-align:right;${hw?'font-weight:700':''}">${clubLink(C(f.home))}</span>
     ${crestHTML(C(f.home))}
-    <b style="background:#0b0f14;padding:1px 8px;border-radius:4px">${f.played?f.hg+" - "+f.ag:"vs"}</b>
+    <b style="background:var(--bg);padding:1px 8px;border-radius:4px">${f.played?f.hg+" - "+f.ag:"vs"}</b>
     ${crestHTML(C(f.away))}
     <span style="flex:1;${aw?'font-weight:700':''}">${clubLink(C(f.away))}</span>`;
   if(f.played) d.onclick=()=>showMatchReport(f);
@@ -13957,7 +13997,7 @@ function vSchedule(v){
       card.appendChild(el("div","hint",`<div style="margin:10px 0 4px;font-weight:700;color:var(--txt)">${dt.getFullYear()}年 ${curMonth+1}月</div>`)); }
     const opp=C(f.home===c.id?f.away:f.home);
     const home=f.home===c.id;
-    const d=el("div"); d.style.cssText="display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid #1d242e;font-size:12px"+(f.day===WORLD.day?";background:#16301f":"");
+    const d=el("div"); d.style.cssText="display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid var(--row-line);font-size:12px"+(f.day===WORLD.day?";background:var(--selected-bg)":"");
     let res="";
     if(f.played){
       const my=home?f.hg:f.ag, th=home?f.ag:f.hg;
@@ -14107,7 +14147,7 @@ function vNews(v){
     card.innerHTML=`<h3>${se}/${String(+se+1).slice(2)} 赛季</h3>`;
     items.forEach(n=>{
       const meta=CAT_META[n.cat]||["📰","资讯"];
-      const row=el("div","",`<div style="padding:7px 0;border-bottom:1px solid #1d242e">
+      const row=el("div","",`<div style="padding:7px 0;border-bottom:1px solid var(--row-line)">
         <div style="font-size:12px;color:#8b98a8;margin-bottom:2px">${meta[0]} ${meta[1]}</div>
         <div style="font-weight:650;color:#e6edf3">${esc(n.title)}</div>
         <div class="hint" style="margin-top:2px">${esc(n.body)}</div>
@@ -14449,7 +14489,7 @@ function refreshMatchUI(force){
       const bar = (av+bv)>0
         ? `<div style="display:flex;height:4px;gap:2px"><div style="flex:${av};min-width:${av?3:0}px;background:var(--acc);border-radius:2px"></div>
            <div style="flex:${bv};min-width:${bv?3:0}px;background:#4a9eff;border-radius:2px"></div></div>`
-        : `<div style="height:4px;background:#252d38;border-radius:2px"></div>`;
+        : `<div style="height:4px;background:var(--track);border-radius:2px"></div>`;
       return `<div style="margin-bottom:5px"><div style="display:flex;font-size:11px"><b style="width:40px">${a}</b>
       <span class="hint" style="flex:1;text-align:center">${n}</span><b style="width:40px;text-align:right">${b}</b></div>${bar}</div>`;
     };
@@ -14633,13 +14673,13 @@ function renderSubDialog(){
    <div class="row">
     <div class="col"><div class="hint" style="margin-bottom:5px">场上球员</div>
      ${on.map((m,i)=>{ const q=queuedOut.includes(m);
-       return `<div class="clickable" ${q?'':`onclick="pickOut(${i})"`} style="display:flex;gap:8px;padding:5px;border-bottom:1px solid #1d242e;border-radius:4px;${q?'opacity:.35;':''}${SUBOUT===i?'background:#16301f;':''}">
+       return `<div class="clickable" ${q?'':`onclick="pickOut(${i})"`} style="display:flex;gap:8px;padding:5px;border-bottom:1px solid var(--row-line);border-radius:4px;${q?'opacity:.35;':''}${SUBOUT===i?'background:var(--selected-bg);':''}">
         <span class="tag t-${POS_GRP[m.pos]}">${POS_CN[m.pos]}</span><span style="flex:1">${esc(nm(m))}${m.yellow?' 🟨':''}</span>
         <span style="color:${m.cond>70?'#00d47e':m.cond>50?'#f0a020':'#e5484d'}">${Math.round(m.cond)}%</span>
         <span style="color:var(--gold);min-width:26px;text-align:right">${m.rating.toFixed(1)}</span></div>`;}).join("")}</div>
     <div class="col"><div class="hint" style="margin-bottom:5px">替补席${want?`（换下 ${POS_CN[want]}，已按适配排序）`:""}</div>
      ${benchSorted.map(id=>{const p=P(id); const fit=want?Math.round(posFit(p,want)*100):null;
-       return `<div class="clickable" onclick="pickIn(${id})" style="display:flex;gap:8px;padding:5px;border-bottom:1px solid #1d242e;${SUBOUT==null?'opacity:.55':''}">
+       return `<div class="clickable" onclick="pickIn(${id})" style="display:flex;gap:8px;padding:5px;border-bottom:1px solid var(--row-line);${SUBOUT==null?'opacity:.55':''}">
         <span class="tag t-${POS_GRP[p.pos]}">${POS_CN[p.pos]}</span><span style="flex:1;white-space:nowrap">${esc(p.cn)}</span>
         ${fit!=null?`<span class="hint">适配 ${fit}%</span>`:""}<b style="color:${caColor(p.ca)}">${ovr(p)}</b><span class="hint" style="min-width:34px;text-align:right">${Math.round(p.condition)}%</span></div>`;}).join("")
        ||'<div class="empty">替补席无人可用</div>'}</div>
@@ -14964,12 +15004,13 @@ async function storageSelfTest(onStep){
   const mode=isStandaloneApp()?"桌面快捷方式/PWA 启动":"浏览器标签页";
   log("环境",true,`${location.protocol}//${location.host||"本地文件"}　${window.isSecureContext===false?"非安全上下文":"安全上下文"}　${mode}`);
   log("浏览器",true,navigator.userAgent);
-  log("界面版本",true,"iOS 底栏修复 20261018.3");
+  log("界面版本",true,"iOS 底栏修复 20261018.4");
   const layout=layoutSnapshot();
   log("视口",true,`窗口 ${layout.innerWidth}×${layout.innerHeight}，可视 ${layout.visualWidth}×${layout.visualHeight}，偏移 ${layout.visualTop}，屏幕 ${layout.screenWidth}×${layout.screenHeight}`);
   log("缩放",true,`可视倍率 ${layout.visualScale}，像素倍率 ${layout.pixelRatio}，全屏目标高度 ${layout.targetHeight}`);
   log("安全区",true,`原始上/下 ${layout.safeTop}/${layout.safeBottom}，底栏实际留白 ${layout.navPadding}，底栏高度 ${layout.navHeight}`);
   log("页面位置",true,`主界面底边 ${layout.appBottom}，底栏底边 ${layout.navBottom}，末行按钮底边 ${layout.lastButtonBottom}，standalone=${layout.standalone}`);
+  log("导航可见",!layout.mobileNav || layout.navInside===layout.navTotal,`${layout.navInside}/${layout.navTotal} 个入口在可视范围内${layout.mobileNav?"":"（侧栏可滚动）"}`);
 
   try{
     localStorage.setItem("__fmprobe","1"); localStorage.removeItem("__fmprobe");
@@ -15020,8 +15061,27 @@ async function storageSelfTest(onStep){
   return R;
 }
 
+function setTheme(theme){
+  if(theme!=="dark" && theme!=="light") return;
+  document.documentElement.dataset.theme=theme;
+  try{localStorage.setItem("touchline-theme",theme);}catch(e){}
+  document.querySelectorAll("[data-theme-choice]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.themeChoice===theme)));
+  const meta=document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.content=theme==="light"?"#f5f7f8":"#0d1117";
+}
+function appearanceCard(){
+  const card=el("section","card theme-card","<h3>界面外观</h3><div class='theme-choices'></div>");
+  for(const [theme,label] of [["dark","黑色背景"],["light","白色背景"]]){
+    const b=el("button","theme-choice",`<span class="theme-swatch ${theme}" aria-hidden="true"></span>${label}`);
+    b.type="button";b.dataset.themeChoice=theme;
+    b.setAttribute("aria-pressed",String((document.documentElement.dataset.theme||"dark")===theme));
+    b.onclick=()=>setTheme(theme);card.querySelector(".theme-choices").appendChild(b);
+  }
+  return card;
+}
 function vMore(v){
-  v.appendChild(el("div","",'<h1>其他</h1><div class="sub">历史、数据、说明与队徽</div>'));
+  v.appendChild(el("div","",'<h1>其他</h1><div class="sub">界面外观、历史、数据、说明与队徽</div>'));
+  v.appendChild(appearanceCard());
   const grid=el("div","more-grid");
   MORE_NAV.forEach(([id,icon,name,description])=>{
     const entry=el("button","more-entry",`<span class="more-icon" aria-hidden="true">${icon}</span><span><strong>${name}</strong><span class="hint">${description}</span></span>`);
@@ -15308,6 +15368,7 @@ function coachCreationScreen(){
     ${saveMeta()?`<div style="text-align:center;margin-top:12px"><button class="sm" onclick="startMenu()">← 返回，继续原来的存档</button></div>`:""}
   `;
   box.appendChild(card);
+  box.appendChild(appearanceCard());
   ls.appendChild(box);
 }
 function submitCoach(){
@@ -15371,6 +15432,7 @@ function saveMenu(m){
     r.readAsText(f); };
   box.appendChild(mk("","📂 导入存档文件", ()=>inp.click()));
   box.appendChild(inp);
+  box.appendChild(appearanceCard());
   ls.appendChild(box);
 }
 
@@ -15520,8 +15582,7 @@ function lockZoom(){
 
 // 屏幕旋转：等布局稳定后重绘一次，避免残留滚动偏移与半旧布局
 let _oriT=0, _oriLast="";
-// black-translucent 主屏模式下，fixed 和 innerHeight 都可能少算状态栏高度。
-// iPhone 主屏模式把屏幕尺寸换算为当前页面 CSS 单位；iPad 分屏不使用手机换算。
+// 不把原生状态栏/系统区域当作可绘制页面；所有控件均须位于 visual viewport 内。
 function isStandaloneApp(){
   if(navigator.standalone===true) return true;
   try{ return !!(window.matchMedia && (window.matchMedia("(display-mode: standalone)").matches || window.matchMedia("(display-mode: fullscreen)").matches)); }
@@ -15541,7 +15602,11 @@ function layoutSnapshot(){
     navHeight:side?round(side.getBoundingClientRect().height):null,
     appBottom:a?round(a.getBoundingClientRect().bottom):null,
     navBottom:side?round(side.getBoundingClientRect().bottom):null,
-    lastButtonBottom:last?round(last.getBoundingClientRect().bottom):null};
+    lastButtonBottom:last?round(last.getBoundingClientRect().bottom):null,
+    mobileNav:!!side && getComputedStyle(side).display==="grid",navTotal:navs.length,navInside:navs.filter(n=>{
+      const b=n.getBoundingClientRect(), bottom=vv?vv.height+vv.offsetTop:window.innerHeight;
+      return b.width>0 && b.height>0 && b.top>=(vv?vv.offsetTop:0)-1 && b.bottom<=bottom+1;
+    }).length};
 }
 function appViewportHeight(){
   const h=window.innerHeight;
@@ -15549,25 +15614,8 @@ function appViewportHeight(){
   const vv=window.visualViewport;
   // 只跳过真正缩小了可视宽度的双指放大；整页缩放不等于双指缩放。
   if(vv && vv.scale>1.01 && (!Number.isFinite(vv.width) || vv.width<window.innerWidth-1)) return 0;
-  let fullHeight=vv ? vv.height+vv.offsetTop : h;
-  if(navigator.standalone===true && window.screen){
-    const sw=window.screen.width, sh=window.screen.height, w=window.innerWidth;
-    let screenHeight=Math.abs(w-sw)<=1 ? sh : Math.abs(w-sh)<=1 ? sw : 0;
-    if(/iPhone|iPod/.test(navigator.userAgent||"") && sw>0 && sh>0){
-      let landscape=w>h;
-      if(typeof window.orientation==="number") landscape=Math.abs(window.orientation)===90;
-      else if(window.screen.orientation?.type) landscape=window.screen.orientation.type.indexOf("landscape")===0;
-      const displayWidth=landscape?Math.max(sw,sh):Math.min(sw,sh);
-      const displayHeight=landscape?Math.min(sw,sh):Math.max(sw,sh);
-      // 真机可出现窗口 462×932、屏幕 393×852；不能直接比较两套单位。
-      screenHeight=Math.ceil(displayHeight*w/displayWidth*100)/100;
-    }
-    if(screenHeight>=fullHeight) fullHeight=screenHeight;
-  }
-  const visibleHeight=vv ? Math.min(h,vv.height+vv.offsetTop) : h;
-  // 硬件键盘或单纯聚焦不应收回安全区补偿；软键盘会明显压缩可视高度。
-  if(isTextInput(document.activeElement) && fullHeight-visibleHeight>120) return visibleHeight;
-  return fullHeight;
+  const bottom=vv ? vv.height+vv.offsetTop : h;
+  return Number.isFinite(bottom) && bottom>0 ? bottom : 0;
 }
 function fitAppHeight(){
   const h=appViewportHeight(); if(!(h>0)) return;

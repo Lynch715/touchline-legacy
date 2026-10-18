@@ -1,0 +1,27 @@
+{
+  "navChecks": [
+    "总览",
+    "收件箱",
+    "赛程",
+    "阵容",
+    "战术",
+    "训练",
+    "青训",
+    "转会",
+    "球探",
+    "财政",
+    "建设",
+    "俱乐部",
+    "赛事",
+    "国际足坛",
+    "国家队",
+    "快讯",
+    "存档",
+    "其他"
+  ],
+  "lightSaveBytesUnchanged": true,
+  "darkSaveBytesUnchanged": true,
+  "lightPersistedAfterReload": "light",
+  "darkPersistedAfterReload": "dark",
+  "runtimeErrors": []
+}

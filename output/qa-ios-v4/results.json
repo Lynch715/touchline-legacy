@@ -1,0 +1,1338 @@
+[
+  {
+    "mode": "reported",
+    "innerHeight": 932,
+    "actualHeight": 932,
+    "app": {
+      "x": 0,
+      "y": 0,
+      "width": 462,
+      "height": 1001.5859375,
+      "top": 0,
+      "right": 462,
+      "bottom": 1001.5859375,
+      "left": 0
+    },
+    "side": {
+      "x": 0,
+      "y": 888.7890625,
+      "width": 462,
+      "height": 112.796875,
+      "top": 888.7890625,
+      "right": 462,
+      "bottom": 1001.5859375,
+      "left": 0
+    },
+    "view": {
+      "x": 0,
+      "y": 105,
+      "width": 462,
+      "height": 783.7890625,
+      "top": 105,
+      "right": 462,
+      "bottom": 888.7890625,
+      "left": 0
+    },
+    "topbar": {
+      "x": 0,
+      "y": 0,
+      "width": 462,
+      "height": 105,
+      "top": 0,
+      "right": 462,
+      "bottom": 105,
+      "left": 0
+    },
+    "modal": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0
+    },
+    "loadscr": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0
+    },
+    "rootWidth": 462,
+    "scrollWidth": 462,
+    "bottomPadding": "34px",
+    "lastButtonBottom": 965.5859375,
+    "navCount": 18,
+    "buttons": [
+      {
+        "text": "🏠总览",
+        "top": 892.7890625,
+        "bottom": 927.1875,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "✉收件箱1",
+        "top": 892.7890625,
+        "bottom": 927.1875,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "📅赛程",
+        "top": 892.7890625,
+        "bottom": 927.1875,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "👥阵容",
+        "top": 892.7890625,
+        "bottom": 927.1875,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "⚽战术",
+        "top": 892.7890625,
+        "bottom": 927.1875,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🏃训练",
+        "top": 892.7890625,
+        "bottom": 927.1875,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🌱青训",
+        "top": 892.7890625,
+        "bottom": 927.1875,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "💱转会",
+        "top": 892.7890625,
+        "bottom": 927.1875,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🔍球探",
+        "top": 892.7890625,
+        "bottom": 927.1875,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "💷财政",
+        "top": 931.1875,
+        "bottom": 965.5859375,
+        "inside": false,
+        "hit": false
+      },
+      {
+        "text": "🏗建设",
+        "top": 931.1875,
+        "bottom": 965.5859375,
+        "inside": false,
+        "hit": false
+      },
+      {
+        "text": "🏟俱乐部",
+        "top": 931.1875,
+        "bottom": 965.5859375,
+        "inside": false,
+        "hit": false
+      },
+      {
+        "text": "🏆赛事",
+        "top": 931.1875,
+        "bottom": 965.5859375,
+        "inside": false,
+        "hit": false
+      },
+      {
+        "text": "🌍国际足坛",
+        "top": 931.1875,
+        "bottom": 965.5859375,
+        "inside": false,
+        "hit": false
+      },
+      {
+        "text": "🇺🇳国家队",
+        "top": 931.1875,
+        "bottom": 965.5859375,
+        "inside": false,
+        "hit": false
+      },
+      {
+        "text": "📰快讯",
+        "top": 931.1875,
+        "bottom": 965.5859375,
+        "inside": false,
+        "hit": false
+      },
+      {
+        "text": "💾存档",
+        "top": 931.1875,
+        "bottom": 965.5859375,
+        "inside": false,
+        "hit": false
+      },
+      {
+        "text": "⋯其他",
+        "top": 931.1875,
+        "bottom": 965.5859375,
+        "inside": false,
+        "hit": false
+      }
+    ],
+    "savePaused": true,
+    "device": {
+      "innerWidth": 462,
+      "innerHeight": 932,
+      "visualWidth": 462,
+      "visualHeight": 932,
+      "visualTop": 0,
+      "visualScale": 1,
+      "pixelRatio": 2,
+      "targetHeight": 932,
+      "screenWidth": 393,
+      "screenHeight": 852,
+      "standalone": true,
+      "safeTop": "59px",
+      "safeBottom": "34px",
+      "navPadding": "34px",
+      "navHeight": 112.8,
+      "appBottom": 1001.59,
+      "navBottom": 1001.59,
+      "lastButtonBottom": 965.59,
+      "navTotal": 18,
+      "navInside": 9
+    },
+    "test": "v3-clipped"
+  },
+  {
+    "mode": "reported",
+    "innerHeight": 932,
+    "actualHeight": 932,
+    "app": {
+      "x": 0,
+      "y": 0,
+      "width": 462,
+      "height": 932,
+      "top": 0,
+      "right": 462,
+      "bottom": 932,
+      "left": 0
+    },
+    "side": {
+      "x": 0,
+      "y": 819.203125,
+      "width": 462,
+      "height": 112.796875,
+      "top": 819.203125,
+      "right": 462,
+      "bottom": 932,
+      "left": 0
+    },
+    "view": {
+      "x": 0,
+      "y": 105,
+      "width": 462,
+      "height": 714.203125,
+      "top": 105,
+      "right": 462,
+      "bottom": 819.203125,
+      "left": 0
+    },
+    "topbar": {
+      "x": 0,
+      "y": 0,
+      "width": 462,
+      "height": 105,
+      "top": 0,
+      "right": 462,
+      "bottom": 105,
+      "left": 0
+    },
+    "modal": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0
+    },
+    "loadscr": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0
+    },
+    "rootWidth": 462,
+    "scrollWidth": 462,
+    "bottomPadding": "34px",
+    "lastButtonBottom": 896,
+    "navCount": 18,
+    "buttons": [
+      {
+        "text": "🏠总览",
+        "top": 823.203125,
+        "bottom": 857.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "✉收件箱1",
+        "top": 823.203125,
+        "bottom": 857.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "📅赛程",
+        "top": 823.203125,
+        "bottom": 857.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "👥阵容",
+        "top": 823.203125,
+        "bottom": 857.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "⚽战术",
+        "top": 823.203125,
+        "bottom": 857.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🏃训练",
+        "top": 823.203125,
+        "bottom": 857.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🌱青训",
+        "top": 823.203125,
+        "bottom": 857.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "💱转会",
+        "top": 823.203125,
+        "bottom": 857.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🔍球探",
+        "top": 823.203125,
+        "bottom": 857.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "💷财政",
+        "top": 861.6015625,
+        "bottom": 896,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🏗建设",
+        "top": 861.6015625,
+        "bottom": 896,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🏟俱乐部",
+        "top": 861.6015625,
+        "bottom": 896,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🏆赛事",
+        "top": 861.6015625,
+        "bottom": 896,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🌍国际足坛",
+        "top": 861.6015625,
+        "bottom": 896,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🇺🇳国家队",
+        "top": 861.6015625,
+        "bottom": 896,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "📰快讯",
+        "top": 861.6015625,
+        "bottom": 896,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "💾存档",
+        "top": 861.6015625,
+        "bottom": 896,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "⋯其他",
+        "top": 861.6015625,
+        "bottom": 896,
+        "inside": true,
+        "hit": true
+      }
+    ],
+    "savePaused": true,
+    "device": {
+      "innerWidth": 462,
+      "innerHeight": 932,
+      "visualWidth": 462,
+      "visualHeight": 932,
+      "visualTop": 0,
+      "visualScale": 1,
+      "pixelRatio": 2,
+      "targetHeight": 932,
+      "screenWidth": 393,
+      "screenHeight": 852,
+      "standalone": true,
+      "safeTop": "59px",
+      "safeBottom": "34px",
+      "navPadding": "34px",
+      "navHeight": 112.8,
+      "appBottom": 932,
+      "navBottom": 932,
+      "lastButtonBottom": 896,
+      "navTotal": 18,
+      "navInside": 18
+    },
+    "test": "v4-visible"
+  },
+  {
+    "mode": "reported",
+    "innerHeight": 932,
+    "actualHeight": 932,
+    "app": {
+      "x": 0,
+      "y": 0,
+      "width": 462,
+      "height": 932,
+      "top": 0,
+      "right": 462,
+      "bottom": 932,
+      "left": 0
+    },
+    "side": {
+      "x": 0,
+      "y": 819.203125,
+      "width": 462,
+      "height": 112.796875,
+      "top": 819.203125,
+      "right": 462,
+      "bottom": 932,
+      "left": 0
+    },
+    "view": {
+      "x": 0,
+      "y": 105,
+      "width": 462,
+      "height": 714.203125,
+      "top": 105,
+      "right": 462,
+      "bottom": 819.203125,
+      "left": 0
+    },
+    "topbar": {
+      "x": 0,
+      "y": 0,
+      "width": 462,
+      "height": 105,
+      "top": 0,
+      "right": 462,
+      "bottom": 105,
+      "left": 0
+    },
+    "modal": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0
+    },
+    "loadscr": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0
+    },
+    "rootWidth": 462,
+    "scrollWidth": 462,
+    "bottomPadding": "34px",
+    "lastButtonBottom": 896,
+    "navCount": 18,
+    "buttons": [
+      {
+        "text": "🏠总览",
+        "top": 823.203125,
+        "bottom": 857.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "✉收件箱1",
+        "top": 823.203125,
+        "bottom": 857.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "📅赛程",
+        "top": 823.203125,
+        "bottom": 857.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "👥阵容",
+        "top": 823.203125,
+        "bottom": 857.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "⚽战术",
+        "top": 823.203125,
+        "bottom": 857.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🏃训练",
+        "top": 823.203125,
+        "bottom": 857.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🌱青训",
+        "top": 823.203125,
+        "bottom": 857.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "💱转会",
+        "top": 823.203125,
+        "bottom": 857.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🔍球探",
+        "top": 823.203125,
+        "bottom": 857.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "💷财政",
+        "top": 861.6015625,
+        "bottom": 896,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🏗建设",
+        "top": 861.6015625,
+        "bottom": 896,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🏟俱乐部",
+        "top": 861.6015625,
+        "bottom": 896,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🏆赛事",
+        "top": 861.6015625,
+        "bottom": 896,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🌍国际足坛",
+        "top": 861.6015625,
+        "bottom": 896,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🇺🇳国家队",
+        "top": 861.6015625,
+        "bottom": 896,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "📰快讯",
+        "top": 861.6015625,
+        "bottom": 896,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "💾存档",
+        "top": 861.6015625,
+        "bottom": 896,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "⋯其他",
+        "top": 861.6015625,
+        "bottom": 896,
+        "inside": true,
+        "hit": true
+      }
+    ],
+    "savePaused": true,
+    "device": {
+      "innerWidth": 462,
+      "innerHeight": 932,
+      "visualWidth": 462,
+      "visualHeight": 932,
+      "visualTop": 0,
+      "visualScale": 0.85,
+      "pixelRatio": 2,
+      "targetHeight": 932,
+      "screenWidth": 393,
+      "screenHeight": 852,
+      "standalone": true,
+      "safeTop": "59px",
+      "safeBottom": "34px",
+      "navPadding": "34px",
+      "navHeight": 112.8,
+      "appBottom": 932,
+      "navBottom": 932,
+      "lastButtonBottom": 896,
+      "mobileNav": true,
+      "navTotal": 18,
+      "navInside": 18
+    },
+    "test": "reported-scale085"
+  },
+  {
+    "mode": "installed",
+    "innerHeight": 793,
+    "actualHeight": 793,
+    "app": {
+      "x": 0,
+      "y": 0,
+      "width": 393,
+      "height": 793,
+      "top": 0,
+      "right": 393,
+      "bottom": 793,
+      "left": 0
+    },
+    "side": {
+      "x": 0,
+      "y": 680.203125,
+      "width": 393,
+      "height": 112.796875,
+      "top": 680.203125,
+      "right": 393,
+      "bottom": 793,
+      "left": 0
+    },
+    "view": {
+      "x": 0,
+      "y": 46,
+      "width": 393,
+      "height": 634.203125,
+      "top": 46,
+      "right": 393,
+      "bottom": 680.203125,
+      "left": 0
+    },
+    "topbar": {
+      "x": 0,
+      "y": 0,
+      "width": 393,
+      "height": 46,
+      "top": 0,
+      "right": 393,
+      "bottom": 46,
+      "left": 0
+    },
+    "modal": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0
+    },
+    "loadscr": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0
+    },
+    "rootWidth": 393,
+    "scrollWidth": 393,
+    "bottomPadding": "34px",
+    "lastButtonBottom": 757,
+    "navCount": 18,
+    "buttons": [
+      {
+        "text": "🏠总览",
+        "top": 684.203125,
+        "bottom": 718.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "✉收件箱1",
+        "top": 684.203125,
+        "bottom": 718.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "📅赛程",
+        "top": 684.203125,
+        "bottom": 718.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "👥阵容",
+        "top": 684.203125,
+        "bottom": 718.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "⚽战术",
+        "top": 684.203125,
+        "bottom": 718.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🏃训练",
+        "top": 684.203125,
+        "bottom": 718.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🌱青训",
+        "top": 684.203125,
+        "bottom": 718.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "💱转会",
+        "top": 684.203125,
+        "bottom": 718.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🔍球探",
+        "top": 684.203125,
+        "bottom": 718.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "💷财政",
+        "top": 722.6015625,
+        "bottom": 757,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🏗建设",
+        "top": 722.6015625,
+        "bottom": 757,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🏟俱乐部",
+        "top": 722.6015625,
+        "bottom": 757,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🏆赛事",
+        "top": 722.6015625,
+        "bottom": 757,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🌍国际足坛",
+        "top": 722.6015625,
+        "bottom": 757,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🇺🇳国家队",
+        "top": 722.6015625,
+        "bottom": 757,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "📰快讯",
+        "top": 722.6015625,
+        "bottom": 757,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "💾存档",
+        "top": 722.6015625,
+        "bottom": 757,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "⋯其他",
+        "top": 722.6015625,
+        "bottom": 757,
+        "inside": true,
+        "hit": true
+      }
+    ],
+    "savePaused": true,
+    "device": {
+      "innerWidth": 393,
+      "innerHeight": 793,
+      "visualWidth": 393,
+      "visualHeight": 793,
+      "visualTop": 0,
+      "visualScale": 1,
+      "pixelRatio": 1,
+      "targetHeight": 793,
+      "screenWidth": 393,
+      "screenHeight": 852,
+      "standalone": true,
+      "safeTop": "0px",
+      "safeBottom": "34px",
+      "navPadding": "34px",
+      "navHeight": 112.8,
+      "appBottom": 793,
+      "navBottom": 793,
+      "lastButtonBottom": 757,
+      "mobileNav": true,
+      "navTotal": 18,
+      "navInside": 18
+    },
+    "test": "opaque-portrait"
+  },
+  {
+    "mode": "installed",
+    "innerHeight": 681,
+    "actualHeight": 681,
+    "app": {
+      "x": 0,
+      "y": 0,
+      "width": 320,
+      "height": 681,
+      "top": 0,
+      "right": 320,
+      "bottom": 681,
+      "left": 0
+    },
+    "side": {
+      "x": 0,
+      "y": 568.203125,
+      "width": 320,
+      "height": 112.796875,
+      "top": 568.203125,
+      "right": 320,
+      "bottom": 681,
+      "left": 0
+    },
+    "view": {
+      "x": 0,
+      "y": 46,
+      "width": 320,
+      "height": 522.203125,
+      "top": 46,
+      "right": 320,
+      "bottom": 568.203125,
+      "left": 0
+    },
+    "topbar": {
+      "x": 0,
+      "y": 0,
+      "width": 320,
+      "height": 46,
+      "top": 0,
+      "right": 320,
+      "bottom": 46,
+      "left": 0
+    },
+    "modal": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0
+    },
+    "loadscr": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0
+    },
+    "rootWidth": 320,
+    "scrollWidth": 320,
+    "bottomPadding": "34px",
+    "lastButtonBottom": 645,
+    "navCount": 18,
+    "buttons": [
+      {
+        "text": "🏠总览",
+        "top": 572.203125,
+        "bottom": 606.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "✉收件箱1",
+        "top": 572.203125,
+        "bottom": 606.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "📅赛程",
+        "top": 572.203125,
+        "bottom": 606.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "👥阵容",
+        "top": 572.203125,
+        "bottom": 606.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "⚽战术",
+        "top": 572.203125,
+        "bottom": 606.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🏃训练",
+        "top": 572.203125,
+        "bottom": 606.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🌱青训",
+        "top": 572.203125,
+        "bottom": 606.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "💱转会",
+        "top": 572.203125,
+        "bottom": 606.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🔍球探",
+        "top": 572.203125,
+        "bottom": 606.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "💷财政",
+        "top": 610.6015625,
+        "bottom": 645,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🏗建设",
+        "top": 610.6015625,
+        "bottom": 645,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🏟俱乐部",
+        "top": 610.6015625,
+        "bottom": 645,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🏆赛事",
+        "top": 610.6015625,
+        "bottom": 645,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🌍国际足坛",
+        "top": 610.6015625,
+        "bottom": 645,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🇺🇳国家队",
+        "top": 610.6015625,
+        "bottom": 645,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "📰快讯",
+        "top": 610.6015625,
+        "bottom": 645,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "💾存档",
+        "top": 610.6015625,
+        "bottom": 645,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "⋯其他",
+        "top": 610.6015625,
+        "bottom": 645,
+        "inside": true,
+        "hit": true
+      }
+    ],
+    "savePaused": true,
+    "device": {
+      "innerWidth": 320,
+      "innerHeight": 681,
+      "visualWidth": 320,
+      "visualHeight": 681,
+      "visualTop": 0,
+      "visualScale": 1,
+      "pixelRatio": 1,
+      "targetHeight": 681,
+      "screenWidth": 320,
+      "screenHeight": 740,
+      "standalone": true,
+      "safeTop": "0px",
+      "safeBottom": "34px",
+      "navPadding": "34px",
+      "navHeight": 112.8,
+      "appBottom": 681,
+      "navBottom": 681,
+      "lastButtonBottom": 645,
+      "mobileNav": true,
+      "navTotal": 18,
+      "navInside": 18
+    },
+    "test": "opaque-narrow"
+  },
+  {
+    "mode": "installed",
+    "innerHeight": 372,
+    "actualHeight": 372,
+    "app": {
+      "x": 0,
+      "y": 0,
+      "width": 852,
+      "height": 372,
+      "top": 0,
+      "right": 852,
+      "bottom": 372,
+      "left": 0
+    },
+    "side": {
+      "x": 0,
+      "y": 272.203125,
+      "width": 852,
+      "height": 99.796875,
+      "top": 272.203125,
+      "right": 852,
+      "bottom": 372,
+      "left": 0
+    },
+    "view": {
+      "x": 0,
+      "y": 40,
+      "width": 852,
+      "height": 232.203125,
+      "top": 40,
+      "right": 852,
+      "bottom": 272.203125,
+      "left": 0
+    },
+    "topbar": {
+      "x": 0,
+      "y": 0,
+      "width": 852,
+      "height": 40,
+      "top": 0,
+      "right": 852,
+      "bottom": 40,
+      "left": 0
+    },
+    "modal": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0
+    },
+    "loadscr": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0
+    },
+    "rootWidth": 852,
+    "scrollWidth": 852,
+    "bottomPadding": "21px",
+    "lastButtonBottom": 349,
+    "navCount": 18,
+    "buttons": [
+      {
+        "text": "🏠总览",
+        "top": 276.203125,
+        "bottom": 310.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "✉收件箱1",
+        "top": 276.203125,
+        "bottom": 310.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "📅赛程",
+        "top": 276.203125,
+        "bottom": 310.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "👥阵容",
+        "top": 276.203125,
+        "bottom": 310.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "⚽战术",
+        "top": 276.203125,
+        "bottom": 310.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🏃训练",
+        "top": 276.203125,
+        "bottom": 310.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🌱青训",
+        "top": 276.203125,
+        "bottom": 310.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "💱转会",
+        "top": 276.203125,
+        "bottom": 310.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🔍球探",
+        "top": 276.203125,
+        "bottom": 310.6015625,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "💷财政",
+        "top": 314.6015625,
+        "bottom": 349,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🏗建设",
+        "top": 314.6015625,
+        "bottom": 349,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🏟俱乐部",
+        "top": 314.6015625,
+        "bottom": 349,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🏆赛事",
+        "top": 314.6015625,
+        "bottom": 349,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🌍国际足坛",
+        "top": 314.6015625,
+        "bottom": 349,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "🇺🇳国家队",
+        "top": 314.6015625,
+        "bottom": 349,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "📰快讯",
+        "top": 314.6015625,
+        "bottom": 349,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "💾存档",
+        "top": 314.6015625,
+        "bottom": 349,
+        "inside": true,
+        "hit": true
+      },
+      {
+        "text": "⋯其他",
+        "top": 314.6015625,
+        "bottom": 349,
+        "inside": true,
+        "hit": true
+      }
+    ],
+    "savePaused": true,
+    "device": {
+      "innerWidth": 852,
+      "innerHeight": 372,
+      "visualWidth": 852,
+      "visualHeight": 372,
+      "visualTop": 0,
+      "visualScale": 1,
+      "pixelRatio": 1,
+      "targetHeight": 372,
+      "screenWidth": 852,
+      "screenHeight": 393,
+      "standalone": true,
+      "safeTop": "0px",
+      "safeBottom": "21px",
+      "navPadding": "21px",
+      "navHeight": 99.8,
+      "appBottom": 372,
+      "navBottom": 372,
+      "lastButtonBottom": 349,
+      "mobileNav": true,
+      "navTotal": 18,
+      "navInside": 18
+    },
+    "test": "opaque-landscape"
+  }
+]
