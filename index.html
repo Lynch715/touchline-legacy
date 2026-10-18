@@ -24,6 +24,8 @@
   --sab:env(safe-area-inset-bottom,0px);
   --sal:env(safe-area-inset-left,0px);
   --sar:env(safe-area-inset-right,0px);
+  /* 部分 Safari 把隐藏工具栏计入 bottom inset；导航只为 Home 手势留白。 */
+  --nav-safe-bottom:min(var(--sab),34px);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
@@ -296,12 +298,12 @@ img.crest{display:inline-block}
   #side{order:2;
     width:100%;
     height:auto;flex:0 0 auto;
-    display:grid;grid-template-columns:repeat(9,minmax(0,1fr));align-items:stretch;
+    display:grid;grid-template-columns:repeat(9,minmax(0,1fr));align-items:stretch;align-content:start;
     overflow:hidden;overflow-anchor:none;
     border-right:none;border-top:1px solid var(--line);
     background:linear-gradient(180deg,#18202b,#121821);
     /* 背景铺到底，按钮完整避开 Home 手势区。 */
-    padding:1px var(--sar) max(var(--sab), 3px) var(--sal);
+    padding:1px var(--sar) max(var(--nav-safe-bottom), 3px) var(--sal);
     scrollbar-width:none}
   #side::-webkit-scrollbar{display:none}
   .nav-grp{display:none}
@@ -399,7 +401,7 @@ img.crest{display:inline-block}
     width:100%;height:auto;flex:0 0 auto;
     display:grid;grid-template-columns:repeat(9,minmax(0,1fr));align-items:stretch;
     overflow:hidden;border-right:none;border-top:1px solid var(--line);
-    padding:1px var(--sar) max(var(--sab), 3px) var(--sal)}
+    padding:1px var(--sar) max(var(--nav-safe-bottom), 3px) var(--sal)}
   html:not(.kb) .nav{min-width:0;margin:2px 1px;border-radius:8px;padding:3px 0 2px;font-size:9px;border:none}
   html:not(.kb) .nav.on{background:rgba(0,212,126,.13);color:var(--acc)}
   html:not(.kb) #view{padding:9px calc(11px + var(--sar)) calc(16px + var(--sab)) 11px}
@@ -14959,10 +14961,14 @@ function loadErrMsg(e){ return (e&&e.message==="oldver")? "这是旧版（仅英
 async function storageSelfTest(onStep){
   const R=[], log=(name,ok,msg)=>{ R.push({name,ok,msg:msg||""}); if(onStep) onStep(R); };
   const MB=n=>"x".repeat(Math.round(n*1048576));
-  let mode="浏览器标签页";
-  try{ if(window.matchMedia && (matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: fullscreen)").matches)) mode="桌面快捷方式/PWA 启动"; }catch(e){}
+  const mode=isStandaloneApp()?"桌面快捷方式/PWA 启动":"浏览器标签页";
   log("环境",true,`${location.protocol}//${location.host||"本地文件"}　${window.isSecureContext===false?"非安全上下文":"安全上下文"}　${mode}`);
   log("浏览器",true,navigator.userAgent);
+  log("界面版本",true,"iOS 底栏修复 20261018.2");
+  const layout=layoutSnapshot();
+  log("视口",true,`窗口 ${layout.innerWidth}×${layout.innerHeight}，可视 ${layout.visualWidth}×${layout.visualHeight}，偏移 ${layout.visualTop}，屏幕 ${layout.screenWidth}×${layout.screenHeight}`);
+  log("安全区",true,`原始上/下 ${layout.safeTop}/${layout.safeBottom}，底栏实际留白 ${layout.navPadding}，底栏高度 ${layout.navHeight}`);
+  log("页面位置",true,`主界面底边 ${layout.appBottom}，底栏底边 ${layout.navBottom}，末行按钮底边 ${layout.lastButtonBottom}，standalone=${layout.standalone}`);
 
   try{
     localStorage.setItem("__fmprobe","1"); localStorage.removeItem("__fmprobe");
@@ -15515,17 +15521,37 @@ function lockZoom(){
 let _oriT=0, _oriLast="";
 // black-translucent 主屏模式下，fixed 和 innerHeight 都可能少算状态栏高度。
 // 仅全屏 iOS 使用匹配方向的屏幕高度；普通网页、分屏窗口仍采用自己的视口。
+function isStandaloneApp(){
+  if(navigator.standalone===true) return true;
+  try{ return !!(window.matchMedia && (window.matchMedia("(display-mode: standalone)").matches || window.matchMedia("(display-mode: fullscreen)").matches)); }
+  catch(e){ return false; }
+}
+function layoutSnapshot(){
+  const r=document.documentElement, style=getComputedStyle(r), vv=window.visualViewport;
+  const side=document.getElementById("side"), a=document.getElementById("app");
+  const navs=side?[...side.querySelectorAll(".nav")]:[], last=navs[navs.length-1];
+  const round=n=>Math.round(n*100)/100;
+  return {innerWidth:window.innerWidth,innerHeight:window.innerHeight,
+    visualWidth:vv?round(vv.width):null,visualHeight:vv?round(vv.height):null,visualTop:vv?round(vv.offsetTop):null,
+    screenWidth:window.screen?.width,screenHeight:window.screen?.height,standalone:isStandaloneApp(),
+    safeTop:style.getPropertyValue("--sat").trim(),safeBottom:style.getPropertyValue("--sab").trim(),
+    navPadding:side?getComputedStyle(side).paddingBottom:null,
+    navHeight:side?round(side.getBoundingClientRect().height):null,
+    appBottom:a?round(a.getBoundingClientRect().bottom):null,
+    navBottom:side?round(side.getBoundingClientRect().bottom):null,
+    lastButtonBottom:last?round(last.getBoundingClientRect().bottom):null};
+}
 function appViewportHeight(){
   const h=window.innerHeight;
   if(!(h>0)) return 0;
   const vv=window.visualViewport;
   if(vv && Math.abs(vv.scale-1)>0.01) return 0;
-  let fullHeight=h;
+  let fullHeight=vv ? vv.height+vv.offsetTop : h;
   if(navigator.standalone===true && window.screen){
     const sw=window.screen.width, sh=window.screen.height, w=window.innerWidth;
     const screenHeight=Math.abs(w-sw)<=1 ? sh : Math.abs(w-sh)<=1 ? sw : 0;
     // 无浏览器工具栏且宽度等于屏幕时，才允许补回主屏应用漏掉的那一段。
-    if(screenHeight>=h) fullHeight=screenHeight;
+    if(screenHeight>=fullHeight) fullHeight=screenHeight;
   }
   const visibleHeight=vv ? Math.min(h,vv.height+vv.offsetTop) : h;
   // 硬件键盘或单纯聚焦不应收回安全区补偿；软键盘会明显压缩可视高度。

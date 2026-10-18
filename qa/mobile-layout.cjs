@@ -9,9 +9,10 @@ const helpers = script.slice(script.indexOf('function appViewportHeight(){'), sc
 let passed = 0;
 function check(name, overrides, expected) {
   const properties = new Map();
+  const win={innerHeight:793,innerWidth:393,screen:{width:393,height:852},...overrides.window};
+  if(!Object.hasOwn(overrides.window||{},'visualViewport')) win.visualViewport={height:win.innerHeight,offsetTop:0,scale:1};
   const context = {
-    window: { innerHeight: 793, innerWidth: 393, screen: { width: 393, height: 852 },
-      visualViewport: { height: 793, offsetTop: 0, scale: 1 }, ...overrides.window },
+    window:win,
     navigator: { standalone: false, ...overrides.navigator },
     document: { activeElement: overrides.input || null, documentElement: { style: {
       getPropertyValue: k => properties.get(k) || '', setProperty: (k, v) => properties.set(k, v)
@@ -68,6 +69,19 @@ check('Pinch zoom does not rewrite app geometry', {
   window: { visualViewport: { height: 400, offsetTop: 0, scale: 2 } }
 }, 0);
 check('Transient zero viewport is ignored', { window: { innerHeight: 0 } }, 0);
+check('Visual viewport grows before innerHeight catches up', {
+  window:{visualViewport:{height:852,offsetTop:0,scale:1}}
+},852);
+check('Visible viewport excludes browser toolbar', {
+  window:{visualViewport:{height:700,offsetTop:0,scale:1}}
+},700);
 assert(!html.includes('var(--sab) - 14px'), 'Bottom inset must not be reduced');
-assert(html.includes('max(var(--sab), 3px)'), 'Bottom controls need full safe area');
+assert(html.includes('min(var(--sab),34px)'), 'Home area must not include a phantom browser toolbar');
+assert(html.includes('max(var(--nav-safe-bottom), 3px)'), 'Bottom controls need the bounded home area');
+const modeHelper=script.slice(script.indexOf('function isStandaloneApp(){'),script.indexOf('function layoutSnapshot(){'));
+for(const [legacy,media,expected] of [[true,false,true],[false,true,true],[false,false,false]]){
+  const ctx={navigator:{standalone:legacy},window:{matchMedia:()=>({matches:media})}};
+  vm.createContext(ctx);vm.runInContext(modeHelper,ctx);
+  assert.equal(vm.runInContext('isStandaloneApp()',ctx),expected,'Launch mode detection');passed++;
+}
 console.log(`${passed} viewport scenarios passed; full game script syntax passed.`);
