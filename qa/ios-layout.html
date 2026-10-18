@@ -13,10 +13,19 @@
     const surface = new URLSearchParams(location.search).get('surface');
     const nativeHeight = Object.getOwnPropertyDescriptor(window, 'innerHeight');
     const actualHeight = () => nativeHeight.get.call(window);
-    if (mode === 'installed') {
+    if (mode === 'installed' || mode === 'reported') {
       Object.defineProperty(navigator, 'standalone', {configurable:true, value:true});
-      Object.defineProperty(window, 'innerHeight', {configurable:true, get:() => actualHeight() - (window.innerWidth < 600 ? 59 : 21)});
-      Object.defineProperty(window, 'screen', {configurable:true, value:{get width(){return window.innerWidth},get height(){return actualHeight()}}});
+      if(mode==='installed'){
+        Object.defineProperty(window, 'innerHeight', {configurable:true, get:() => actualHeight() - (window.innerWidth < 600 ? 59 : 21)});
+        Object.defineProperty(window, 'screen', {configurable:true, value:{get width(){return window.innerWidth},get height(){return actualHeight()}}});
+      }else{
+        Object.defineProperty(navigator,'userAgent',{configurable:true,value:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15'});
+        Object.defineProperty(window,'innerWidth',{configurable:true,value:462});
+        Object.defineProperty(window,'innerHeight',{configurable:true,value:932});
+        Object.defineProperty(window,'orientation',{configurable:true,value:0});
+        Object.defineProperty(window,'screen',{configurable:true,value:{width:393,height:852}});
+        Object.defineProperty(window,'visualViewport',{configurable:true,value:{width:462,height:932,offsetTop:0,offsetLeft:0,scale:Number(new URLSearchParams(location.search).get('scale')||1),addEventListener:()=>{}}});
+      }
     }
     document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
@@ -40,7 +49,7 @@
     });
   };
   const setupScript='('+setup.toString().replace('MODE',JSON.stringify(mode))+')();';
-  const safeStyle=mode==='installed' ? '<style>:root{--sat:59px;--sab:'+inset+'px;--sal:0px;--sar:0px}'+(baseline?'#side{padding-bottom:max(var(--sab),3px)!important}':'')+'@media(orientation:landscape){:root{--sat:0px;--sab:21px;--sal:59px;--sar:59px}}</style>' : '';
+  const safeStyle=mode==='installed'||mode==='reported' ? '<style>:root{--sat:59px;--sab:'+inset+'px;--sal:0px;--sar:0px}'+(baseline?(mode==='reported'?'#app{height:932px!important;bottom:auto!important}':'#side{padding-bottom:max(var(--sab),3px)!important}'):'')+'@media(orientation:landscape){:root{--sat:0px;--sab:21px;--sal:59px;--sar:59px}}</style>' : '';
   const result=source.replace('</head>',safeStyle+'<script>'+setupScript+'<\/script></head>');
   document.open();document.write(result);document.close();
 })();

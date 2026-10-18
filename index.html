@@ -14964,9 +14964,10 @@ async function storageSelfTest(onStep){
   const mode=isStandaloneApp()?"桌面快捷方式/PWA 启动":"浏览器标签页";
   log("环境",true,`${location.protocol}//${location.host||"本地文件"}　${window.isSecureContext===false?"非安全上下文":"安全上下文"}　${mode}`);
   log("浏览器",true,navigator.userAgent);
-  log("界面版本",true,"iOS 底栏修复 20261018.2");
+  log("界面版本",true,"iOS 底栏修复 20261018.3");
   const layout=layoutSnapshot();
   log("视口",true,`窗口 ${layout.innerWidth}×${layout.innerHeight}，可视 ${layout.visualWidth}×${layout.visualHeight}，偏移 ${layout.visualTop}，屏幕 ${layout.screenWidth}×${layout.screenHeight}`);
+  log("缩放",true,`可视倍率 ${layout.visualScale}，像素倍率 ${layout.pixelRatio}，全屏目标高度 ${layout.targetHeight}`);
   log("安全区",true,`原始上/下 ${layout.safeTop}/${layout.safeBottom}，底栏实际留白 ${layout.navPadding}，底栏高度 ${layout.navHeight}`);
   log("页面位置",true,`主界面底边 ${layout.appBottom}，底栏底边 ${layout.navBottom}，末行按钮底边 ${layout.lastButtonBottom}，standalone=${layout.standalone}`);
 
@@ -15520,7 +15521,7 @@ function lockZoom(){
 // 屏幕旋转：等布局稳定后重绘一次，避免残留滚动偏移与半旧布局
 let _oriT=0, _oriLast="";
 // black-translucent 主屏模式下，fixed 和 innerHeight 都可能少算状态栏高度。
-// 仅全屏 iOS 使用匹配方向的屏幕高度；普通网页、分屏窗口仍采用自己的视口。
+// iPhone 主屏模式把屏幕尺寸换算为当前页面 CSS 单位；iPad 分屏不使用手机换算。
 function isStandaloneApp(){
   if(navigator.standalone===true) return true;
   try{ return !!(window.matchMedia && (window.matchMedia("(display-mode: standalone)").matches || window.matchMedia("(display-mode: fullscreen)").matches)); }
@@ -15533,6 +15534,7 @@ function layoutSnapshot(){
   const round=n=>Math.round(n*100)/100;
   return {innerWidth:window.innerWidth,innerHeight:window.innerHeight,
     visualWidth:vv?round(vv.width):null,visualHeight:vv?round(vv.height):null,visualTop:vv?round(vv.offsetTop):null,
+    visualScale:vv?round(vv.scale):null,pixelRatio:window.devicePixelRatio,targetHeight:appViewportHeight(),
     screenWidth:window.screen?.width,screenHeight:window.screen?.height,standalone:isStandaloneApp(),
     safeTop:style.getPropertyValue("--sat").trim(),safeBottom:style.getPropertyValue("--sab").trim(),
     navPadding:side?getComputedStyle(side).paddingBottom:null,
@@ -15545,12 +15547,21 @@ function appViewportHeight(){
   const h=window.innerHeight;
   if(!(h>0)) return 0;
   const vv=window.visualViewport;
-  if(vv && Math.abs(vv.scale-1)>0.01) return 0;
+  // 只跳过真正缩小了可视宽度的双指放大；整页缩放不等于双指缩放。
+  if(vv && vv.scale>1.01 && (!Number.isFinite(vv.width) || vv.width<window.innerWidth-1)) return 0;
   let fullHeight=vv ? vv.height+vv.offsetTop : h;
   if(navigator.standalone===true && window.screen){
     const sw=window.screen.width, sh=window.screen.height, w=window.innerWidth;
-    const screenHeight=Math.abs(w-sw)<=1 ? sh : Math.abs(w-sh)<=1 ? sw : 0;
-    // 无浏览器工具栏且宽度等于屏幕时，才允许补回主屏应用漏掉的那一段。
+    let screenHeight=Math.abs(w-sw)<=1 ? sh : Math.abs(w-sh)<=1 ? sw : 0;
+    if(/iPhone|iPod/.test(navigator.userAgent||"") && sw>0 && sh>0){
+      let landscape=w>h;
+      if(typeof window.orientation==="number") landscape=Math.abs(window.orientation)===90;
+      else if(window.screen.orientation?.type) landscape=window.screen.orientation.type.indexOf("landscape")===0;
+      const displayWidth=landscape?Math.max(sw,sh):Math.min(sw,sh);
+      const displayHeight=landscape?Math.min(sw,sh):Math.max(sw,sh);
+      // 真机可出现窗口 462×932、屏幕 393×852；不能直接比较两套单位。
+      screenHeight=Math.ceil(displayHeight*w/displayWidth*100)/100;
+    }
     if(screenHeight>=fullHeight) fullHeight=screenHeight;
   }
   const visibleHeight=vv ? Math.min(h,vv.height+vv.offsetTop) : h;

@@ -75,6 +75,28 @@ check('Visual viewport grows before innerHeight catches up', {
 check('Visible viewport excludes browser toolbar', {
   window:{visualViewport:{height:700,offsetTop:0,scale:1}}
 },700);
+for(const scale of [1,0.85,1.176]){
+  check(`Reported iPhone 462×932 / 393×852, scale ${scale}`,{
+    navigator:{standalone:true,userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X)'},
+    window:{innerWidth:462,innerHeight:932,orientation:0,visualViewport:{width:462,height:932,offsetTop:0,scale}}
+  },1001.59);
+}
+check('Zoomed-in iPhone uses the same CSS unit conversion',{
+  navigator:{standalone:true,userAgent:'iPhone'},
+  window:{innerWidth:314,innerHeight:634,orientation:0}
+},680.74);
+check('Scaled landscape iPhone respects physical orientation',{
+  navigator:{standalone:true,userAgent:'iPhone'},
+  window:{innerWidth:1002,innerHeight:438,orientation:90}
+},462.2);
+check('Scaled iPhone keyboard still shrinks to the visible area',{
+  navigator:{standalone:true,userAgent:'iPhone'},input:{tagName:'INPUT',type:'text'},
+  window:{innerWidth:462,innerHeight:500,orientation:0}
+},500);
+check('Scaled ordinary Safari tab is not forced to screen height',{
+  navigator:{standalone:false,userAgent:'iPhone'},
+  window:{innerWidth:462,innerHeight:932,orientation:0}
+},932);
 assert(!html.includes('var(--sab) - 14px'), 'Bottom inset must not be reduced');
 assert(html.includes('min(var(--sab),34px)'), 'Home area must not include a phantom browser toolbar');
 assert(html.includes('max(var(--nav-safe-bottom), 3px)'), 'Bottom controls need the bounded home area');
