@@ -1,0 +1,129 @@
+{
+  "passed": true,
+  "checks": 14,
+  "sha256": "fd2d76c30896d03bbb7cd6c1f21e8914c73bc0f8d3a63492cff3a89ab17a0b7f",
+  "results": [
+    {
+      "name": "夏窗：前一天无比赛、截止日无比赛，真实新报价可成交并正常关窗",
+      "pass": true
+    },
+    {
+      "name": "夏窗：前一天无比赛、截止日有比赛，真实新报价可成交并正常关窗",
+      "pass": true
+    },
+    {
+      "name": "夏窗：前一天有比赛、截止日无比赛，真实新报价可成交并正常关窗",
+      "pass": true
+    },
+    {
+      "name": "夏窗：前一天有比赛、截止日有比赛，真实新报价可成交并正常关窗",
+      "pass": true
+    },
+    {
+      "name": "冬窗：前一天无比赛、截止日无比赛，真实新报价可成交并正常关窗",
+      "pass": true
+    },
+    {
+      "name": "冬窗：前一天无比赛、截止日有比赛，真实新报价可成交并正常关窗",
+      "pass": true
+    },
+    {
+      "name": "冬窗：前一天有比赛、截止日无比赛，真实新报价可成交并正常关窗",
+      "pass": true
+    },
+    {
+      "name": "冬窗：前一天有比赛、截止日有比赛，真实新报价可成交并正常关窗",
+      "pass": true
+    },
+    {
+      "name": "夏窗：截止日还价后可成交，租借改条款后可外租",
+      "pass": true
+    },
+    {
+      "name": "冬窗：截止日还价后可成交，租借改条款后可外租",
+      "pass": true
+    },
+    {
+      "name": "夏窗：最后一天新到价报价可自动成交，剩余报价关窗清理",
+      "pass": true
+    },
+    {
+      "name": "冬窗：最后一天新到价报价可自动成交，剩余报价关窗清理",
+      "pass": true
+    },
+    {
+      "name": "夏窗：旧档直接停在31日先补报价、不跳日期，读回不重复刷",
+      "pass": true
+    },
+    {
+      "name": "冬窗：旧档直接停在31日先补报价、不跳日期，读回不重复刷",
+      "pass": true
+    }
+  ],
+  "coverage": [
+    {
+      "window": "summer",
+      "previousMatch": false,
+      "deadlineMatch": false,
+      "offeredDay": 30,
+      "acceptedDay": 30,
+      "closedDay": 31
+    },
+    {
+      "window": "summer",
+      "previousMatch": false,
+      "deadlineMatch": true,
+      "offeredDay": 30,
+      "acceptedDay": 30,
+      "closedDay": 31
+    },
+    {
+      "window": "summer",
+      "previousMatch": true,
+      "deadlineMatch": false,
+      "offeredDay": 30,
+      "acceptedDay": 30,
+      "closedDay": 31
+    },
+    {
+      "window": "summer",
+      "previousMatch": true,
+      "deadlineMatch": true,
+      "offeredDay": 30,
+      "acceptedDay": 30,
+      "closedDay": 31
+    },
+    {
+      "window": "winter",
+      "previousMatch": false,
+      "deadlineMatch": false,
+      "offeredDay": 183,
+      "acceptedDay": 183,
+      "closedDay": 184
+    },
+    {
+      "window": "winter",
+      "previousMatch": false,
+      "deadlineMatch": true,
+      "offeredDay": 183,
+      "acceptedDay": 183,
+      "closedDay": 184
+    },
+    {
+      "window": "winter",
+      "previousMatch": true,
+      "deadlineMatch": false,
+      "offeredDay": 183,
+      "acceptedDay": 183,
+      "closedDay": 184
+    },
+    {
+      "window": "winter",
+      "previousMatch": true,
+      "deadlineMatch": true,
+      "offeredDay": 183,
+      "acceptedDay": 183,
+      "closedDay": 184
+    }
+  ]
+}

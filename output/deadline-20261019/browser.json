@@ -1,0 +1,227 @@
+{
+  "results": [
+    {
+      "scene": "summer-no-match-before",
+      "state": {
+        "winter": false,
+        "match": false,
+        "day": 30,
+        "end": 30,
+        "date": "8/31",
+        "windowOpen": true,
+        "prepared": "2026:30",
+        "player": "闫相闯",
+        "playerClub": 392,
+        "buyer": 0,
+        "buyerName": "曼彻斯特城",
+        "offers": [
+          {
+            "day": 30,
+            "until": 30,
+            "valid": true
+          }
+        ],
+        "closures": 0
+      }
+    },
+    {
+      "scene": "summer-no-match-accepted",
+      "state": {
+        "winter": false,
+        "match": false,
+        "day": 30,
+        "end": 30,
+        "date": "8/31",
+        "windowOpen": true,
+        "prepared": "2026:30",
+        "player": "闫相闯",
+        "playerClub": 0,
+        "buyer": 0,
+        "buyerName": "曼彻斯特城",
+        "offers": [],
+        "closures": 0
+      }
+    },
+    {
+      "scene": "winter-no-match-before",
+      "state": {
+        "winter": true,
+        "match": false,
+        "day": 183,
+        "end": 183,
+        "date": "1/31",
+        "windowOpen": true,
+        "prepared": "2026:183",
+        "player": "闫相闯",
+        "playerClub": 392,
+        "buyer": 0,
+        "buyerName": "曼彻斯特城",
+        "offers": [
+          {
+            "day": 183,
+            "until": 183,
+            "valid": true
+          }
+        ],
+        "closures": 0
+      }
+    },
+    {
+      "scene": "winter-no-match-accepted",
+      "state": {
+        "winter": true,
+        "match": false,
+        "day": 183,
+        "end": 183,
+        "date": "1/31",
+        "windowOpen": true,
+        "prepared": "2026:183",
+        "player": "闫相闯",
+        "playerClub": 0,
+        "buyer": 0,
+        "buyerName": "曼彻斯特城",
+        "offers": [],
+        "closures": 0
+      }
+    },
+    {
+      "scene": "winter-no-match-closed",
+      "state": {
+        "winter": true,
+        "match": false,
+        "day": 184,
+        "end": 183,
+        "date": "2/1",
+        "windowOpen": false,
+        "prepared": "2026:183",
+        "player": "闫相闯",
+        "playerClub": 0,
+        "buyer": 0,
+        "buyerName": "曼彻斯特城",
+        "offers": [],
+        "closures": 1
+      }
+    },
+    {
+      "scene": "summer-match-before",
+      "state": {
+        "winter": false,
+        "match": true,
+        "day": 30,
+        "end": 30,
+        "date": "8/31",
+        "windowOpen": true,
+        "prepared": "2026:30",
+        "player": "闫相闯",
+        "playerClub": 392,
+        "buyer": 0,
+        "buyerName": "曼彻斯特城",
+        "offers": [
+          {
+            "day": 30,
+            "until": 30,
+            "valid": true
+          }
+        ],
+        "closures": 0
+      }
+    },
+    {
+      "scene": "summer-match-accepted",
+      "state": {
+        "winter": false,
+        "match": true,
+        "day": 30,
+        "end": 30,
+        "date": "8/31",
+        "windowOpen": true,
+        "prepared": "2026:30",
+        "player": "闫相闯",
+        "playerClub": 0,
+        "buyer": 0,
+        "buyerName": "曼彻斯特城",
+        "offers": [],
+        "closures": 0
+      }
+    },
+    {
+      "scene": "summer-match-closed",
+      "state": {
+        "winter": false,
+        "match": true,
+        "day": 31,
+        "end": 30,
+        "date": "9/1",
+        "windowOpen": false,
+        "prepared": "2026:30",
+        "player": "闫相闯",
+        "playerClub": 0,
+        "buyer": 0,
+        "buyerName": "曼彻斯特城",
+        "offers": [],
+        "closures": 1
+      }
+    },
+    {
+      "scene": "winter-match-before",
+      "state": {
+        "winter": true,
+        "match": true,
+        "day": 183,
+        "end": 183,
+        "date": "1/31",
+        "windowOpen": true,
+        "prepared": "2026:183",
+        "player": "闫相闯",
+        "playerClub": 392,
+        "buyer": 0,
+        "buyerName": "曼彻斯特城",
+        "offers": [
+          {
+            "day": 183,
+            "until": 183,
+            "valid": true
+          }
+        ],
+        "closures": 0
+      }
+    },
+    {
+      "scene": "winter-match-accepted",
+      "state": {
+        "winter": true,
+        "match": true,
+        "day": 183,
+        "end": 183,
+        "date": "1/31",
+        "windowOpen": true,
+        "prepared": "2026:183",
+        "player": "闫相闯",
+        "playerClub": 0,
+        "buyer": 0,
+        "buyerName": "曼彻斯特城",
+        "offers": [],
+        "closures": 0
+      }
+    },
+    {
+      "scene": "winter-match-closed",
+      "state": {
+        "winter": true,
+        "match": true,
+        "day": 184,
+        "end": 183,
+        "date": "2/1",
+        "windowOpen": false,
+        "prepared": "2026:183",
+        "player": "闫相闯",
+        "playerClub": 0,
+        "buyer": 0,
+        "buyerName": "曼彻斯特城",
+        "offers": [],
+        "closures": 1
+      }
+    }
+  ],
+  "errors": []
+}

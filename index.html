@@ -9261,7 +9261,26 @@ function marketDaily(){
     const n=(WORLD.offers||[]).length;
     news(`${windowName()}截止日临近`,`转会窗将在 3 天后关闭，各俱乐部正在加紧最后的谈判${n?`。你手上还有 ${n} 份未处理的报价，窗口关闭后将自动失效`:""}。`,"warn");
   }
-  if(WORLD.day===endD){
+}
+function isTransferDeadline(){
+  return inTransferWindow() && WORLD.day===windowEndDay();
+}
+function prepareDeadlineMarket(){
+  if(!isTransferDeadline()) return false;
+  const key=WORLD.season+":"+WORLD.day;
+  if(WORLD.deadlineMarketKey===key) return false;
+  marketDaily();
+  WORLD.deadlineMarketKey=key;
+  news(`${windowName()}截止日`,"今天仍可接受报价、还价或调整租借条款。离开今天（继续推进或完成今天的比赛）后，转会窗才会关闭，未处理的报价将失效。","warn");
+  markDirty();
+  return true;
+}
+function closeTransferWindow(){
+  if(!isTransferDeadline()) return;
+  const key=WORLD.season+":"+WORLD.day;
+  if(WORLD.closedTransferWindowKey===key) return;
+  const u=UC(), endD=windowEndDay();
+
     // 挂了一整窗没人问的，给一条提示，顺便说清可能的原因
     u.squad.map(i=>P(i)).filter(p=>p.listed && !p.loan).forEach(p=>{
       if((WORLD.offers||[]).some(o=>o.pid===p.id)) return;
@@ -9279,8 +9298,9 @@ function marketDaily(){
     const paid=L.filter(t=>t.fee>0);
     const top=paid.sort((a,b)=>b.fee-a.fee)[0];
     news(`${windowName()}关闭`,`本次转会窗共完成 ${L.length} 笔转会（其中 ${paid.length} 笔付费转会），总金额 ${money(paid.reduce((s,t)=>s+t.fee,0))}${top?`；标王为 ${top.name}（${C(top.to).cn}，${money(top.fee)}）`:""}。下一个转会窗约 ${nextWindowIn()} 天后开启。`,"info");
-  }
+  WORLD.closedTransferWindowKey=key;
 }
+
 
 // ---------- 处理收到的报价 ----------
 function offerExpiryDay(of){ return of.until ?? of.day+7; }
@@ -12083,13 +12103,15 @@ function processDayEnd(day){
     if(date.getMonth()===0&&date.getDate()===1) contractReminder("winter");
     const last=lastFixtureDay();if(last>20&&day>=last-14) contractReminder("final");
   }
-  if(inTransferWindow()) marketDaily();
+  // 截止日报价已在进入当天时生成，日结不再生成玩家无法处理的新报价。
+  if(inTransferWindow() && !isTransferDeadline()) marketDaily();
   faSigningRound();                 // 自由球员不受转会窗限制，全年都跑
   const dt=dateOf(day);
   if(dt.getDay()===1) weeklyTick();
   if(dt.getMonth()===2 && dt.getDate()===20 && !WORLD.youthDone){ WORLD.youthDone=true; youthIntake(); }
   autoSellRound();                  // 到价自动成交（留一天给竞价，所以放在报价过期之前）
-  // 到期当天仍可手动/自动处理，日结成交完成后清理。
+  closeTransferWindow();
+  // 离开当天时清理：包括截止日内手动成交、还价和自动成交完成之后。
   if(WORLD.offers) WORLD.offers=WORLD.offers.filter(o=>offerExpiryDay(o)>WORLD.day && inTransferWindow());
 }
 
@@ -12098,7 +12120,7 @@ function processDayEnd(day){
 function autoSellRound(){
   if(!inTransferWindow()) return;
   const u=UC(), offs=WORLD.offers||[];
-  const ready=offs.filter(o=>!offerDateError(o) && o.type!=="loan" && o.atAsk && o.day<WORLD.day
+  const ready=offs.filter(o=>!offerDateError(o) && o.type!=="loan" && o.atAsk && (o.day<WORLD.day || isTransferDeadline())
      && P(o.pid) && P(o.pid).autoSell && P(o.pid).clubId===u.id && !P(o.pid).loan);
   const byP={};
   ready.forEach(o=>{ if(!byP[o.pid] || o.fee>byP[o.pid].fee) byP[o.pid]=o; });
@@ -12116,12 +12138,15 @@ function autoSellRound(){
 // 主「继续」入口，返回状态
 function advance(){
   if(WORLD.gameOver) return {t:"over"};
+  // 兼容停在截止日的旧档：先让玩家处理新报价，再继续当天。
+  if(prepareDeadlineMarket()) return {t:"deadline"};
   const uf=userFixtureOn(WORLD.day);
   if(uf) return {t:"match", fx:uf};
   simDay(WORLD.day,false);
   processDayEnd(WORLD.day);
   WORLD.day++;
   if(WORLD.day>=SEASON_DAYS || allFixturesDone()){ WORLD.youthDone=false; endSeason(); return {t:"season"}; }
+  prepareDeadlineMarket();
   return {t:"day"};
 }
 function allFixturesDone(){ return !WORLD.fixtures.some(f=>!f.played); }
@@ -12137,6 +12162,7 @@ function finishUserMatch(){
   WORLD.day++;
   CURMATCH=null;
   if(WORLD.day>=SEASON_DAYS || allFixturesDone()){ WORLD.youthDone=false; endSeason(); return "season"; }
+  prepareDeadlineMarket();
   return "ok";
 }
 
@@ -15181,7 +15207,7 @@ async function storageSelfTest(onStep){
   log("环境",true,`${location.protocol}//${location.host||"本地文件"}　${window.isSecureContext===false?"非安全上下文":"安全上下文"}　${mode}`);
   log("浏览器",true,navigator.userAgent);
   log("界面版本",true,"iOS 底栏修复 20261018.4");
-  log("修复同步",true,"足球经理修复迁移 20261019.2");
+  log("修复同步",true,"足球经理修复迁移 20261019.3");
   const layout=layoutSnapshot();
   log("视口",true,`窗口 ${layout.innerWidth}×${layout.innerHeight}，可视 ${layout.visualWidth}×${layout.visualHeight}，偏移 ${layout.visualTop}，屏幕 ${layout.screenWidth}×${layout.screenHeight}`);
   log("缩放",true,`可视倍率 ${layout.visualScale}，像素倍率 ${layout.pixelRatio}，全屏目标高度 ${layout.targetHeight}`);
@@ -15467,6 +15493,7 @@ function autoSave(){ markDirty(); }
 function enterGame(){
   document.getElementById("loadscr").style.display="none";
   document.getElementById("app").style.display="flex";
+  prepareDeadlineMarket();
   render();
 }
 function continueGame(){

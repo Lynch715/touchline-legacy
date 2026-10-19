@@ -1,0 +1,78 @@
+{
+  "passed": false,
+  "checks": 14,
+  "sha256": "b1fdcfe80fbf69e38c349698c246e195c12a91e696f4c3cfb1492b61af5b251a",
+  "results": [
+    {
+      "name": "夏窗：前一天无比赛、截止日无比赛，真实新报价可成交并正常关窗",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(of)\n\n    at arrival (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:30:177)\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:34:52\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:32:28)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:33:114)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)"
+    },
+    {
+      "name": "夏窗：前一天无比赛、截止日有比赛，真实新报价可成交并正常关窗",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(of)\n\n    at arrival (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:30:177)\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:34:52\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:32:28)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:33:114)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)"
+    },
+    {
+      "name": "夏窗：前一天有比赛、截止日无比赛，真实新报价可成交并正常关窗",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(of)\n\n    at arrival (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:30:177)\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:34:52\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:32:28)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:33:114)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)"
+    },
+    {
+      "name": "夏窗：前一天有比赛、截止日有比赛，真实新报价可成交并正常关窗",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(of)\n\n    at arrival (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:30:177)\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:34:52\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:32:28)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:33:114)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)"
+    },
+    {
+      "name": "冬窗：前一天无比赛、截止日无比赛，真实新报价可成交并正常关窗",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(of)\n\n    at arrival (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:30:177)\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:34:52\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:32:28)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:33:114)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)"
+    },
+    {
+      "name": "冬窗：前一天无比赛、截止日有比赛，真实新报价可成交并正常关窗",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(of)\n\n    at arrival (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:30:177)\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:34:52\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:32:28)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:33:114)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)"
+    },
+    {
+      "name": "冬窗：前一天有比赛、截止日无比赛，真实新报价可成交并正常关窗",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(of)\n\n    at arrival (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:30:177)\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:34:52\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:32:28)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:33:114)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)"
+    },
+    {
+      "name": "冬窗：前一天有比赛、截止日有比赛，真实新报价可成交并正常关窗",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(of)\n\n    at arrival (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:30:177)\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:34:52\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:32:28)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:33:114)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)"
+    },
+    {
+      "name": "夏窗：截止日还价后可成交，租借改条款后可外租",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(of)\n\n    at arrival (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:30:177)\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:42:100\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:32:28)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:41:34)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)"
+    },
+    {
+      "name": "冬窗：截止日还价后可成交，租借改条款后可外租",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(of)\n\n    at arrival (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:30:177)\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:42:100\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:32:28)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:41:34)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)"
+    },
+    {
+      "name": "夏窗：最后一天新到价报价可自动成交，剩余报价关窗清理",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(of)\n\n    at arrival (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:30:177)\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:49:24\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:32:28)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:48:34)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)"
+    },
+    {
+      "name": "冬窗：最后一天新到价报价可自动成交，剩余报价关窗清理",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(of)\n\n    at arrival (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:30:177)\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:49:24\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:32:28)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:48:34)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)"
+    },
+    {
+      "name": "夏窗：旧档直接停在31日先补报价、不跳日期，读回不重复刷",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'day' !== 'deadline'\n\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:52:96\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:32:28)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:51:34)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "冬窗：旧档直接停在31日先补报价、不跳日期，读回不重复刷",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'day' !== 'deadline'\n\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:52:96\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:32:28)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/deadline.cjs:51:34)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    }
+  ],
+  "coverage": []
+}

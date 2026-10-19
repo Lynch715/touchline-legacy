@@ -1,0 +1,55 @@
+FAIL 夏窗：前一天无比赛、截止日无比赛，真实新报价可成交并正常关窗 The expression evaluated to a falsy value:
+
+  assert(of)
+
+FAIL 夏窗：前一天无比赛、截止日有比赛，真实新报价可成交并正常关窗 The expression evaluated to a falsy value:
+
+  assert(of)
+
+FAIL 夏窗：前一天有比赛、截止日无比赛，真实新报价可成交并正常关窗 The expression evaluated to a falsy value:
+
+  assert(of)
+
+FAIL 夏窗：前一天有比赛、截止日有比赛，真实新报价可成交并正常关窗 The expression evaluated to a falsy value:
+
+  assert(of)
+
+FAIL 冬窗：前一天无比赛、截止日无比赛，真实新报价可成交并正常关窗 The expression evaluated to a falsy value:
+
+  assert(of)
+
+FAIL 冬窗：前一天无比赛、截止日有比赛，真实新报价可成交并正常关窗 The expression evaluated to a falsy value:
+
+  assert(of)
+
+FAIL 冬窗：前一天有比赛、截止日无比赛，真实新报价可成交并正常关窗 The expression evaluated to a falsy value:
+
+  assert(of)
+
+FAIL 冬窗：前一天有比赛、截止日有比赛，真实新报价可成交并正常关窗 The expression evaluated to a falsy value:
+
+  assert(of)
+
+FAIL 夏窗：截止日还价后可成交，租借改条款后可外租 The expression evaluated to a falsy value:
+
+  assert(of)
+
+FAIL 冬窗：截止日还价后可成交，租借改条款后可外租 The expression evaluated to a falsy value:
+
+  assert(of)
+
+FAIL 夏窗：最后一天新到价报价可自动成交，剩余报价关窗清理 The expression evaluated to a falsy value:
+
+  assert(of)
+
+FAIL 冬窗：最后一天新到价报价可自动成交，剩余报价关窗清理 The expression evaluated to a falsy value:
+
+  assert(of)
+
+FAIL 夏窗：旧档直接停在31日先补报价、不跳日期，读回不重复刷 Expected values to be strictly equal:
+
+'day' !== 'deadline'
+
+FAIL 冬窗：旧档直接停在31日先补报价、不跳日期，读回不重复刷 Expected values to be strictly equal:
+
+'day' !== 'deadline'

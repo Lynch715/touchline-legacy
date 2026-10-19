@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "beforeSHA256": "b1fdcfe80fbf69e38c349698c246e195c12a91e696f4c3cfb1492b61af5b251a",
+  "afterSHA256": "fd2d76c30896d03bbb7cd6c1f21e8914c73bc0f8d3a63492cff3a89ab17a0b7f",
+  "bytes": 12981318,
+  "images": 1273,
+  "imagesUnchanged": true,
+  "aliasesEqual": true,
+  "changedFunctions": [
+    "marketDaily",
+    "isTransferDeadline",
+    "prepareDeadlineMarket",
+    "closeTransferWindow",
+    "processDayEnd",
+    "autoSellRound",
+    "advance",
+    "finishUserMatch",
+    "storageSelfTest",
+    "enterGame"
+  ],
+  "seasonMatchesFinalEngine": true
+}

@@ -1,0 +1,26 @@
+<!doctype html><meta charset="utf-8"><title>截止日报价 QA</title>
+<script>
+// Isolated QA world; no production progress is read or written by these scenarios.
+(async()=>{
+ const html=await(await fetch('../index.html',{cache:'no-store'})).text();
+ const setup=()=>document.addEventListener('DOMContentLoaded',()=>{
+  const originalStart=startMenu;startMenu=async function(){await originalStart();try{
+   newWorld(20261019,'Dalian Yingbo');SAVE_PAUSED=true;
+   const args=new URLSearchParams(location.search),winter=args.get('window')==='winter',match=args.get('match')==='1',u=UC(),end=Math.round((new Date(WORLD.season+(winter?1:0),winter?0:7,31)-dateOf(0))/864e5);
+   WORLD.day=end-1;WORLD.inbox=[];
+   const fx=WORLD.fixtures.find(f=>f.comp==='L'&&(f.home===u.id||f.away===u.id));WORLD.fixtures=WORLD.fixtures.filter(f=>f.day!==end-1&&f.day!==end);
+   if(match){WORLD.fixtures.push({...fx,day:end-1,played:false});WORLD.fixtures.push({...fx,day:end,played:false});}
+   const b=WORLD.clubs.find(c=>c.id!==u.id),p=u.squad.map(P).find(p=>p.pos==='ST');while(b.squad.length>=29)toFreeAgent(P(b.squad.at(-1)),b);
+   b.finance.balance=1e12;b.finance.locked=0;b.finance.cap0=1e12;
+   const cover=makePlayer(60,'ST',24,u.id);WORLD.players[cover.id]=cover;u.squad.push(cover.id);
+   p.age=24;p.listed=true;p.autoSell=false;p.askPrice=1000;p.releaseClause=0;p.injury=0;p.susp=0;
+   WORLD.offers=[];WORLD.interest=[{pid:p.id,club:b.id,heat:1}];
+   const originalOffers=aiOffersToUser;aiOffersToUser=function(){if(WORLD.day!==end)return;const r=rnd;rnd=()=>0;try{originalOffers()}finally{rnd=r}};
+   const report=document.createElement('script');report.type='application/json';report.id='deadline-report';document.body.appendChild(report);
+   const originalRender=render;render=function(){originalRender();report.textContent=JSON.stringify({winter,match,day:WORLD.day,end,date:fmtDateShort(dateOf(WORLD.day)),windowOpen:inTransferWindow(),prepared:WORLD.deadlineMarketKey,player:p.cn,playerClub:P(p.id).clubId,buyer:b.id,buyerName:b.cn,offers:WORLD.offers.filter(o=>o.pid===p.id).map(o=>({day:o.day,until:o.until,valid:!offerDateError(o)})),closures:WORLD.inbox.filter(m=>m.title===(winter?'冬窗':'夏窗')+'关闭').length})};
+   VIEW='transfer';enterGame();fitAppHeight();
+  }catch(e){console.error(e);const pre=document.createElement('pre');pre.id='deadline-error';pre.textContent=e.stack;document.body.appendChild(pre)}};
+ });
+ document.open();document.write(html.replace('</head>','<script>('+setup.toString()+')();<\/script></head>'));document.close();
+})();
+</script>

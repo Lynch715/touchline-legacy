@@ -1,0 +1,31 @@
+{
+  "passed": true,
+  "sha256": "fd2d76c30896d03bbb7cd6c1f21e8914c73bc0f8d3a63492cff3a89ab17a0b7f",
+  "matches": 20099,
+  "userMatches": 33,
+  "steps": 289,
+  "prepared": [
+    {
+      "day": 30,
+      "date": "8/31",
+      "offers": 0
+    },
+    {
+      "day": 183,
+      "date": "1/31",
+      "offers": 3
+    }
+  ],
+  "closed": [
+    30,
+    183
+  ],
+  "calendarDays": 289,
+  "marketDays": 62,
+  "competitions": {
+    "CL": 240,
+    "EL": 103,
+    "ECL": 109
+  },
+  "seconds": 263
+}

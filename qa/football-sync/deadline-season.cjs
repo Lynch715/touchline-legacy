@@ -1,0 +1,13 @@
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),assert=require('node:assert/strict');require('./shim.cjs');
+newWorld(17017,'Dalian Yingbo');SAVE_PAUSED=true;const season=WORLD.season,started=Date.now(),days=new Map(),marketDays=new Map(),prepared=[],closed=[];let matches=0,userMatches=0,steps=0;
+const original={dailyTick,marketDaily,prepareDeadlineMarket,closeTransferWindow,applyResult,endSeason};
+global.dailyTick=()=>{days.set(WORLD.day,(days.get(WORLD.day)||0)+1);original.dailyTick()};
+global.marketDaily=()=>{marketDays.set(WORLD.day,(marketDays.get(WORLD.day)||0)+1);original.marketDaily()};
+global.prepareDeadlineMarket=()=>{const result=original.prepareDeadlineMarket();if(result)prepared.push({day:WORLD.day,date:fmtDateShort(dateOf(WORLD.day)),offers:(WORLD.offers||[]).length});return result};
+global.closeTransferWindow=()=>{if(isTransferDeadline())closed.push(WORLD.day);original.closeTransferWindow()};
+global.applyResult=(f,m)=>{const r=original.applyResult(f,m);if(r)matches++;return r};
+let competitions;
+global.endSeason=()=>{assert(WORLD.fixtures.every(f=>f.played));assert(WORLD.cups.every(c=>c.winner!=null));assert(WORLD.playoffs.every(p=>p.done&&p.winner!=null));competitions=Object.fromEntries(['CL','EL','ECL'].map(k=>{const e=WORLD.euro[k];assert.equal(e.stage,'F');assert(e.winner!=null);return [k,e.winner]}));original.endSeason()};
+while(WORLD.season===season){const r=advance();assert.notEqual(r.t,'over');if(r.t==='match'){const f=r.fx;CURMATCH=runMatch(createMatch(f.home,f.away,{record:false,userSide:f.home===WORLD.userClub?0:1,...knockoutOpts(f)}));userMatches++;finishUserMatch()}clearTimeout(SAVE_TIMER);SAVE_PAUSED=true;if(++steps>SEASON_DAYS*3)throw Error('日历停滞');if(steps%60===0)console.log('PROGRESS',WORLD.season,WORLD.day,matches)}
+assert.equal(prepared.length,2);assert.deepEqual(closed,prepared.map(x=>x.day));for(const [day,n]of days)assert.equal(n,1,'日结重复 '+day);for(const [day,n]of marketDays)assert.equal(n,1,'市场重复 '+day);for(const x of prepared)assert.equal(marketDays.get(x.day),1);validateWorld(WORLD);const finance=JSON.stringify(WORLD.clubs.map(c=>c.finance));adoptWorld(JSON.parse(JSON.stringify(WORLD)));assert.equal(JSON.stringify(WORLD.clubs.map(c=>c.finance)),finance);
+const report={passed:true,sha256:crypto.createHash('sha256').update(fs.readFileSync(process.env.FMFILE||path.resolve(__dirname,'../../index.html'))).digest('hex'),matches,userMatches,steps,prepared,closed,calendarDays:days.size,marketDays:marketDays.size,competitions,seconds:Math.round((Date.now()-started)/1000)};fs.writeFileSync(path.resolve(__dirname,'../../output/deadline-20261019/season.json'),JSON.stringify(report,null,2));console.log('PASS',JSON.stringify(report));clearTimeout(SAVE_TIMER);
