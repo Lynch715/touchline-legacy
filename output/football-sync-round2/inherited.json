@@ -1,0 +1,26 @@
+[
+  {
+    "suite": "regression.cjs",
+    "exit": 0
+  },
+  {
+    "suite": "edge-regression.cjs",
+    "exit": 0
+  },
+  {
+    "suite": "v1-regression.cjs",
+    "exit": 0
+  },
+  {
+    "suite": "v2-regression.cjs",
+    "exit": 0
+  },
+  {
+    "suite": "instant-competitions.cjs",
+    "exit": 0
+  },
+  {
+    "suite": "storage-extra.cjs",
+    "exit": 0
+  }
+]

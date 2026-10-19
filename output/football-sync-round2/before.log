@@ -1,0 +1,23 @@
+FAIL 普通青训每批至少80%本国球员，覆盖21国且姓名池与国籍一致 英格兰 0/3
+PASS 非青训生成与现役国籍不被重写，特殊传奇保留本国身份
+PASS 三项欧战主/客胜及双方点球胜：冠军、奖金、奖杯、历史和新闻一致
+PASS 决赛经赛事日结颁奖给真正胜者，重复日结不重复发奖
+FAIL 修复截图所示旧决赛文案和点球顺序，旧奖金/冠军不改，反复读档幂等 repairLegacyFinalNews is not defined
+FAIL 受伤离场者可从手动换人列表选择，队列能执行且不能重复替换 subOuts is not defined
+FAIL 助教找不到替补时不提前锁死伤员，补位条件恢复后可重试 The expression evaluated to a falsy value:
+
+  assert(!out.subDone)
+
+FAIL 合同提醒独立保存、待业不催原队、最后提醒使用本队联赛末轮 contractReminder is not defined
+FAIL 外围欧洲俱乐部营收预测与实际转播/门票一致，欧战资格只进入整季预测 Expected values to be strictly equal:
++ actual - expected
+
++ 18235080
+- 38496280
+
+FAIL 球队档案名单可以直接打开球员 Expected values to be strictly equal:
+
+0 !== 22
+
+FAIL 压缩构造不支持/运行失败可逐项回退，旧Z1/Z2/Z3均能解压 unsupported
+FAIL 一层读取永不返回仍可读取其他有效副本，不向坏层自愈传播 hung storage read

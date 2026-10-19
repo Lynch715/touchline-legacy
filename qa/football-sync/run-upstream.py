@@ -24,6 +24,8 @@ with tempfile.TemporaryDirectory(prefix='touchline-upstream-') as tmp:
    for fixture in ['qa-precontract.json','qa-new-season.json']:
     s=s.replace("path.join(__dirname,'"+fixture+"')",json.dumps(str(upstream/fixture)))
   if name=='v1-regression.cjs':
+   # Expiration day is now valid; the historical expired case must be the following day.
+   s=s.replace('offer();WORLD.day=14;assert.equal(acceptOffer(0),false);','offer();WORLD.day=15;assert.equal(acceptOffer(0),false);')
    # The upstream positive case had a full buyer and removed positional cover. New guards
    # correctly reject that case; make it a genuinely legal sale without weakening assertions.
    s=s.replace('const u=reset(),b=WORLD.clubs.find(c=>c.id!==u.id),p=P(u.squad[1]);',"const u=reset(),b=WORLD.clubs.find(c=>c.id!==u.id),p=u.squad.map(P).find(p=>p.pos==='ST');\nwhile(b.squad.length>=30)toFreeAgent(P(b.squad.at(-1)),b);")

@@ -40,7 +40,7 @@ test('财政与总览的租借周薪按实际负担，薪资表包含外租',()=
  const tables=[],orig=global.makeTable;global.makeTable=(cols,rows)=>{tables.push({cols,rows});return document.createElement('div')};try{vFinance(document.createElement('div'));const t=tables.at(-1);assert(t.rows.some(q=>q.id===p.id));assert.equal(t.cols.find(c=>c.k==='w').v(p),p.wage*.5)}finally{global.makeTable=orig}
 });
 test('接报价复验买方预留人数、默认七天有效期、位置覆盖及零分担租借',()=>{
- const u=UC(),o=WORLD.clubs[0];fund(o);const p=u.squad.map(P).find(p=>p.pos!=='GK');WORLD.offers=[{pid:p.id,club:o.id,fee:0,wage:p.wage,day:0}];WORLD.day=7;assert.equal(acceptOffer(0),false);WORLD.day=0;
+ const u=UC(),o=WORLD.clubs[0];fund(o);const p=u.squad.map(P).find(p=>p.pos!=='GK');WORLD.offers=[{pid:p.id,club:o.id,fee:0,wage:p.wage,day:0}];WORLD.day=8;assert.equal(acceptOffer(0),false);WORLD.day=0;
  o.squad=o.squad.concat(Array.from({length:30},()=>o.squad[0]));assert.equal(acceptOffer(0),false);
 });
 test('可接受1.5/2倍放行价，硬性人数和位置底线仍拦截',()=>{

@@ -1,0 +1,111 @@
+{
+  "passed": true,
+  "sha256": "961569e91225700d9bd3b034d142c09df45c21cb817072735b548228839a5d55",
+  "results": [
+    {
+      "scenario": "new",
+      "season": 2026,
+      "competitions": {
+        "CL": {
+          "groups": 96,
+          "knockouts": 29,
+          "winner": 237
+        },
+        "EL": {
+          "groups": 96,
+          "knockouts": 29,
+          "winner": 174
+        },
+        "ECL": {
+          "groups": 96,
+          "knockouts": 29,
+          "winner": 175
+        }
+      },
+      "domesticCupWinners": 21,
+      "playoffs": 55,
+      "matchesSoFar": 20099,
+      "historyECL": 175,
+      "instantCompetitions": {
+        "clubContinentalCups": 3,
+        "superCup": true,
+        "clubWorldCupTeams": 4,
+        "worldChampionsLeagueTeams": 42,
+        "worldCup": false
+      },
+      "elapsedSeconds": 270
+    },
+    {
+      "scenario": "new",
+      "season": 2027,
+      "competitions": {
+        "CL": {
+          "groups": 96,
+          "knockouts": 29,
+          "winner": 311
+        },
+        "EL": {
+          "groups": 96,
+          "knockouts": 29,
+          "winner": 245
+        },
+        "ECL": {
+          "groups": 96,
+          "knockouts": 29,
+          "winner": 8
+        }
+      },
+      "domesticCupWinners": 21,
+      "playoffs": 55,
+      "matchesSoFar": 40198,
+      "historyECL": 8,
+      "instantCompetitions": {
+        "clubContinentalCups": 3,
+        "superCup": true,
+        "clubWorldCupTeams": 4,
+        "worldChampionsLeagueTeams": 42,
+        "worldCup": true
+      },
+      "elapsedSeconds": 545
+    },
+    {
+      "scenario": "legacy",
+      "season": 2026,
+      "competitions": {
+        "CL": {
+          "groups": 96,
+          "knockouts": 29,
+          "winner": 100
+        },
+        "EL": {
+          "groups": 96,
+          "knockouts": 29,
+          "winner": 4
+        },
+        "ECL": {
+          "groups": 96,
+          "knockouts": 29,
+          "winner": 317
+        }
+      },
+      "domesticCupWinners": 21,
+      "playoffs": 55,
+      "matchesSoFar": 60297,
+      "historyECL": 317,
+      "instantCompetitions": {
+        "clubContinentalCups": 3,
+        "superCup": true,
+        "clubWorldCupTeams": 4,
+        "worldChampionsLeagueTeams": 42,
+        "worldCup": false
+      },
+      "elapsedSeconds": 799
+    }
+  ],
+  "counts": {
+    "matches": 60297,
+    "userMatches": 71,
+    "advances": 866
+  },
+  "elapsedSeconds": 799
+}

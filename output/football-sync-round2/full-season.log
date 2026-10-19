@@ -1,0 +1,19 @@
+PROGRESS new 2026 60 5622 73
+PROGRESS new 2026 120 10704 135
+PROGRESS new 2026 180 14734 190
+PROGRESS new 2026 240 18780 242
+SEASON PASS {"scenario":"new","season":2026,"competitions":{"CL":{"groups":96,"knockouts":29,"winner":237},"EL":{"groups":96,"knockouts":29,"winner":174},"ECL":{"groups":96,"knockouts":29,"winner":175}},"domesticCupWinners":21,"playoffs":55,"matchesSoFar":20099,"historyECL":175,"instantCompetitions":{"clubContinentalCups":3,"superCup":true,"clubWorldCupTeams":4,"worldChampionsLeagueTeams":42,"worldCup":false},"elapsedSeconds":270}
+PROGRESS new 2027 0 20099 270
+PROGRESS new 2027 60 25721 346
+PROGRESS new 2027 120 30961 412
+PROGRESS new 2027 180 34833 460
+PROGRESS new 2027 240 38879 512
+SEASON PASS {"scenario":"new","season":2027,"competitions":{"CL":{"groups":96,"knockouts":29,"winner":311},"EL":{"groups":96,"knockouts":29,"winner":245},"ECL":{"groups":96,"knockouts":29,"winner":8}},"domesticCupWinners":21,"playoffs":55,"matchesSoFar":40198,"historyECL":8,"instantCompetitions":{"clubContinentalCups":3,"superCup":true,"clubWorldCupTeams":4,"worldChampionsLeagueTeams":42,"worldCup":true},"elapsedSeconds":545}
+PROGRESS new 2028 0 40198 546
+PROGRESS legacy 2026 60 45443 609
+PROGRESS legacy 2026 120 50730 671
+PROGRESS legacy 2026 180 54904 722
+PROGRESS legacy 2026 240 58978 772
+SEASON PASS {"scenario":"legacy","season":2026,"competitions":{"CL":{"groups":96,"knockouts":29,"winner":100},"EL":{"groups":96,"knockouts":29,"winner":4},"ECL":{"groups":96,"knockouts":29,"winner":317}},"domesticCupWinners":21,"playoffs":55,"matchesSoFar":60297,"historyECL":317,"instantCompetitions":{"clubContinentalCups":3,"superCup":true,"clubWorldCupTeams":4,"worldChampionsLeagueTeams":42,"worldCup":false},"elapsedSeconds":799}
+PROGRESS legacy 2027 0 60297 799
+FULL PASS { matches: 60297, userMatches: 71, advances: 866 }

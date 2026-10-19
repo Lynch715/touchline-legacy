@@ -1,0 +1,166 @@
+[
+  {
+    "scene": "news",
+    "oldBody": "波尔图 0-2 曼彻斯特城，波尔图 夺冠。",
+    "fixedBody": "曼彻斯特城 0-2 波尔图，波尔图 夺冠。"
+  },
+  {
+    "scene": "youth",
+    "cohort": [
+      {
+        "name": "磊·李",
+        "nation": "中国",
+        "legend": false,
+        "wonderkid": false
+      },
+      {
+        "name": "杨·徐",
+        "nation": "中国",
+        "legend": false,
+        "wonderkid": false
+      },
+      {
+        "name": "宇·何",
+        "nation": "中国",
+        "legend": false,
+        "wonderkid": false
+      },
+      {
+        "name": "杨·陈",
+        "nation": "中国",
+        "legend": false,
+        "wonderkid": false
+      }
+    ],
+    "layout": {
+      "navs": [
+        {
+          "hit": true,
+          "text": "🏠总览"
+        },
+        {
+          "hit": true,
+          "text": "✉收件箱3"
+        },
+        {
+          "hit": true,
+          "text": "📅赛程"
+        },
+        {
+          "hit": true,
+          "text": "👥阵容"
+        },
+        {
+          "hit": true,
+          "text": "⚽战术"
+        },
+        {
+          "hit": true,
+          "text": "🏃训练"
+        },
+        {
+          "hit": true,
+          "text": "🌱青训"
+        },
+        {
+          "hit": true,
+          "text": "💱转会"
+        },
+        {
+          "hit": true,
+          "text": "🔍球探"
+        },
+        {
+          "hit": true,
+          "text": "💷财政"
+        },
+        {
+          "hit": true,
+          "text": "🏗建设"
+        },
+        {
+          "hit": true,
+          "text": "🏟俱乐部"
+        },
+        {
+          "hit": true,
+          "text": "🏆赛事"
+        },
+        {
+          "hit": true,
+          "text": "🌍国际足坛"
+        },
+        {
+          "hit": true,
+          "text": "🇺🇳国家队"
+        },
+        {
+          "hit": true,
+          "text": "📰快讯"
+        },
+        {
+          "hit": true,
+          "text": "💾存档"
+        },
+        {
+          "hit": true,
+          "text": "⋯其他"
+        }
+      ],
+      "scrollWidth": 390,
+      "width": 390
+    }
+  },
+  {
+    "scene": "subs",
+    "remaining": "🔁 换人 (4)",
+    "errors": []
+  },
+  {
+    "scene": "contracts",
+    "rows": [
+      "首发10吕鹏 队长Lü Peng前腰356262充沛良好000-£53K£1.71M2026年 ⚠",
+      "首发8赵旭日Zhao Xuri中场385454充沛良好000-£35K£1.04M2026年 ⚠"
+    ]
+  },
+  {
+    "scene": "offers",
+    "buttons": [
+      {
+        "disabled": false,
+        "text": "接受"
+      },
+      {
+        "disabled": false,
+        "text": "还价"
+      },
+      {
+        "disabled": true,
+        "text": "接受"
+      },
+      {
+        "disabled": true,
+        "text": "还价"
+      },
+      {
+        "disabled": true,
+        "text": "接受"
+      },
+      {
+        "disabled": true,
+        "text": "改条款"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "scene": "news-final",
+    "body": "收件箱\n共 1 条消息\n全部标记为已读\n● 欧洲冠军联赛决赛\n5/8\n曼彻斯特城 0-2 波尔图，波尔图 夺冠。",
+    "viewport": {
+      "h": 844,
+      "scroll": 390,
+      "w": 390
+    },
+    "errors": []
+  }
+]

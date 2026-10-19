@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "newGroups": 18,
+  "repeatGroups": 133,
+  "totalGroups": 151,
+  "fullSeasonMatchesBeforeOfferFix": 60297,
+  "finalEngineFullSeasonMatches": 20099,
+  "finalEngineSHA256": "b1fdcfe80fbf69e38c349698c246e195c12a91e696f4c3cfb1492b61af5b251a",
+  "realDeviceAcceptance": false,
+  "sourceReadOnly": true
+}

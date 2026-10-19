@@ -1,0 +1,6 @@
+regression.cjs PASS
+edge-regression.cjs PASS
+v1-regression.cjs PASS
+v2-regression.cjs PASS
+instant-competitions.cjs PASS
+storage-extra.cjs PASS

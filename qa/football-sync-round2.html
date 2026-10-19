@@ -1,0 +1,45 @@
+<!doctype html><meta charset="utf-8"><title>第二轮迁移 QA</title>
+<script>
+// 仅本机测试：构造隔离世界，暂停保存，不读取或覆盖线上进度。
+(async()=>{
+ const html=await(await fetch('../index.html',{cache:'no-store'})).text();
+ const setup=()=>document.addEventListener('DOMContentLoaded',()=>{
+ const originalStart=startMenu;startMenu=async function(){await originalStart();
+ try{
+
+  newWorld(20261019,'Dalian Yingbo');SAVE_PAUSED=true;
+  const scene=new URLSearchParams(location.search).get('scene')||'news',report={scene};
+  if(scene==='youth'){
+   // 只在 QA 世界把既有球员设为22岁，突出本次新入队的真实青训批次。
+   UC().squad.map(P).forEach(p=>p.age=22);const before=new Set(UC().squad);
+   WORLD.day=Math.round((new Date(WORLD.season+1,2,20)-new Date(WORLD.season,7,1))/86400000);seedRng(20261019);youthIntake();
+   report.cohort=UC().squad.filter(id=>!before.has(id)).map(P).map(p=>({name:p.cn,nation:p.nat,legend:!!p.legend,wonderkid:!!p.wonderkid}));VIEW='youth';
+  }else if(scene==='news'){
+   const porto=WORLD.clubs.find(c=>c.cn==='波尔图'),city=WORLD.clubs.find(c=>c.en==='Manchester City');
+   report.oldBody=`${porto.cn} 0-2 ${city.cn}，${porto.cn} 夺冠。`;
+   WORLD.inbox=[{d:280,title:EURO_COMPS.CL.name+'决赛',body:report.oldBody,cat:'info',read:false}];
+   adoptWorld(JSON.parse(JSON.stringify(WORLD)));SAVE_PAUSED=true;report.fixedBody=WORLD.inbox[0].body;VIEW='inbox';
+  }else if(scene==='contracts'){
+   const own=UC().squad.map(P).filter(p=>!p.loan);own.forEach(p=>p.contract=WORLD.season+2);own[1].contract=WORLD.season;own[2].contract=WORLD.season;
+   WORLD.inbox=[];processDayEnd(0);VIEW='inbox';
+   }else if(scene==='offers'){
+   const u=UC(),buyers=WORLD.clubs.filter(c=>c.id!==u.id).slice(0,3),p=u.squad.map(P).find(p=>p.pos==='ST');
+   WORLD.day=7;WORLD.offers=buyers.map((b,i)=>({pid:p.id,club:b.id,fee:10000000,wage:p.wage,day:0,until:i===0?7:6,type:i===2?'loan':'transfer',wageShare:1,minApps:0}));
+   report.expiry=['today','expired','expired-loan'];VIEW='transfer';
+  }else if(scene==='subs'){
+   const fx=WORLD.fixtures.find(f=>!f.played&&(f.home===WORLD.userClub||f.away===WORLD.userClub));WORLD.day=fx.day;
+   CURMATCH=createMatch(fx.home,fx.away,{userSide:fx.home===WORLD.userClub?0:1,...knockoutOpts(fx)});VIEW='match';
+  }
+  enterGame();fitAppHeight();
+  const r=document.createElement('script');r.type='application/json';r.id='round2-report';r.textContent=JSON.stringify(report);document.body.appendChild(r);
+  if(scene==='subs'){
+   const b=document.createElement('button');b.id='qa-injure';b.textContent='QA：注入一名伤退球员';b.style.cssText='position:fixed;right:8px;top:4px;z-index:9999;font-size:10px';
+   b.onclick=()=>{const T=CURMATCH.teams[CURMATCH.userSide],out=T.men.find(m=>!m.off&&m.pos!=='GK');out.injured=true;out.off=true;out.rating=6.3;report.injured=out.p.cn;r.textContent=JSON.stringify(report);refreshMatchUI();b.remove()};document.body.appendChild(b);
+  }
+ }catch(e){console.error(e);const pre=document.createElement('pre');pre.id='round2-error';pre.textContent=e.stack;document.body.appendChild(pre)}
+ };
+ });
+ const bootstrap='<script>('+setup.toString()+')();<\/script>';
+ document.open();document.write(html.replace('</head>',bootstrap+'</head>'));document.close();
+})();
+</script>

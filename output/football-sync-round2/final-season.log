@@ -1,0 +1,7 @@
+PROGRESS legacy 2026 60 5245 70
+PROGRESS legacy 2026 120 10532 136
+PROGRESS legacy 2026 180 14706 185
+PROGRESS legacy 2026 240 18780 233
+SEASON PASS {"scenario":"legacy","season":2026,"competitions":{"CL":{"groups":96,"knockouts":29,"winner":1},"EL":{"groups":96,"knockouts":29,"winner":4},"ECL":{"groups":96,"knockouts":29,"winner":317}},"domesticCupWinners":21,"playoffs":55,"matchesSoFar":20099,"historyECL":317,"instantCompetitions":{"clubContinentalCups":3,"superCup":true,"clubWorldCupTeams":4,"worldChampionsLeagueTeams":42,"worldCup":false},"elapsedSeconds":261}
+PROGRESS legacy 2027 0 20099 261
+FULL PASS { matches: 20099, userMatches: 39, advances: 289 }
