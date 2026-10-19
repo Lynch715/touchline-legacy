@@ -1,0 +1,101 @@
+[
+  {
+    "stage": "group-control",
+    "state": {
+      "knockout": false,
+      "day": 23,
+      "matchDay": 23,
+      "club": "AC米兰",
+      "fixture": {
+        "stage": "G",
+        "played": false,
+        "hg": 0,
+        "ag": 0,
+        "pens": null,
+        "stats": false,
+        "players": 0
+      },
+      "match": {
+        "done": false,
+        "knockout": false,
+        "minute": 0.19110973770730197,
+        "subs": 1,
+        "mentality": 4
+      }
+    }
+  },
+  {
+    "stage": "group-settled",
+    "state": {
+      "knockout": false,
+      "day": 24,
+      "matchDay": 23,
+      "club": "AC米兰",
+      "fixture": {
+        "stage": "G",
+        "played": true,
+        "hg": 2,
+        "ag": 0,
+        "pens": null,
+        "stats": true,
+        "players": 32
+      },
+      "match": null
+    }
+  },
+  {
+    "stage": "knockout-control",
+    "state": {
+      "knockout": true,
+      "day": 170,
+      "matchDay": 170,
+      "club": "克鲁塞罗",
+      "fixture": {
+        "stage": "K",
+        "played": false,
+        "hg": 0,
+        "ag": 0,
+        "pens": null,
+        "stats": false,
+        "players": 0
+      },
+      "match": {
+        "done": false,
+        "knockout": true,
+        "minute": 0.05420688519254327,
+        "subs": 1,
+        "mentality": 4
+      }
+    }
+  },
+  {
+    "stage": "knockout-settled",
+    "state": {
+      "knockout": true,
+      "day": 171,
+      "matchDay": 170,
+      "club": "克鲁塞罗",
+      "fixture": {
+        "stage": "K",
+        "played": true,
+        "hg": 1,
+        "ag": 0,
+        "pens": null,
+        "stats": true,
+        "players": 32
+      },
+      "match": null
+    }
+  },
+  {
+    "stage": "world-progress",
+    "text": "赛事\n英格兰\n西班牙\n意大利\n德国\n法国\n中国\n日本\n沙特阿拉伯\n美国\n俄罗斯\n葡萄牙\n荷兰\n苏格兰\n瑞士\n芬兰\n比利时\n巴西\n韩国\n澳大利亚\n阿根廷\n土耳其\n欧战\n世界\n世界赛事\n世冠联赛 · 世俱杯 · 世界杯 · 洲际俱乐部赛事\n🏆 世界冠军联赛\n2026/27 · 42 支球队 · 1/4决赛\n本队已参赛：小组赛和淘汰赛均进入正常赛程，点击「继续」可手动比赛、换人和调整战术。\n查看本队赛程\nA 组\n球队\t赛\t分\t净胜\nAC米兰\t5\t15\t+14\n伊普斯维奇\t5\t10\t+4\n下诺夫哥罗德\t5\t6\t-9\n仁川联\t5\t5\t0\n上海申花\t5\t5\t-4\n亨克\t5\t1\t-5\n小组赛程与赛果\nB 组\n球队\t赛\t分\t净胜\n勒沃库森\t5\t13\t+8\n凯尔特人\t5\t12\t+9\nFC东京\t5\t6\t0\n卡萨皮亚\t5\t5\t-2\n光州FC\t5\t4\t-8\n亚特兰大联\t5\t2\t-7\n小组赛程与赛果\nC 组\n球队\t赛\t分\t净胜\n伯尔尼年轻人\t5\t10\t+3\n埃尔切\t5\t9\t+1\n博卡青年\t5\t7\t+2\n中央海岸水手\t5\t7\t0\n中央科尔多瓦\t5\t6\t0\n休斯顿迪纳摩\t5\t2\t-6\n小组赛程与赛果\nD 组\n球队\t赛\t分\t净胜\n加拉塔萨雷\t5\t11\t+11\n塞尔塔\t5\t11\t+10\n伊韦尔东\t5\t7\t-1\n圣吉罗斯联合\t5\t6\t-10\n京都不死鸟\t5\t3\t-5\n博阿维斯塔\t5\t2\t-5\n小组赛程与赛果\nE 组\n球队\t赛\t分\t净胜\n利雅得新月\t5\t15\t+14\n不莱梅\t5\t9\t+3\n乌拉尔\t5\t5\t-2\n兹沃勒\t5\t5\t-5\n伊斯坦布尔巴萨克赛尔\t5\t3\t-5\n伊尔维斯\t5\t3\t-5\n小组赛程与赛果\nF 组\n球队\t赛\t分\t净胜\n伯恩茅斯\t5\t11\t+4\n博塔弗戈\t5\t8\t+3\n哈卡\t5\t8\t+2\n勒芒\t5\t6\t-3\n上海海港\t5\t3\t0\n勒阿弗尔\t5\t3\t-6\n小组赛程与赛果\nG 组\n球队\t赛\t分\t净胜\n克鲁塞罗\t5\t12\t+9\n乌迪内斯\t5\t10\t+11\n墨尔本城\t5\t7\t+1\n利雅得体育\t5\t6\t-2\n利文斯顿\t5\t6\t-9\n乌德勒支\t5\t1\t-10\n小组赛程与赛果\n1/8决赛\n克鲁塞罗 1 - 0 加拉塔萨雷 · 克鲁塞罗 晋级\nAC米兰 5 - 3 哈卡 · AC米兰 晋级\n博卡青年 2 - 0 不莱梅 · 博卡青年 晋级\n凯尔特人 0 - 0 伯恩茅斯（点球 4-3） · 凯尔特人 晋级\n博塔弗戈 4 - 1 伊普斯维奇 · 博塔弗戈 晋级\n伯尔尼年轻人 2 - 0 利雅得新月 · 伯尔尼年轻人 晋级\n埃尔切 0 - 1 乌迪内斯 · 乌迪内斯 晋级\n勒沃库森 1 - 2 塞尔塔 · 塞尔塔 晋级\n1/4决赛 · 待赛\n2/22\n克鲁塞罗\nvs\nAC米兰\n2/22\n博卡青年\nvs\n凯尔特人\n2/22\n博塔弗戈\nvs\n伯尔尼年轻人\n2/22\n乌迪内斯\nvs\n塞尔塔\n🌍 世界杯\n尚未举行（每 4 年一届）\n🌎 洲际俱乐部冠军\n本赛季尚未进行",
+    "layout": {
+      "scroll": 390,
+      "viewScroll": 381,
+      "viewWidth": 381,
+      "width": 390
+    },
+    "errors": []
+  }
+]

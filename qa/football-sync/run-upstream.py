@@ -30,6 +30,19 @@ with tempfile.TemporaryDirectory(prefix='touchline-upstream-') as tmp:
    # correctly reject that case; make it a genuinely legal sale without weakening assertions.
    s=s.replace('const u=reset(),b=WORLD.clubs.find(c=>c.id!==u.id),p=P(u.squad[1]);',"const u=reset(),b=WORLD.clubs.find(c=>c.id!==u.id),p=u.squad.map(P).find(p=>p.pos==='ST');\nwhile(b.squad.length>=30)toFreeAgent(P(b.squad.at(-1)),b);")
    s=s.replace('movePlayer(extra.id,u.id,0);','movePlayer(extra.id,u.id,0);extra.pos=p.pos;extra.pos2=[];')
+  if name=='regression.cjs':
+   # Finance-only legacy fixture manually increments the year without rebuilding
+   # any competitions. Keep its inert WCL state in the same year for validation.
+   s=s.replace('const save=JSON.parse(JSON.stringify(WORLD));assertLoadable(save);','const save=JSON.parse(JSON.stringify(WORLD));if(save.wcl)save.wcl.season=save.season;assertLoadable(save);')
+  if name=='instant-competitions.cjs':
+   # WCL is now calendar based. A legacy completed season must stay completed,
+   # without rerunning all matches or paying again. New calendar progression is
+   # covered by wcl.cjs and wcl-season.cjs rather than the old instant expectation.
+   start=s.index('const beforeW=')
+   end=s.index('assert.equal(WORLD.wcHistory.at(-1).season',start)
+   s=s[:start]+"""const beforeW=total('balance'),historyW=JSON.stringify(WORLD.wclHistory);runWorldChampionsLeague(WORLD.season);const w=WORLD.wcl;
+assert(w.legacy&&w.stage==='F');assert.deepEqual(w.teams.slice().sort((a,b)=>a-b),qualified.sort((a,b)=>a-b));assert.equal(total('balance'),beforeW);assert.equal(JSON.stringify(WORLD.wclHistory),historyW);results.push('世冠旧版已结算档保留历史与奖金，不重复瞬时模拟');
+"""+s[end:]
   (temp/name).write_text(s)
   r=subprocess.run(['node',str(temp/name)],capture_output=True,text=True,cwd=root)
   (output/(name+'.log')).write_text(r.stdout+r.stderr)

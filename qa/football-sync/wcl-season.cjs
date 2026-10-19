@@ -1,0 +1,17 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto');require('./shim.cjs');
+const scenario=process.env.WCL_SCENARIO||'new',out=path.resolve(__dirname,'../../output/wcl-calendar-20261019'),started=Date.now();
+if(scenario==='legacy')adoptWorld(JSON.parse(fs.readFileSync(process.env.WCL_LEGACY_SAVE||'/private/tmp/fm-audit-20261018/base.json')));else {newWorld(17017,'Manchester City');WORLD.userClub=WORLD.wcl.teams[0];}SAVE_PAUSED=true;
+const year=WORLD.season,original={endSeason,applyResult,addMoney},counts={matches:0,wclMatches:0,userMatches:0,wclUserMatches:0,advances:0};let prizes=0,groups=0,completed;
+global.addMoney=(c,n,label)=>{if(label?.startsWith('世冠联赛')&&label.endsWith('奖金'))prizes+=n;return original.addMoney(c,n,label)};
+global.applyResult=(f,m)=>{const r=original.applyResult(f,m);if(r){counts.matches++;if(f.comp==='WCL'){counts.wclMatches++;if(f.stage==='G'&&f.hg!==f.ag)groups++}}return r};
+global.endSeason=()=>{
+ assert(WORLD.fixtures.every(f=>f.played),'遗漏比赛');assert.equal(WORLD.wcl.stage,'F');assert.equal(WORLD.fixtures.filter(f=>f.comp==='WCL').length,120);assert.equal(counts.wclMatches,120);assert.equal(prizes,groups*5e5+56e6);
+ const seen=new Set();for(const f of WORLD.fixtures)for(const id of [f.home,f.away]){const key=f.day+':'+id;assert(!seen.has(key),'同队同日比赛 '+key);seen.add(key)}
+ assert(WORLD.cups.every(c=>c.winner!=null));assert(WORLD.playoffs.every(p=>p.done&&p.winner!=null));for(const E of Object.values(WORLD.euro))assert.equal(E.stage,'F');
+ const h=WORLD.wclHistory.find(h=>h.season===year);assert(h&&h.champion===WORLD.wcl.champion);completed={winner:h.champion,groups:h.groups.length,knockout:h.knockout.length,prizes,qualifyingSeason:year};validateWorld(WORLD);assertLoadable(JSON.parse(JSON.stringify(WORLD)));
+ original.endSeason();const last=WORLD.history.at(-1),qualified=last.leagues.filter(l=>l.tier===0).flatMap(l=>l.table.slice(0,2).map(x=>x.id));assert.deepEqual(WORLD.wcl.teams.slice().sort((a,b)=>a-b),qualified.sort((a,b)=>a-b));assert.equal(WORLD.wcl.stage,'G');assert(!WORLD.wclHistory.some(h=>h.season===WORLD.season));assert.equal(WORLD.fixtures.filter(f=>f.comp==='WCL').length,105);
+};
+while(WORLD.season===year){const r=advance();assert.notEqual(r.t,'over');if(r.t==='match'){const f=r.fx;CURMATCH=runMatch(createMatch(f.home,f.away,{record:false,userSide:f.home===WORLD.userClub?0:1,...knockoutOpts(f)}));counts.userMatches++;if(f.comp==='WCL')counts.wclUserMatches++;finishUserMatch()}clearTimeout(SAVE_TIMER);SAVE_PAUSED=true;counts.advances++;if(counts.advances%60===0)console.log('PROGRESS',scenario,WORLD.day,counts.matches,counts.wclMatches);if(counts.advances>SEASON_DAYS*3)throw Error('日历停滞');}
+if(scenario==='new')assert(counts.wclUserMatches>=5,'玩家必须实际参加小组赛');
+validateWorld(WORLD);const finance=JSON.stringify(WORLD.clubs.map(c=>c.finance));adoptWorld(JSON.parse(JSON.stringify(WORLD)));assert.equal(JSON.stringify(WORLD.clubs.map(c=>c.finance)),finance);
+const result={passed:true,scenario,sha256:crypto.createHash('sha256').update(fs.readFileSync(process.env.FMFILE||path.resolve(__dirname,'../../index.html'))).digest('hex'),counts,completed,elapsedSeconds:Math.round((Date.now()-started)/1000)};fs.writeFileSync(path.join(out,'season-'+scenario+'.json'),JSON.stringify(result,null,2));console.log('PASS',JSON.stringify(result));clearTimeout(SAVE_TIMER);

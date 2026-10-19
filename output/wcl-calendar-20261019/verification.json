@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "version": "20261019.4",
+  "checks": 178,
+  "newWclChecks": 13,
+  "previousChecks": 165,
+  "fullSeasonMatches": 40438,
+  "wclMatches": 240,
+  "newCareerWclUserMatches": 7,
+  "sha256": "51ad750981344827fc1c3a5dff2ec7c86bcd9fe19bb72366dfeff1fc328f6355",
+  "realDeviceAcceptance": false
+}

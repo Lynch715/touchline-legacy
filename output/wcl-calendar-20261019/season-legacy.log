@@ -1,0 +1,5 @@
+PROGRESS legacy 60 5287 42
+PROGRESS legacy 120 10616 84
+PROGRESS legacy 180 14819 113
+PROGRESS legacy 240 18897 117
+PASS {"passed":true,"scenario":"legacy","sha256":"51ad750981344827fc1c3a5dff2ec7c86bcd9fe19bb72366dfeff1fc328f6355","counts":{"matches":20219,"wclMatches":120,"userMatches":39,"wclUserMatches":0,"advances":289},"completed":{"winner":169,"groups":7,"knockout":4,"prizes":99500000,"qualifyingSeason":2026},"elapsedSeconds":280}
