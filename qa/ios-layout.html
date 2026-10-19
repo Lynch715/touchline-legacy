@@ -30,7 +30,12 @@
       setTimeout(() => {
         SAVE_PAUSED = true;
         newWorld(20261018, 'Dalian Yingbo');
-        VIEW = 'save'; enterGame(); fitAppHeight();
+        VIEW = 'save';
+        if(surface==='finished'){
+          const fx=WORLD.fixtures.find(f=>!f.played&&(f.home===WORLD.userClub||f.away===WORLD.userClub));
+          WORLD.day=fx.day;CURMATCH=runMatch(createMatch(fx.home,fx.away,{userSide:fx.home===WORLD.userClub?0:1,...knockoutOpts(fx)}));VIEW='match';
+        }
+        enterGame(); fitAppHeight();
         if(surface==='modal') openModal('安全区布局验收','<label>测试输入框</label><input id="qa-input" type="text"><p>此弹窗只用于本机布局验收。</p>','<button onclick="closeModal()">关闭</button>');
         const report = document.createElement('script'); report.type='application/json'; report.id='qa-layout-report'; document.body.appendChild(report);
         window.qaLayoutReport = () => {

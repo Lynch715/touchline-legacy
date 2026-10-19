@@ -1,0 +1,17 @@
+{
+  "revision": "20261019.1",
+  "sha256": "537fe42bda0006eab15bf8e6dfc4674da16b9deff7c5428d1d1bfbdac96ae31c",
+  "checks": {
+    "targeted": 16,
+    "checksums": 5,
+    "upstream": 77,
+    "season52": 6,
+    "viewport": 27,
+    "theme": 8
+  },
+  "scheduledMatches": 80396,
+  "completeSeasonRuns": 4,
+  "sourceProjectModified": false,
+  "embeddedImagesUnchanged": 1273,
+  "iosDeviceAcceptance": "not performed"
+}

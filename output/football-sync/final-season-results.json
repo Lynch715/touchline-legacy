@@ -1,0 +1,45 @@
+{
+  "passed": true,
+  "sha256": "877aff665e17112c17ffd5906a99f549cb2b60d02a27cbf241f1b74d15923e50",
+  "results": [
+    {
+      "scenario": "new",
+      "season": 2026,
+      "competitions": {
+        "CL": {
+          "groups": 96,
+          "knockouts": 29,
+          "winner": 168
+        },
+        "EL": {
+          "groups": 96,
+          "knockouts": 29,
+          "winner": 242
+        },
+        "ECL": {
+          "groups": 96,
+          "knockouts": 29,
+          "winner": 9
+        }
+      },
+      "domesticCupWinners": 21,
+      "playoffs": 55,
+      "matchesSoFar": 20099,
+      "historyECL": 9,
+      "instantCompetitions": {
+        "clubContinentalCups": 3,
+        "superCup": true,
+        "clubWorldCupTeams": 4,
+        "worldChampionsLeagueTeams": 42,
+        "worldCup": false
+      },
+      "elapsedSeconds": 281
+    }
+  ],
+  "counts": {
+    "matches": 20099,
+    "userMatches": 49,
+    "advances": 289
+  },
+  "elapsedSeconds": 282
+}

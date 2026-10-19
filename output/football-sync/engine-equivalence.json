@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "wholeSeasonFileHash": "877aff665e17112c17ffd5906a99f549cb2b60d02a27cbf241f1b74d15923e50",
+  "finalFileHash": "537fe42bda0006eab15bf8e6dfc4674da16b9deff7c5428d1d1bfbdac96ae31c",
+  "onlyDifferences": [
+    "storeSave",
+    "readSaveRecord"
+  ],
+  "otherHtmlAndGameCodeByteIdentical": true
+}

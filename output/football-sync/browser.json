@@ -1,0 +1,337 @@
+[
+  {
+    "name": "scouting",
+    "text": "球探网络\n球探评级 9/20 · 关注名单中的球员会逐日积累情报\n关注名单（0）\n在球员档案中点击「加入球探名单」开始侦查\n球探推荐：高潜力新星\n姓名\t俱乐部\t位置\t年龄\t当前\t潜力评估\t要价\n哈利勒·法亚德\t蒙彼利埃\t中场\t21\t69\t56 - 100\n初步估计\n\t£39.2M\n加布里埃尔·卡瓦略\t矿工\t右前卫\t18\t66\t56 - 100\n初步估计\n\t£35.9M\n杰伊·罗宾逊\t蒙扎\t前腰\t19\t66\t56 - 100\n初步估计\n\t£34.7M\n冈萨洛·马丁内斯\t费内巴切\t中场\t18\t64\t55 - 100\n初步估计\n\t£28.4M\n泰利·西韦\t欧塞尔\t中后卫\t21\t68\t54 - 100\n初步估计\n\t£38.8M\n耶奥尔约斯·西奥齐奥斯\t奥林匹亚科斯\t右后卫\t17\t62\t53 - 100\n初步估计\n\t£38.6M\n格扎维埃·朱尼奥尔·芒扎\t尼斯\t中场\t17\t60\t53 - 100\n初步估计\n\t£29.3M\n拉斐尔·卢巴赫\t纽伦堡\t右前卫\t20\t65\t53 - 100\n初步估计\n\t£39.8M\n安德烈亚·纳塔利\t阿尔克马尔\t中后卫\t18\t63\t53 - 100\n初步估计\n\t£31.0M\n拉沙德·费塔尔\t阿尔梅里亚\t前锋\t20\t70\t53 - 100\n初步估计\n\t£39.6M\n迈孔·卡多佐\t拜仁\t右前卫\t17\t60\t52 - 100\n初步估计\n\t£29.8M\n约翰内斯·莫泽\t萨尔茨堡\t左前卫\t18\t62\t52 - 100\n初步估计\n\t£38.0M"
+  },
+  {
+    "name": "all18navigation",
+    "visits": [
+      {
+        "nav": "🏠总览",
+        "heading": [
+          "大连英博"
+        ]
+      },
+      {
+        "nav": "✉收件箱1",
+        "heading": [
+          "收件箱"
+        ]
+      },
+      {
+        "nav": "📅赛程",
+        "heading": [
+          "赛程"
+        ]
+      },
+      {
+        "nav": "👥阵容",
+        "heading": [
+          "一线队阵容"
+        ]
+      },
+      {
+        "nav": "⚽战术",
+        "heading": [
+          "战术"
+        ]
+      },
+      {
+        "nav": "🏃训练",
+        "heading": [
+          "训练"
+        ]
+      },
+      {
+        "nav": "🌱青训",
+        "heading": [
+          "青训学院"
+        ]
+      },
+      {
+        "nav": "💱转会",
+        "heading": [
+          "转会市场"
+        ]
+      },
+      {
+        "nav": "🔍球探",
+        "heading": [
+          "球探网络"
+        ]
+      },
+      {
+        "nav": "💷财政",
+        "heading": [
+          "财政"
+        ]
+      },
+      {
+        "nav": "🏗建设",
+        "heading": [
+          "俱乐部建设"
+        ]
+      },
+      {
+        "nav": "🏟俱乐部",
+        "heading": [
+          "大连英博"
+        ]
+      },
+      {
+        "nav": "🏆赛事",
+        "heading": [
+          "赛事"
+        ]
+      },
+      {
+        "nav": "🌍国际足坛",
+        "heading": []
+      },
+      {
+        "nav": "🇺🇳国家队",
+        "heading": [
+          "🇺🇳 国家队"
+        ]
+      },
+      {
+        "nav": "📰快讯",
+        "heading": [
+          "足坛快讯"
+        ]
+      },
+      {
+        "nav": "💾存档",
+        "heading": [
+          "存档"
+        ]
+      },
+      {
+        "nav": "⋯其他",
+        "heading": [
+          "其他"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "desktop-1280",
+    "brokenImages": 0,
+    "nav": [
+      {
+        "bottom": 121.1953125,
+        "hit": true,
+        "text": "🏠总览"
+      },
+      {
+        "bottom": 155.390625,
+        "hit": true,
+        "text": "✉收件箱1"
+      },
+      {
+        "bottom": 189.5859375,
+        "hit": true,
+        "text": "📅赛程"
+      },
+      {
+        "bottom": 252.78125,
+        "hit": true,
+        "text": "👥阵容"
+      },
+      {
+        "bottom": 286.9765625,
+        "hit": true,
+        "text": "⚽战术"
+      },
+      {
+        "bottom": 321.171875,
+        "hit": true,
+        "text": "🏃训练"
+      },
+      {
+        "bottom": 355.3671875,
+        "hit": true,
+        "text": "🌱青训"
+      },
+      {
+        "bottom": 418.5625,
+        "hit": true,
+        "text": "💱转会"
+      },
+      {
+        "bottom": 452.7578125,
+        "hit": true,
+        "text": "🔍球探"
+      },
+      {
+        "bottom": 486.953125,
+        "hit": true,
+        "text": "💷财政"
+      },
+      {
+        "bottom": 521.1484375,
+        "hit": true,
+        "text": "🏗建设"
+      },
+      {
+        "bottom": 555.34375,
+        "hit": true,
+        "text": "🏟俱乐部"
+      },
+      {
+        "bottom": 618.5390625,
+        "hit": true,
+        "text": "🏆赛事"
+      },
+      {
+        "bottom": 652.734375,
+        "hit": true,
+        "text": "🌍国际足坛"
+      },
+      {
+        "bottom": 686.9296875,
+        "hit": true,
+        "text": "🇺🇳国家队"
+      },
+      {
+        "bottom": 721.125,
+        "hit": true,
+        "text": "📰快讯"
+      },
+      {
+        "bottom": 784.3203125,
+        "hit": false,
+        "text": "💾存档"
+      },
+      {
+        "bottom": 818.515625,
+        "hit": false,
+        "text": "⋯其他"
+      }
+    ],
+    "scroll": 1280,
+    "width": 1280
+  },
+  {
+    "name": "320x740",
+    "nav": [
+      {
+        "bottom": 665.6015625,
+        "hit": true,
+        "text": "🏠总览"
+      },
+      {
+        "bottom": 665.6015625,
+        "hit": true,
+        "text": "✉收件箱1"
+      },
+      {
+        "bottom": 665.6015625,
+        "hit": true,
+        "text": "📅赛程"
+      },
+      {
+        "bottom": 665.6015625,
+        "hit": true,
+        "text": "👥阵容"
+      },
+      {
+        "bottom": 665.6015625,
+        "hit": true,
+        "text": "⚽战术"
+      },
+      {
+        "bottom": 665.6015625,
+        "hit": true,
+        "text": "🏃训练"
+      },
+      {
+        "bottom": 665.6015625,
+        "hit": true,
+        "text": "🌱青训"
+      },
+      {
+        "bottom": 665.6015625,
+        "hit": true,
+        "text": "💱转会"
+      },
+      {
+        "bottom": 665.6015625,
+        "hit": true,
+        "text": "🔍球探"
+      },
+      {
+        "bottom": 704,
+        "hit": true,
+        "text": "💷财政"
+      },
+      {
+        "bottom": 704,
+        "hit": true,
+        "text": "🏗建设"
+      },
+      {
+        "bottom": 704,
+        "hit": true,
+        "text": "🏟俱乐部"
+      },
+      {
+        "bottom": 704,
+        "hit": true,
+        "text": "🏆赛事"
+      },
+      {
+        "bottom": 704,
+        "hit": true,
+        "text": "🌍国际足坛"
+      },
+      {
+        "bottom": 704,
+        "hit": true,
+        "text": "🇺🇳国家队"
+      },
+      {
+        "bottom": 704,
+        "hit": true,
+        "text": "📰快讯"
+      },
+      {
+        "bottom": 704,
+        "hit": true,
+        "text": "💾存档"
+      },
+      {
+        "bottom": 704,
+        "hit": true,
+        "text": "⋯其他"
+      }
+    ],
+    "scroll": 320,
+    "width": 320
+  },
+  {
+    "name": "completeMatch",
+    "date": "8/9",
+    "note": "首次鼠标操作返回超时但已完成结算并生成赛后弹窗；重试前误向背景完成按钮发送Enter造成重复入口报错，已纳入防重修复。"
+  },
+  {
+    "name": "final-match-flow",
+    "date": "8/9",
+    "heading": [
+      "大连英博"
+    ],
+    "errors": []
+  },
+  {
+    "name": "final-dark",
+    "theme": "dark",
+    "worldUnchanged": "true",
+    "errors": []
+  },
+  {
+    "name": "final-checksummed-save-restore",
+    "date": "8/1",
+    "club": "大连英博\n中超 · 2026/27",
+    "errors": []
+  }
+]

@@ -1,0 +1,76 @@
+{
+  "file": "index.html",
+  "passed": 1,
+  "total": 14,
+  "results": [
+    {
+      "name": "开赛不足七人安全判负，完场不能换人，结算无门票/虚假出场",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(m.done&&m.forfeit)\n\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:10:2\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:5:36)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:7:1)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "换人复核实际归属，健康手动阵容保留",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:16:9\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:5:36)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:13:1)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "士气、比赛状态、位置适配和教练进入实际执行属性，徽章仍有效",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(att(man,'passing')<a)\n\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:20:17\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:5:36)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:18:1)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "医疗等级影响康复，预计天数使用同一公式",
+      "pass": false,
+      "error": "ReferenceError: injuryDays is not defined\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:24:183\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:5:36)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:23:1)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "未知球探推荐和排序不泄露PA，95%才显示精确潜力，自有青训仍精确",
+      "pass": false,
+      "error": "ReferenceError: scoutPotential is not defined\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:27:93\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:5:36)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:26:1)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "全市场先排序再分页，120人页不遗漏低薪球员",
+      "pass": false,
+      "error": "ReferenceError: sortedRows is not defined\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:34:136\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:5:36)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:33:1)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "财政与总览的租借周薪按实际负担，薪资表包含外租",
+      "pass": false,
+      "error": "ReferenceError: wagePaidBy is not defined\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:39:122\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:5:36)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:38:1)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "接报价复验买方预留人数、默认七天有效期、位置覆盖及零分担租借",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:43:164\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:5:36)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:42:1)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "可接受1.5/2倍放行价，硬性人数和位置底线仍拦截",
+      "pass": false,
+      "error": "ReferenceError: saleTerms is not defined\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:47:68\n    at Array.find (<anonymous>)\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:47:39\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:5:36)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:46:1)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)"
+    },
+    {
+      "name": "降级核心先挂牌，七天内AI不抢走，读档后仍挂牌，玩家可买",
+      "pass": false,
+      "error": "ReferenceError: isRelegationSale is not defined\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:51:253\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:5:36)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:50:1)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "赛季交接保留租借归队超员，不代玩家补人/裁员/随机续约",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n+ Set(30) {\n- Set(34) {\n    2593,\n    2594,\n    2595,\n    2596,\n    2597,\n...\n    2620,\n-   2621,\n    2622,\n    2623,\n-   2624,\n-   31333,\n-   31334\n  }\n\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:56:180\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:5:36)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:54:1)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "未上场不记出场，离场后评分不再受后续进球影响，关键传球/过人累计",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 6.430000000000001\n- 6.4\n     ^\n\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:59:160\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:5:36)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:58:1)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "周训练反馈记录实际单项变化，保留个人训练和传奇徽章",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(p.trainingLast)\n\n    at /Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:64:90\n    at test (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:5:36)\n    at Object.<anonymous> (/Users/ruis/Claude/Projects/执掌绿茵/qa/football-sync/regression.cjs:63:1)\n    at Module._compile (node:internal/modules/cjs/loader:1829:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)\n    at Module.load (node:internal/modules/cjs/loader:1552:32)\n    at Module._load (node:internal/modules/cjs/loader:1354:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "旧档导入不改调用对象/资金，坏档失败不污染当前世界",
+      "pass": true
+    }
+  ]
+}
