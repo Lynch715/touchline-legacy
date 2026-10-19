@@ -1,0 +1,56 @@
+{
+  "sha256": "51ad750981344827fc1c3a5dff2ec7c86bcd9fe19bb72366dfeff1fc328f6355",
+  "passed": true,
+  "checks": 12,
+  "realLoanAndPitchGeneration": true,
+  "results": [
+    {
+      "name": "8/31 无比赛 ai真实市场→玩家处理→完整日结关窗",
+      "pass": true
+    },
+    {
+      "name": "8/31 无比赛 pitch真实市场→玩家处理→完整日结关窗",
+      "pass": true
+    },
+    {
+      "name": "8/31 无比赛 loan真实市场→玩家处理→完整日结关窗",
+      "pass": true
+    },
+    {
+      "name": "8/31 有比赛 ai真实市场→玩家处理→完整日结关窗",
+      "pass": true
+    },
+    {
+      "name": "8/31 有比赛 pitch真实市场→玩家处理→完整日结关窗",
+      "pass": true
+    },
+    {
+      "name": "8/31 有比赛 loan真实市场→玩家处理→完整日结关窗",
+      "pass": true
+    },
+    {
+      "name": "1/31 无比赛 ai真实市场→玩家处理→完整日结关窗",
+      "pass": true
+    },
+    {
+      "name": "1/31 无比赛 pitch真实市场→玩家处理→完整日结关窗",
+      "pass": true
+    },
+    {
+      "name": "1/31 无比赛 loan真实市场→玩家处理→完整日结关窗",
+      "pass": true
+    },
+    {
+      "name": "1/31 有比赛 ai真实市场→玩家处理→完整日结关窗",
+      "pass": true
+    },
+    {
+      "name": "1/31 有比赛 pitch真实市场→玩家处理→完整日结关窗",
+      "pass": true
+    },
+    {
+      "name": "1/31 有比赛 loan真实市场→玩家处理→完整日结关窗",
+      "pass": true
+    }
+  ]
+}

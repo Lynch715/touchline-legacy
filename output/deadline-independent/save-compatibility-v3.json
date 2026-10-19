@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "checks": 3,
+  "legacy": {
+    "inputSHA256": "7cdebdf756e7a6c672a4d8827bca7238735d7549355f43399a05983aace5c779",
+    "loadedSHA256": "8eed89000e75ba84a2db1aac0af7a7d6be8176c774c2b50e6a79bcfdfc079329",
+    "fundsSHA256": "a75811812f9e5b231878f2558b222bf9523a4de27a7209d8c29df40aae5e89dc",
+    "squadSHA256": "4eeff8f07596df5938ac1ed4c393ba61eaf8c484791f397013ac54e93ac24948",
+    "inputUnchanged": true
+  },
+  "pendingSavedAcrossThreeLayers": true
+}

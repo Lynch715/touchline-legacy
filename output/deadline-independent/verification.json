@@ -1,0 +1,22 @@
+{
+  "implementationCommit": "00f8271053265ef66eca9974d9c3559d641b3bd7",
+  "htmlSHA256": "51ad750981344827fc1c3a5dff2ec7c86bcd9fe19bb72366dfeff1fc328f6355",
+  "passed": true,
+  "suites": {
+    "existing_deadline": 14,
+    "independent_real_sources": 12,
+    "save_compatibility": 3
+  },
+  "productionCodeChangedByIndependentVerification": false,
+  "onlineBrowser": {
+    "provider": "Codex In-app Browser",
+    "qaSavingPaused": true,
+    "summer": "8/31 AI offer accepted; next continue -> 9/1, closed once",
+    "winter": "1/31 AI offer accepted; next continue -> 2/1, closed once"
+  },
+  "legacyInputUnchanged": true,
+  "liveHTMLMatchesTested": true,
+  "previousV3Checks": 180,
+  "checks": 29,
+  "scope": "29 focused checks repeated on current .4, after 180 checks passed on .3. Other-chat World Champions League changes retained."
+}
