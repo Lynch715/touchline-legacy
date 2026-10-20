@@ -1,0 +1,32 @@
+<!doctype html><meta charset="utf-8"><title>洲际俱乐部赛事临场 QA</title>
+<script>
+(async()=>{
+ const html=await(await fetch('../index.html',{cache:'no-store'})).text();
+ const setup=()=>document.addEventListener('DOMContentLoaded',()=>{
+ const start=startMenu;startMenu=async function(){await start();try{
+  newWorld(4242,'Manchester City');SAVE_PAUSED=true;
+  const params=new URLSearchParams(location.search),code=params.get('comp')||'AFC',knockout=params.get('stage')==='knockout';
+  if(['CWC','SUP'].includes(code)){
+   WORLD.history.push({season:WORLD.season-1,euro:{CL:0,EL:1},leagues:[]});
+   for(const [i,key]of ['libertadores','afc','concacaf'].entries())WORLD.contClubHistory[key]=[{season:WORLD.season-1,champion:i+1}];
+   delete WORLD.clubCups[code];ensureClubCup(code,WORLD.season);
+  }
+  if(knockout&&WORLD.clubCups[code].stage==='G')while(WORLD.clubCups[code].stage==='G'){
+   const E=WORLD.clubCups[code],day=E.gdays.find(d=>WORLD.fixtures.some(f=>f.comp===code&&f.day===d&&!f.played));WORLD.day=day;
+   WORLD.fixtures.filter(f=>f.comp===code&&f.day===day&&!f.played).forEach(f=>{autoPickLineup(C(f.home));autoPickLineup(C(f.away));applyResult(f,runMatch(createMatch(f.home,f.away,{comp:code,record:false,...knockoutOpts(f)})))});clubCupsDayEnd(day);
+  }
+  if(params.get('stage')==='final')while(WORLD.clubCups[code].stage==='K'&&WORLD.clubCups[code].ko.teams.length>2){
+   const E=WORLD.clubCups[code],day=E.kdays[E.ko.round];WORLD.day=day;
+   WORLD.fixtures.filter(f=>f.comp===code&&f.day===day&&!f.played).forEach(f=>{autoPickLineup(C(f.home));autoPickLineup(C(f.away));applyResult(f,runMatch(createMatch(f.home,f.away,{comp:code,record:false,...knockoutOpts(f)})))});clubCupsDayEnd(day);
+  }
+  const fx=WORLD.fixtures.find(f=>f.comp===code&&!f.played);WORLD.userClub=fx.home;WORLD.day=fx.day;
+  UC().squad.map(P).forEach(p=>{p.injury=0;p.susp=0;p.condition=100});autoPickLineup(UC());
+  const report=document.createElement('script');report.type='application/json';report.id='club-cups-report';document.body.appendChild(report);
+  function update(){const M=CURMATCH,T=M?.teams[M.userSide];report.textContent=JSON.stringify({code,knockout:fx.stage==='K',day:WORLD.day,matchDay:fx.day,club:UC().cn,fixture:{stage:fx.stage,played:fx.played,hg:fx.hg,ag:fx.ag,pens:fx.pens,stats:!!fx.stats,players:fx.wclPlayers?.length||0},match:M?{done:M.done,knockout:!!M.knockout,minute:M.t,subs:M.subsMade[M.userSide],mentality:T.tac.mentality}:null})}
+  const render0=render;render=function(){render0();update()};const refresh0=refreshMatchUI;refreshMatchUI=function(){refresh0();update()};document.addEventListener('input',()=>setTimeout(update,0));document.addEventListener('click',()=>setTimeout(update,0));
+  VIEW=params.get('view')==='world'?'league':'schedule';if(VIEW==='league')LGNATION='WORLD';enterGame();fitAppHeight();
+ }catch(e){console.error(e);const x=document.createElement('pre');x.id='club-cups-error';x.textContent=e.stack;document.body.appendChild(x)}};
+ });
+ document.open();document.write(html.replace('</head>','<script>('+setup.toString()+')();<\/script></head>'));document.close();
+})();
+</script>

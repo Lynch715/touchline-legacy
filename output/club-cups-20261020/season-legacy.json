@@ -1,0 +1,62 @@
+{
+  "passed": true,
+  "scenario": "legacy",
+  "sha256": "64c004253afe937b8dfff1cce03c5f2b8795d23991b471e9d87126734f82892b",
+  "counts": {
+    "matches": 20312,
+    "userMatches": 39,
+    "manualEntries": {
+      "L": 38,
+      "C": 1
+    },
+    "byComp": {
+      "L": 18280,
+      "WCL": 120,
+      "C": 1169,
+      "CON": 31,
+      "LIB": 31,
+      "AFC": 31,
+      "CL": 125,
+      "EL": 125,
+      "ECL": 125,
+      "PO": 275
+    },
+    "advances": 289
+  },
+  "seasons": [
+    {
+      "season": 2026,
+      "competitions": {
+        "LIB": {
+          "stage": "F",
+          "matches": 31,
+          "champion": 888,
+          "prize": 8000000
+        },
+        "AFC": {
+          "stage": "F",
+          "matches": 31,
+          "champion": 1021,
+          "prize": 6000000
+        },
+        "CON": {
+          "stage": "F",
+          "matches": 31,
+          "champion": 538,
+          "prize": 3000000
+        },
+        "SUP": {
+          "stage": "D",
+          "matches": 0,
+          "prize": 0
+        },
+        "CWC": {
+          "stage": "D",
+          "matches": 0,
+          "prize": 0
+        }
+      }
+    }
+  ],
+  "elapsedSeconds": 318
+}

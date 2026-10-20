@@ -1,0 +1,101 @@
+{
+  "passed": true,
+  "scenario": "new",
+  "sha256": "64c004253afe937b8dfff1cce03c5f2b8795d23991b471e9d87126734f82892b",
+  "counts": {
+    "matches": 40628,
+    "userMatches": 82,
+    "manualEntries": {
+      "L": 60,
+      "WCL": 5,
+      "C": 10,
+      "AFC": 7
+    },
+    "byComp": {
+      "L": 36560,
+      "C": 2338,
+      "WCL": 240,
+      "CON": 62,
+      "LIB": 62,
+      "AFC": 62,
+      "CL": 250,
+      "EL": 250,
+      "ECL": 250,
+      "PO": 550,
+      "SUP": 1,
+      "CWC": 3
+    },
+    "advances": 577
+  },
+  "seasons": [
+    {
+      "season": 2026,
+      "competitions": {
+        "LIB": {
+          "stage": "F",
+          "matches": 31,
+          "champion": 887,
+          "prize": 8000000
+        },
+        "AFC": {
+          "stage": "F",
+          "matches": 31,
+          "champion": 490,
+          "prize": 6000000
+        },
+        "CON": {
+          "stage": "F",
+          "matches": 31,
+          "champion": 547,
+          "prize": 3000000
+        },
+        "SUP": {
+          "stage": "D",
+          "matches": 0,
+          "prize": 0
+        },
+        "CWC": {
+          "stage": "D",
+          "matches": 0,
+          "prize": 0
+        }
+      }
+    },
+    {
+      "season": 2027,
+      "competitions": {
+        "LIB": {
+          "stage": "F",
+          "matches": 31,
+          "champion": 887,
+          "prize": 8000000
+        },
+        "AFC": {
+          "stage": "F",
+          "matches": 31,
+          "champion": 490,
+          "prize": 6000000
+        },
+        "CON": {
+          "stage": "F",
+          "matches": 31,
+          "champion": 542,
+          "prize": 3000000
+        },
+        "SUP": {
+          "stage": "F",
+          "matches": 1,
+          "champion": 2,
+          "prize": 5000000
+        },
+        "CWC": {
+          "stage": "F",
+          "matches": 3,
+          "champion": 2,
+          "prize": 5000000
+        }
+      }
+    }
+  ],
+  "elapsedSeconds": 671
+}

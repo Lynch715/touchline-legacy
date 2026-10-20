@@ -1,0 +1,108 @@
+{
+  "version": "20261020.1",
+  "passed": true,
+  "sha256": "64c004253afe937b8dfff1cce03c5f2b8795d23991b471e9d87126734f82892b",
+  "bytes": 12994595,
+  "automatedChecks": 209,
+  "suites": [
+    {
+      "suite": "checksum.json",
+      "checks": 5,
+      "passed": true
+    },
+    {
+      "suite": "deadline-independent.json",
+      "checks": 12,
+      "passed": true
+    },
+    {
+      "suite": "deadline.json",
+      "checks": 14,
+      "passed": true
+    },
+    {
+      "suite": "engine.json",
+      "checks": 16,
+      "passed": true
+    },
+    {
+      "suite": "offer-expiry.json",
+      "checks": 6,
+      "passed": true
+    },
+    {
+      "suite": "round2.json",
+      "checks": 12,
+      "passed": true
+    },
+    {
+      "suite": "upstream-edge-results.json",
+      "checks": 8,
+      "passed": true
+    },
+    {
+      "suite": "upstream-instant-results.json",
+      "checks": 7,
+      "passed": true
+    },
+    {
+      "suite": "upstream-regression-results.json",
+      "checks": 25,
+      "passed": true
+    },
+    {
+      "suite": "upstream-storage-extra-results.json",
+      "checks": 7,
+      "passed": true
+    },
+    {
+      "suite": "upstream-v1-regression-results.json",
+      "checks": 9,
+      "passed": true
+    },
+    {
+      "suite": "upstream-v2-regression-results.json",
+      "checks": 19,
+      "passed": true
+    },
+    {
+      "suite": "wcl.json",
+      "checks": 12,
+      "passed": true
+    },
+    {
+      "suite": "club-cups.cjs",
+      "checks": 22,
+      "passed": true
+    },
+    {
+      "suite": "mobile-layout.cjs",
+      "checks": 27,
+      "passed": true
+    },
+    {
+      "suite": "themes.cjs",
+      "checks": 8,
+      "passed": true
+    }
+  ],
+  "browserManualMatches": 9,
+  "browserEngine": "Codex In-app Browser",
+  "browserFixtureSavePaused": true,
+  "physicalIPhoneTest": false,
+  "seasonScenarios": [
+    {
+      "scenario": "new",
+      "seasons": 2,
+      "matches": 40628
+    },
+    {
+      "scenario": "legacy",
+      "seasons": 1,
+      "matches": 20312
+    }
+  ],
+  "totalSeasonMatches": 60940,
+  "embeddedImagesUnchanged": 1273,
+  "aliasesEqual": true
+}

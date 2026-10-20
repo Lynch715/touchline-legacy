@@ -1,0 +1,421 @@
+{
+  "passed": true,
+  "engine": "Codex In-app Browser",
+  "isolatedFixtures": true,
+  "scenarios": [
+    {
+      "scenario": "AFC group manual",
+      "report": {
+        "code": "AFC",
+        "knockout": false,
+        "day": 37,
+        "matchDay": 37,
+        "club": "利雅得新月",
+        "fixture": {
+          "stage": "G",
+          "played": false,
+          "hg": 0,
+          "ag": 0,
+          "pens": null,
+          "stats": false,
+          "players": 0
+        },
+        "match": {
+          "done": false,
+          "knockout": false,
+          "minute": 1.6371398285559067,
+          "subs": 1,
+          "mentality": 4
+        }
+      }
+    },
+    {
+      "scenario": "AFC group finished",
+      "report": {
+        "code": "AFC",
+        "knockout": false,
+        "day": 38,
+        "matchDay": 37,
+        "club": "利雅得新月",
+        "fixture": {
+          "stage": "G",
+          "played": true,
+          "hg": 3,
+          "ag": 4,
+          "pens": null,
+          "stats": true,
+          "players": 0
+        },
+        "match": null
+      }
+    },
+    {
+      "scenario": "AFC knockout manual",
+      "report": {
+        "code": "AFC",
+        "knockout": true,
+        "day": 181,
+        "matchDay": 181,
+        "club": "蔚山HD",
+        "fixture": {
+          "stage": "K",
+          "played": false,
+          "hg": 0,
+          "ag": 0,
+          "pens": null,
+          "stats": false,
+          "players": 0
+        },
+        "match": {
+          "done": false,
+          "knockout": true,
+          "minute": 1.6078015196230258,
+          "subs": 1,
+          "mentality": 4
+        }
+      }
+    },
+    {
+      "scenario": "AFC knockout finished",
+      "report": {
+        "code": "AFC",
+        "knockout": true,
+        "day": 182,
+        "matchDay": 181,
+        "club": "蔚山HD",
+        "fixture": {
+          "stage": "K",
+          "played": true,
+          "hg": 6,
+          "ag": 1,
+          "pens": null,
+          "stats": true,
+          "players": 0
+        },
+        "match": null
+      }
+    },
+    {
+      "scenario": "CWC semifinal manual",
+      "report": {
+        "code": "CWC",
+        "knockout": false,
+        "day": 246,
+        "matchDay": 246,
+        "club": "曼彻斯特城",
+        "fixture": {
+          "stage": "K",
+          "played": false,
+          "hg": 0,
+          "ag": 0,
+          "pens": null,
+          "stats": false,
+          "players": 0
+        },
+        "match": {
+          "done": false,
+          "knockout": true,
+          "minute": 0.06452538104883085,
+          "subs": 1,
+          "mentality": 4
+        }
+      }
+    },
+    {
+      "scenario": "CWC semifinal finished",
+      "report": {
+        "code": "CWC",
+        "knockout": false,
+        "day": 247,
+        "matchDay": 246,
+        "club": "曼彻斯特城",
+        "fixture": {
+          "stage": "K",
+          "played": true,
+          "hg": 2,
+          "ag": 5,
+          "pens": null,
+          "stats": true,
+          "players": 0
+        },
+        "match": null
+      }
+    },
+    {
+      "scenario": "CWC final manual",
+      "report": {
+        "code": "CWC",
+        "knockout": true,
+        "day": 280,
+        "matchDay": 280,
+        "club": "利物浦",
+        "fixture": {
+          "stage": "K",
+          "played": false,
+          "hg": 0,
+          "ag": 0,
+          "pens": null,
+          "stats": false,
+          "players": 0
+        },
+        "match": {
+          "done": false,
+          "knockout": true,
+          "minute": 0.16320988759864125,
+          "subs": 1,
+          "mentality": 4
+        }
+      }
+    },
+    {
+      "scenario": "CWC final finished",
+      "report": {
+        "code": "CWC",
+        "knockout": true,
+        "day": 281,
+        "matchDay": 280,
+        "club": "利物浦",
+        "fixture": {
+          "stage": "K",
+          "played": true,
+          "hg": 4,
+          "ag": 2,
+          "pens": null,
+          "stats": true,
+          "players": 0
+        },
+        "match": null
+      }
+    },
+    {
+      "scenario": "SUP final manual",
+      "report": {
+        "code": "SUP",
+        "knockout": true,
+        "day": 12,
+        "matchDay": 12,
+        "club": "曼彻斯特城",
+        "fixture": {
+          "stage": "K",
+          "played": false,
+          "hg": 0,
+          "ag": 0,
+          "pens": null,
+          "stats": false,
+          "players": 0
+        },
+        "match": {
+          "done": false,
+          "knockout": true,
+          "minute": 0.06452538104883085,
+          "subs": 1,
+          "mentality": 4
+        }
+      }
+    },
+    {
+      "scenario": "SUP final finished",
+      "report": {
+        "code": "SUP",
+        "knockout": true,
+        "day": 13,
+        "matchDay": 12,
+        "club": "曼彻斯特城",
+        "fixture": {
+          "stage": "K",
+          "played": true,
+          "hg": 2,
+          "ag": 5,
+          "pens": null,
+          "stats": true,
+          "players": 0
+        },
+        "match": null
+      }
+    },
+    {
+      "scenario": "LIB group manual",
+      "report": {
+        "code": "LIB",
+        "knockout": false,
+        "day": 34,
+        "matchDay": 34,
+        "club": "博卡青年",
+        "fixture": {
+          "stage": "G",
+          "played": false,
+          "hg": 0,
+          "ag": 0,
+          "pens": null,
+          "stats": false,
+          "players": 0
+        },
+        "match": {
+          "done": false,
+          "knockout": false,
+          "minute": 0.06452538104883085,
+          "subs": 1,
+          "mentality": 4
+        }
+      }
+    },
+    {
+      "scenario": "LIB group finished",
+      "report": {
+        "code": "LIB",
+        "knockout": false,
+        "day": 35,
+        "matchDay": 34,
+        "club": "博卡青年",
+        "fixture": {
+          "stage": "G",
+          "played": true,
+          "hg": 3,
+          "ag": 0,
+          "pens": null,
+          "stats": true,
+          "players": 0
+        },
+        "match": null
+      }
+    },
+    {
+      "scenario": "LIB knockout manual",
+      "report": {
+        "code": "LIB",
+        "knockout": true,
+        "day": 180,
+        "matchDay": 180,
+        "club": "河床",
+        "fixture": {
+          "stage": "K",
+          "played": false,
+          "hg": 0,
+          "ag": 0,
+          "pens": null,
+          "stats": false,
+          "players": 0
+        },
+        "match": {
+          "done": false,
+          "knockout": true,
+          "minute": 0.11702645927357178,
+          "subs": 1,
+          "mentality": 4
+        }
+      }
+    },
+    {
+      "scenario": "LIB knockout finished",
+      "report": {
+        "code": "LIB",
+        "knockout": true,
+        "day": 181,
+        "matchDay": 180,
+        "club": "河床",
+        "fixture": {
+          "stage": "K",
+          "played": true,
+          "hg": 4,
+          "ag": 1,
+          "pens": null,
+          "stats": true,
+          "players": 0
+        },
+        "match": null
+      }
+    },
+    {
+      "scenario": "CON group manual",
+      "report": {
+        "code": "CON",
+        "knockout": false,
+        "day": 33,
+        "matchDay": 33,
+        "club": "迈阿密国际",
+        "fixture": {
+          "stage": "G",
+          "played": false,
+          "hg": 0,
+          "ag": 0,
+          "pens": null,
+          "stats": false,
+          "players": 0
+        },
+        "match": {
+          "done": false,
+          "knockout": false,
+          "minute": 0.06452538104883085,
+          "subs": 1,
+          "mentality": 4
+        }
+      }
+    },
+    {
+      "scenario": "CON group finished",
+      "report": {
+        "code": "CON",
+        "knockout": false,
+        "day": 34,
+        "matchDay": 33,
+        "club": "迈阿密国际",
+        "fixture": {
+          "stage": "G",
+          "played": true,
+          "hg": 3,
+          "ag": 3,
+          "pens": null,
+          "stats": true,
+          "players": 0
+        },
+        "match": null
+      }
+    },
+    {
+      "scenario": "CON knockout manual",
+      "report": {
+        "code": "CON",
+        "knockout": true,
+        "day": 179,
+        "matchDay": 179,
+        "club": "洛杉矶银河",
+        "fixture": {
+          "stage": "K",
+          "played": false,
+          "hg": 0,
+          "ag": 0,
+          "pens": null,
+          "stats": false,
+          "players": 0
+        },
+        "match": {
+          "done": false,
+          "knockout": true,
+          "minute": 0.06945875109173356,
+          "subs": 1,
+          "mentality": 4
+        }
+      }
+    },
+    {
+      "scenario": "CON knockout finished",
+      "report": {
+        "code": "CON",
+        "knockout": true,
+        "day": 180,
+        "matchDay": 179,
+        "club": "洛杉矶银河",
+        "fixture": {
+          "stage": "K",
+          "played": true,
+          "hg": 1,
+          "ag": 0,
+          "pens": null,
+          "stats": true,
+          "players": 0
+        },
+        "match": null
+      }
+    }
+  ]
+}

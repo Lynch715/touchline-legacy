@@ -5,12 +5,14 @@ import argparse,json,re,subprocess,tempfile
 parser=argparse.ArgumentParser()
 parser.add_argument('--source',type=Path,default=Path(__file__).resolve().parents[3]/'足球经理')
 parser.add_argument('--full-season',action='store_true')
+parser.add_argument('--suite',action='append',help='Only rerun selected inherited suites')
 a=parser.parse_args();root=Path(__file__).resolve().parents[2];upstream=a.source/'_patch/attachment-fix-v3-20261018'
 output=root/'output/football-sync';output.mkdir(parents=True,exist_ok=True)
 legacy=Path('/private/tmp/fm-audit-20261018/base.json')
 if not legacy.exists():raise SystemExit('缺少原附件测试旧档 /private/tmp/fm-audit-20261018/base.json；请保留原测试资料后再运行历史迁移回归。常规定向测试不依赖此文件。')
 suites=['regression.cjs','edge-regression.cjs','v1-regression.cjs','v2-regression.cjs','instant-competitions.cjs','storage-extra.cjs']
 if a.full_season:suites.append('full-season.cjs')
+if a.suite:suites=[name for name in suites if name in a.suite]
 results=[]
 with tempfile.TemporaryDirectory(prefix='touchline-upstream-') as tmp:
  temp=Path(tmp)
@@ -33,8 +35,20 @@ with tempfile.TemporaryDirectory(prefix='touchline-upstream-') as tmp:
   if name=='regression.cjs':
    # Finance-only legacy fixture manually increments the year without rebuilding
    # any competitions. Keep its inert WCL state in the same year for validation.
-   s=s.replace('const save=JSON.parse(JSON.stringify(WORLD));assertLoadable(save);','const save=JSON.parse(JSON.stringify(WORLD));if(save.wcl)save.wcl.season=save.season;assertLoadable(save);')
+   s=s.replace('const save=JSON.parse(JSON.stringify(WORLD));assertLoadable(save);','const save=JSON.parse(JSON.stringify(WORLD));if(save.wcl)save.wcl.season=save.season;for(const E of Object.values(save.clubCups||{}))E.season=save.season;assertLoadable(save);')
   if name=='instant-competitions.cjs':
+   # The five formerly instant club events now have dedicated calendar, live
+   # match, prize, legacy-save and full-season suites (club-cups*.cjs).
+   # Keep this inherited fixture as an idempotent legacy-results check.
+   start=s.index('for(const n of [2,3,4])')
+   end=s.index('adoptWorld(JSON.parse(fs.readFileSync(',start)
+   s=s[:start]+s[end:]
+   pos=s.index('const beforeW=')
+   s=s[:pos]+"""for(const code of Object.keys(CLUB_CUP_CODES)){
+ const before=JSON.stringify([WORLD.clubs.map(c=>c.finance),clubCupHistory(code)]),E=ensureClubCup(code,WORLD.season);
+ assert(E.legacy||E.stage==='D');assert.equal(WORLD.fixtures.filter(f=>f.comp===code).length,0);assert.equal(JSON.stringify([WORLD.clubs.map(c=>c.finance),clubCupHistory(code)]),before);results.push(code+'旧版已结算赛事不重打、不重发奖金');
+}
+"""+s[pos:]
    # WCL is now calendar based. A legacy completed season must stay completed,
    # without rerunning all matches or paying again. New calendar progression is
    # covered by wcl.cjs and wcl-season.cjs rather than the old instant expectation.
@@ -48,5 +62,8 @@ assert(w.legacy&&w.stage==='F');assert.deepEqual(w.teams.slice().sort((a,b)=>a-b
   (output/(name+'.log')).write_text(r.stdout+r.stderr)
   results.append({'suite':name,'exit':r.returncode});print(name,'PASS' if r.returncode==0 else 'FAIL',flush=True)
  for f in temp.glob('*results.json'):(output/('upstream-'+f.name)).write_bytes(f.read_bytes())
-(output/'inherited.json').write_text(json.dumps(results,indent=2))
+report=output/'inherited.json'
+if a.suite and report.exists():
+ previous=json.loads(report.read_text());results=[r for r in previous if r['suite'] not in a.suite]+results
+report.write_text(json.dumps(results,indent=2))
 raise SystemExit(1 if any(r['exit'] for r in results) else 0)
