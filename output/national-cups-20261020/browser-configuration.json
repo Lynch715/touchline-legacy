@@ -1,0 +1,95 @@
+{
+  "passed": true,
+  "tactics": {
+    "code": "NAS",
+    "day": 30,
+    "matchDay": 30,
+    "nation": "日本",
+    "roster": 23,
+    "formation": "4-4-2",
+    "nationalLineup": [
+      252,
+      676,
+      6266,
+      6505,
+      528,
+      2747,
+      330,
+      6522,
+      265,
+      17883,
+      6449
+    ],
+    "clubTacticUnchanged": true,
+    "clubOwnershipUnchanged": true,
+    "fixture": {
+      "stage": "G",
+      "played": false,
+      "hg": 0,
+      "ag": 0,
+      "pens": null,
+      "stats": false,
+      "ratings": 0
+    },
+    "match": null
+  },
+  "sliders": [
+    {
+      "label": "国家队心态",
+      "value": "4"
+    },
+    {
+      "label": "国家队节奏",
+      "value": "2"
+    },
+    {
+      "label": "国家队逼抢",
+      "value": "2"
+    },
+    {
+      "label": "国家队宽度",
+      "value": "2"
+    }
+  ],
+  "layout": {
+    "pageWidth": 393,
+    "width": 393
+  },
+  "roster": {
+    "code": "NAS",
+    "day": 30,
+    "matchDay": 30,
+    "nation": "日本",
+    "roster": 23,
+    "formation": "4-4-2",
+    "nationalLineup": [
+      null,
+      676,
+      6266,
+      6505,
+      528,
+      2747,
+      330,
+      6522,
+      265,
+      17883,
+      6449
+    ],
+    "clubTacticUnchanged": true,
+    "clubOwnershipUnchanged": true,
+    "fixture": {
+      "stage": "G",
+      "played": false,
+      "hg": 0,
+      "ag": 0,
+      "pens": null,
+      "stats": false,
+      "ratings": 0
+    },
+    "match": null
+  },
+  "rosterLayout": {
+    "pageWidth": 393,
+    "width": 393
+  }
+}

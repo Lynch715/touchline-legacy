@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "seasonTestedSHA256": "2804cd73f65df513c6f4acbf47715f9a63d9a970a782e27d6b0925bae171b104",
+  "releaseSHA256": "54c7ee8575a957e58ad4c383cf716156127585ccc223c3d76e2b3158f95a17ba",
+  "onlyChangedFunction": "go",
+  "allOtherHtmlBytesEqual": true,
+  "before": "function go(v){ if(WORLD?.needJob){render();return;} VIEW=v; SORT={k:null,d:1}; render(); }",
+  "after": "function go(v){ if(WORLD?.needJob&&!(WORLD.userNation&&(v===\"nation\"||NAT_SCOPE===\"nation\"&&[\"squad\",\"tactics\"].includes(v)))){render();return;} VIEW=v; SORT={k:null,d:1}; render(); }",
+  "verification": [
+    "national-cups.cjs navigation guard test",
+    "Codex In-app Browser actual unemployed -> national tactics click"
+  ]
+}

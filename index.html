@@ -4377,84 +4377,242 @@ function simIntlGame(A,B){ // 模拟国家队比赛，返回 [gA,gB]（泊松分
   const poisson=(l)=>{ let k=0,p=Math.exp(-l),s=p,u=Math.random(); while(u>s){ k++; p*=l/k; s+=p; } return k; };
   return [poisson(la), poisson(lb)];
 }
-function runWorldCup(season){ // 跑完一届世界杯
-  const pool=WC_NATIONS.map(n=>buildNationalSquad(n)).filter(s=>s.strength>0);
-  pool.sort((a,b)=>b.strength-a.strength);
-  const teams=pool.slice(0,32);
-  if(teams.length<32){ // 不足 32 队时用剩余国家补（按球员数）
-    const extra=WC_NATIONS.filter(n=>!teams.some(t=>t.nat===n));
-    extra.forEach(n=>{ const s=buildNationalSquad(n); if(s.strength>0) teams.push(s); });
-    teams.sort((a,b)=>b.strength-a.strength);
-  }
-  const n=Math.min(32, teams.length);
-  const finalists=teams.slice(0,n);
-  // 小组赛：8 组 × 4 队
-  const groups=[];
-  for(let g=0;g<8;g++){
-    const grp=finalists.slice(g*4, g*4+4);
-    const standings=grp.map(t=>({t, pts:0, gd:0, gf:0, ga:0}));
-    const results=[];
-    for(let i=0;i<4;i++) for(let j=i+1;j<4;j++){
-      const A=grp[i], B=grp[j];
-      const [ga,gb]=simIntlGame(A,B);
-      results.push({a:A.nat,b:B.nat,ga,gb});
-      const sa=standings[i], sb=standings[j];
-      sa.gf+=ga; sa.ga+=gb; sb.gf+=gb; sb.ga+=ga;
-      sa.gd+=(ga-gb); sb.gd+=(gb-ga);
-      if(ga>gb){ sa.pts+=3; } else if(gb>ga){ sb.pts+=3; } else { sa.pts+=1; sb.pts+=1; }
-    }
-    standings.sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);
-    groups.push({teams:grp.map(t=>t.nat), standings:standings.map(s=>({nat:s.t.nat,pts:s.pts,gd:s.gd,t:s.t})), results});
-  }
-  // 淘汰赛：16 强
-  const r16=[];
-  for(let g=0;g<8;g+=2){
-    r16.push(groups[g].standings[0].t, groups[g+1].standings[1].t);
-    r16.push(groups[g+1].standings[0].t, groups[g].standings[1].t);
-  }
-  const knockout=[];
-  let round=r16;
-  const roundNames=["16强","8强","半决赛","决赛"];
-  let roundIdx=0;
-  while(round.length>=2){
-    const next=[]; const results=[];
-    for(let i=0;i<round.length;i+=2){
-      const A=round[i], B=round[i+1];
-      let [ga,gb]=simIntlGame(A,B);
-      let pens=false;
-      let winner = ga>gb ? A : (gb>ga ? B : (Math.random()<0.5?A:B));
-      if(ga===gb) pens=true;
-      results.push({a:A.nat,b:B.nat,ga,gb,winner:winner.nat, pens});
-      next.push(winner);
-    }
-    knockout.push({name:roundNames[roundIdx], results});
-    round=next; roundIdx++;
-  }
-  const champion=round[0];
-  const runnerUp = knockout.length>=2 ? knockout[knockout.length-2].results.find(r=>r.winner===champion.nat) : null;
-  // 记录世界杯历史
-  if(!WORLD.wcHistory) WORLD.wcHistory=[];
-  WORLD.wcHistory.push({season, champion:champion.nat, runnerUp:runnerUp? (runnerUp.a===champion.nat?runnerUp.b:runnerUp.a) : null,
-    groups, knockout});
-  // 冠军球员荣誉 + 玩家球员通知
-  const champPlayers=champion.players.map(id=>P(id)).filter(Boolean);
-  champPlayers.forEach(p=>{ p.honors=p.honors||[]; p.honors.push(season+" 世界杯冠军"); });
-  // 新闻
-  const userPlayers = Object.values(WORLD.players).filter(p=>p.clubId===WORLD.userClub);
-  const userInChamp = userPlayers.filter(p=>champion.players.includes(p.id));
-  if(userInChamp.length){
-    news("🏆 世界杯冠军！", `${champion.nat} 捧起 ${season} 世界杯！你的球员 ${userInChamp.map(p=>p.cn).join("、")} 随队夺冠，载入史册！`, "good");
-  } else {
-    news("🏆 世界杯落幕", `${champion.nat} 夺得 ${season} 世界杯冠军！`, "info");
-  }
-  // 玩家执教的国家队夺冠
-  if(WORLD.userNation===champion.nat){
-    WORLD.managerHonors = WORLD.managerHonors || [];
-    WORLD.managerHonors.push(season+" 世界杯冠军（"+champion.nat+"）");
-    news("🏆 世界杯夺冠！", `你执教的 ${champion.nat} 国家队捧起 ${season} 世界杯！这是教练生涯的巅峰荣耀！`, "good");
-  }
-  return {season, champion:champion.nat, runnerUp:WORLD.wcHistory[WORLD.wcHistory.length-1].runnerUp, groups, knockout};
+// 国家队大赛独立记录征召、停赛和统计，与俱乐部共用比赛引擎及每日推进。
+const NATIONAL_COMPS={NWC:{name:'世界杯',cycle:4,size:32},NEU:{name:'欧洲杯',key:'euro',cycle:4,size:16},NAM:{name:'美洲杯',key:'america',cycle:4,size:8},NAS:{name:'亚洲杯',key:'asia',cycle:4,size:8},NAF:{name:'非洲杯',key:'africa',cycle:2,size:8}};
+function nationalHistory(code){
+  if(code==='NWC')return WORLD.wcHistory||(WORLD.wcHistory=[]);
+  WORLD.continentalHistory=WORLD.continentalHistory||{};
+  const key=NATIONAL_COMPS[code].key;return WORLD.continentalHistory[key]||(WORLD.continentalHistory[key]=[]);
 }
+function nationalReservedDays(){return Object.values(WORLD.nationalCups||{}).filter(E=>['G','K'].includes(E.stage)).flatMap(E=>[...E.gdays,...E.kdays]);}
+function nationalFixtures(){return Object.values(WORLD.nationalCups||{}).flatMap(E=>E.fixtures||[]);}
+function nextNationalFixture(){return nationalFixtures().filter(f=>!f.played&&f.day>=WORLD.day&&(f.home===WORLD.userNation||f.away===WORLD.userNation)).sort((a,b)=>a.day-b.day)[0];}
+function nextManagedFixture(){return [nextUserFixture(),nextNationalFixture()].filter(Boolean).sort((a,b)=>a.day-b.day)[0];}
+function nationalPlanDays(teams,count,minDay){
+  const busy=new Set([...WORLD.fixtures.map(f=>f.day),...WORLD.cups.flatMap(c=>c.days),...Object.values(WORLD.euro||{}).flatMap(E=>[...E.gdays,...E.kdays.flat(),E.finalDay]),...wclReservedDays(),...clubCupReservedDays(),...Object.values(WORLD.nationalCups||{}).filter(E=>['G','K'].includes(E.stage)&&E.teams.some(n=>teams.includes(n))).flatMap(E=>[...E.gdays,...E.kdays])]);
+  const days=[],latest=SEASON_DAYS-2;
+  for(let i=0;i<count;i++){
+    const preferred=minDay===0?32+Math.round(i*(240/Math.max(1,count-1))):minDay+2+i*Math.max(2,Math.floor((latest-minDay-3)/Math.max(1,count-1)));
+    const low=Math.max(minDay,days.length?days.at(-1)+2:0),high=latest-(count-i-1)*2;let chosen=null;
+    for(let delta=0;delta<SEASON_DAYS&&chosen==null;delta++)for(const d of delta?[preferred+delta,preferred-delta]:[preferred])if(d>=low&&d<=high&&!busy.has(d)){chosen=d;break;}
+    if(chosen==null)return null;days.push(chosen);
+  }
+  return days;
+}
+function refreshNationalTeams(){
+  for(const [nat,T]of Object.entries(WORLD.nationalTeams||{})){
+    const valid=(T.players||[]).filter(id=>P(id)?.nat===nat),fresh=buildNationalSquad(nat).players;
+    T.players=T.custom?[...valid,...fresh.filter(id=>!valid.includes(id))].slice(0,23):fresh;
+    T.lineup=(T.lineup||[]).map(id=>T.players.includes(id)?id:null);T.subs=(T.subs||[]).filter(id=>T.players.includes(id));
+  }
+}
+function defaultNationalTactic(){return {formation:'4-3-3',mentality:2,tempo:2,press:2,width:2,offside:false,counter:false,fmtV2:1};}
+function ensureNationalTeam(nat){
+  WORLD.nationalTeams=WORLD.nationalTeams||{};
+  if(!WORLD.nationalTeams[nat])WORLD.nationalTeams[nat]={v:1,nat,players:buildNationalSquad(nat).players,tactic:defaultNationalTactic(),lineup:[],subs:[],custom:false};
+  return WORLD.nationalTeams[nat];
+}
+function buildNationalCalendars(){
+  for(const code of Object.keys(NATIONAL_COMPS))ensureNationalCup(code,WORLD.season);
+}
+function ensureNationalCup(code,season){
+  const conf=NATIONAL_COMPS[code],history=nationalHistory(code);
+  if(season!==WORLD.season)return history.find(h=>h.season===season)||null;
+  WORLD.nationalCups=WORLD.nationalCups||{};
+  if(WORLD.nationalCups[code]?.season===season)return WORLD.nationalCups[code];
+  const old=history.find(h=>h.season===season),base={v:1,code,season,teams:[],gdays:[],kdays:[],fixtures:[]};
+  if(old)return WORLD.nationalCups[code]={...base,stage:'F',legacy:true,champion:old.champion,runnerUp:old.runnerUp??null};
+  const defer=reason=>WORLD.nationalCups[code]={...base,stage:'D',reason};
+  if(season%conf.cycle!==0)return defer('本季非举办年');
+  const pool=(conf.key?CONTINENTAL_CONF[conf.key].nations:WC_NATIONS).map(n=>buildNationalSquad(n)).filter(s=>s.players.length>=7&&s.strength>0).sort((a,b)=>b.strength-a.strength);
+  const size=Math.min(conf.size,2**Math.floor(Math.log2(Math.max(1,pool.length))));
+  if(size<4)return defer('具备参赛阵容的国家队不足');
+  const teams=pool.slice(0,size).map(t=>t.nat),groupCount=Math.max(1,size/4),target=groupCount*2,count=3+Math.log2(target),days=nationalPlanDays(teams,count,WORLD.day>0?WORLD.day+1:0);
+  if(!days)return defer('本季未来空闲日期不足，下一举办年启用完整赛程');
+  const E=WORLD.nationalCups[code]={...base,stage:'G',teams,groups:Array.from({length:groupCount},(_,i)=>teams.slice(i*4,i*4+4)),gtable:{},gdays:days.slice(0,3),kdays:days.slice(3),squads:{},discipline:{},knockout:[],ko:null,champion:null,runnerUp:null};
+  for(const nat of teams){const T=ensureNationalTeam(nat);E.squads[nat]=[...T.players];E.gtable[nat]={nat,p:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0};}
+  E.groups.forEach((g,grp)=>roundRobin(g.map((_,i)=>i)).forEach((r,ri)=>r.forEach(([h,a])=>E.fixtures.push({national:true,comp:code,stage:'G',grp,round:ri+1,day:E.gdays[ri],home:g[h],away:g[a],played:false,hg:0,ag:0,pens:null,neutral:true}))));
+  if(teams.includes(WORLD.userNation))news(conf.name+'分组公布',`${WORLD.userNation} 已获参赛资格，可在「国家队」或「赛程」查看对阵，通过「继续」进入临场指挥。`,'good');
+  return E;
+}
+function runWorldCup(season){return ensureNationalCup('NWC',season);}
+function runContinentalCup(key,season){const code=Object.keys(NATIONAL_COMPS).find(c=>NATIONAL_COMPS[c].key===key);return code?ensureNationalCup(code,season):null;}
+function runAllContinentalCups(season){return Object.keys(CONTINENTAL_CONF).map(k=>runContinentalCup(k,season));}
+function nationalStandings(E,group){return group.map(n=>({...E.gtable[n]})).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf||a.nat.localeCompare(b.nat));}
+function nationalScheduleKO(E,teams,round){
+  const day=E.kdays[round];if(!Number.isInteger(day)||day<=WORLD.day)throw new Error('国家队淘汰赛日期无效');
+  const name=teams.length===2?'决赛':teams.length===4?'半决赛':teams.length===8?'1/4决赛':'16强';E.stage='K';E.ko={round,teams:[...teams],name};
+  for(let i=0;i<teams.length;i+=2)E.fixtures.push({national:true,comp:E.code,stage:'K',round:round+1,day,home:teams[i],away:teams[i+1],played:false,hg:0,ag:0,pens:null,neutral:true});
+}
+function nationalWinner(f){return f.hg>f.ag?f.home:f.ag>f.hg?f.away:Array.isArray(f.pens)&&f.pens[0]!==f.pens[1]?(f.pens[0]>f.pens[1]?f.home:f.away):null;}
+function nationalSnapshot(E){return {season:E.season,champion:E.champion,runnerUp:E.runnerUp,calendar:true,teams:[...E.teams],groups:E.groups.map((g,gi)=>({teams:[...g],standings:nationalStandings(E,g),results:E.fixtures.filter(f=>f.stage==='G'&&f.grp===gi&&f.played).map(f=>({a:f.home,b:f.away,ga:f.hg,gb:f.ag,day:f.day}))})),knockout:structuredClone(E.knockout)};}
+function nationalCupsDayEnd(day){
+  for(const E of Object.values(WORLD.nationalCups||{})){
+    if(!['G','K'].includes(E.stage))continue;
+    if(E.stage==='G'){
+      if(day<E.gdays.at(-1)||E.fixtures.some(f=>f.stage==='G'&&!f.played))continue;
+      const tables=E.groups.map(g=>nationalStandings(E,g)),teams=[];
+      if(tables.length===1)teams.push(...tables[0].slice(0,2).map(t=>t.nat));else for(let i=0;i<tables.length;i+=2)teams.push(tables[i][0].nat,tables[i+1][1].nat,tables[i+1][0].nat,tables[i][1].nat);
+      nationalScheduleKO(E,teams,0);continue;
+    }
+    const r=E.ko.round,fx=E.fixtures.filter(f=>f.stage==='K'&&f.round===r+1);
+    if(day<E.kdays[r]||!fx.length||fx.some(f=>!f.played))continue;
+    const results=fx.map(f=>({a:f.home,b:f.away,ga:f.hg,gb:f.ag,pens:f.pens||null,winner:nationalWinner(f),day:f.day})),winners=results.map(f=>f.winner);if(winners.some(n=>!n))throw new Error('国家队淘汰赛缺少胜者');
+    E.knockout.push({name:E.ko.name,results});
+    if(winners.length>1){nationalScheduleKO(E,winners,r+1);continue;}
+    const f=fx[0],name=NATIONAL_COMPS[E.code].name;E.champion=winners[0];E.runnerUp=E.champion===f.home?f.away:f.home;E.stage='F';
+    const h=nationalHistory(E.code);if(!h.some(x=>x.season===E.season))h.push(nationalSnapshot(E));
+    (E.squads[E.champion]||[]).map(P).filter(Boolean).forEach(p=>{p.honors=p.honors||[];const t=E.season+' '+name+'冠军';if(!p.honors.includes(t))p.honors.push(t);});
+    if(E.champion===WORLD.userNation){const t=E.season+' '+name+'冠军（'+E.champion+'）';WORLD.managerHonors=WORLD.managerHonors||[];if(!WORLD.managerHonors.includes(t))WORLD.managerHonors.push(t);}
+    news('🏆 '+name+'落幕',`${f.home} ${f.hg}-${f.ag} ${f.away}${f.pens?'（点球 '+f.pens.join('-')+'）':''}，${E.champion} 夺得 ${E.season} ${name}冠军！`,E.champion===WORLD.userNation?'good':'info');
+  }
+}
+function nationalMatchPlayers(code,nations){
+  const E=WORLD.nationalCups[code],players={};
+  for(const nat of nations)(E.squads[nat]||[]).forEach((id,i)=>{const p=P(id);if(p&&p.nat===nat){players[id]=structuredClone(p);players[id].susp=E.discipline[id]?.susp||0;players[id].yellow=0;players[id].number=i+1;}});
+  return players;
+}
+function matchPlayer(M,id){return M.national?M.players[id]:P(id);}
+function matchTeam(M,side){return M.teams[side]?.club||C(side===0?M.h:M.a);}
+function matchCrest(M,side,size){return M.national?nationFlag(side===0?M.h:M.a):crestHTML(matchTeam(M,side),size);}
+function nationalTeamModel(M,nat,side){
+  const E=WORLD.nationalCups[M.national],T=ensureNationalTeam(nat),squad=(E?.squads[nat]||T.players).filter(id=>M.players[id]);
+  const slots=FORMATIONS[T.tactic.formation],used=new Set(),lineup=Array(slots.length).fill(null),ok=id=>M.players[id]&&squad.includes(id)&&M.players[id].injury<=0&&M.players[id].susp<=0;
+  if(nat===WORLD.userNation)T.lineup.forEach((id,i)=>{if(i<lineup.length&&ok(id)&&!used.has(id)){lineup[i]=id;used.add(id);}});
+  slots.forEach((s,i)=>{if(lineup[i]!=null)return;const id=squad.filter(id=>ok(id)&&!used.has(id)).sort((a,b)=>playerScore(M.players[b],s[0])-playerScore(M.players[a],s[0]))[0];if(id!=null){lineup[i]=id;used.add(id);}});
+  const rest=squad.filter(id=>ok(id)&&!used.has(id)).sort((a,b)=>M.players[b].ca-M.players[a].ca),subs=[];
+  const keeper=rest.find(id=>M.players[id].pos==='GK');if(keeper!=null)subs.push(keeper);
+  for(const id of rest)if(subs.length<BENCH_MAX&&!subs.includes(id))subs.push(id);
+  T.lineup=[...lineup];T.subs=[...subs];
+  return {id:nat,cn:nat,short:nat,en:WC_CN2EN[nat]||nat,squad,lineup,subs,tactic:T.tactic,coachRating:10,physioRating:10,stadium:'中立场地',c1:side===0?'#2477db':'#df4242',c2:'#fff',rep:70};
+}
+function applyNationalResult(f,M){
+  if(f.played)return false;if(!M.done||M.national!==f.comp||M.h!==f.home||M.a!==f.away)throw new Error('国家队比赛结果不匹配');
+  const E=WORLD.nationalCups[f.comp];f.played=true;f.hg=M.score[0];f.ag=M.score[1];f.pens=M.pens||null;f.stats=structuredClone(M.stats);f.motm=M.motm?.id||null;f.events=M.events.map(e=>({t:Math.floor(e.t),x:e.text,c:e.cls||''}));f.ratings=[];
+  for(const [side,T]of M.teams.entries()){
+    for(const id of T.club.squad)if(E.discipline[id]?.susp>0)E.discipline[id].susp--;
+    for(const m of T.men){
+      const p=P(m.id);if(!p||m.mins<=0)continue;
+      p.intlStats=p.intlStats||{apps:0,goals:0,assists:0,cleanSheet:0,ratingSum:0,motm:0};const s=p.intlStats;s.apps++;s.goals+=m.goals;s.assists+=m.assists;s.ratingSum+=m.rating;s.motm+=M.motm?.id===m.id?1:0;if(m.pos==='GK'&&m.mins>=60&&M.score[1-side]===0)s.cleanSheet++;
+      p.condition=Math.min(p.condition,m.cond);
+      if(m.injured){p.injury=Math.max(p.injury,ri(4,35));p.injRecovery=0;p.injType='国家队比赛伤病';}
+      const d=E.discipline[p.id]||(E.discipline[p.id]={yellow:0,susp:0});d.yellow+=m.yellow;if(m.red)d.susp=Math.max(d.susp,1);if(d.yellow>=2){d.yellow=0;d.susp=Math.max(d.susp,1);}
+      f.ratings.push({id:p.id,nat:T.cid,mins:m.mins,rating:m.rating,goals:m.goals,assists:m.assists});
+    }
+  }
+  if(f.stage==='G')for(const [nat,gf,ga]of [[f.home,f.hg,f.ag],[f.away,f.ag,f.hg]]){const s=E.gtable[nat];s.p++;s.gf+=gf;s.ga+=ga;s.gd=s.gf-s.ga;if(gf>ga){s.w++;s.pts+=3}else if(gf===ga){s.d++;s.pts++}else s.l++;}
+  return true;
+}
+function simNationalDay(day,skipUser){
+  for(const f of nationalFixtures().filter(f=>f.day===day&&!f.played)){
+    if(skipUser&&(f.home===WORLD.userNation||f.away===WORLD.userNation))continue;
+    applyNationalResult(f,runMatch(createMatch(f.home,f.away,{comp:f.comp,record:false,...knockoutOpts(f)})));
+  }
+  nationalCupsDayEnd(day);
+}
+function migrateNationalCalendars(){buildNationalCalendars();if(WORLD.userNation)ensureNationalTeam(WORLD.userNation);}
+function nationalRosterLocked(nat){return Object.values(WORLD.nationalCups||{}).some(E=>['G','K'].includes(E.stage)&&E.teams.includes(nat)&&E.fixtures.some(f=>f.played&&(f.home===nat||f.away===nat)));}
+function toggleNationalCallup(id){
+  const nat=WORLD.userNation,T=nat&&ensureNationalTeam(nat),p=P(id);if(!T||!p||p.nat!==nat)return false;
+  if(nationalRosterLocked(nat)){toast('本届大赛已经开赛，征召名单已锁定；仍可调整首发和战术','warn');return false;}
+  if(T.players.includes(id)){if(T.players.length<=11){toast('请至少保留11名球员','warn');return false;}T.players=T.players.filter(x=>x!==id);T.lineup=T.lineup.map(x=>x===id?null:x);T.subs=T.subs.filter(x=>x!==id);}
+  else {if(T.players.length>=23){toast('23人名单已满，请先移出一名球员','warn');return false;}if(p.injury>0){toast('受伤球员不能新增征召','warn');return false;}T.players.push(id);}
+  T.custom=true;
+  for(const E of Object.values(WORLD.nationalCups||{}))if(E.squads?.[nat]&&E.stage==='G'&&!E.fixtures.some(f=>f.played&&(f.home===nat||f.away===nat)))E.squads[nat]=[...T.players];
+  markDirty();return true;
+}
+function setNationalFormation(name){if(!FORMATIONS[name]||!WORLD.userNation)return;const T=ensureNationalTeam(WORLD.userNation);T.tactic.formation=name;T.lineup=[];T.subs=[];markDirty();render();}
+function setNationalStarter(slot,id){
+  const nat=WORLD.userNation,T=nat&&ensureNationalTeam(nat),p=P(+id);if(!T||!p||p.nat!==nat||!T.players.includes(+id)||p.injury>0)return false;
+  const old=T.lineup[slot],other=T.lineup.indexOf(+id);if(other>=0)T.lineup[other]=old??null;T.lineup[slot]=+id;markDirty();return true;
+}
+function validateNationalCalendars(w,fail){
+  const known=n=>typeof n==='string'&&WC_NATIONS.includes(n),codes=Object.keys(NATIONAL_COMPS);
+  if(w.userNation!=null&&!known(w.userNation))fail('执教国家队');
+  for(const p of Object.values(w.players))if(p.intlStats&&['apps','goals','assists','cleanSheet','ratingSum','motm'].some(k=>!Number.isFinite(p.intlStats[k])||p.intlStats[k]<0))fail('国家队球员统计');
+  if(w.nationalTeams!=null&&(typeof w.nationalTeams!=='object'||Array.isArray(w.nationalTeams)))fail('国家队名单结构');
+  for(const [nat,T]of Object.entries(w.nationalTeams||{})){
+    if(!known(nat)||T.v!==1||T.nat!==nat||!Array.isArray(T.players)||T.players.length>23||new Set(T.players).size!==T.players.length||T.players.some(id=>!w.players[id]||w.players[id].nat!==nat))fail('国家队征召名单');
+    if(!T.tactic||!FORMATIONS[T.tactic.formation]||['mentality','tempo','press','width'].some(k=>!Number.isInteger(T.tactic[k])||T.tactic[k]<0||T.tactic[k]>4)||!Array.isArray(T.lineup)||!Array.isArray(T.subs)||T.lineup.length>11||T.subs.length>BENCH_MAX||[...T.lineup,...T.subs].some(id=>id!=null&&!T.players.includes(id))||new Set(T.lineup.filter(id=>id!=null)).size!==T.lineup.filter(id=>id!=null).length)fail('国家队阵容战术');
+  }
+  if(w.nationalCups!=null&&(typeof w.nationalCups!=='object'||Array.isArray(w.nationalCups)||Object.keys(w.nationalCups).some(c=>!codes.includes(c))))fail('国家队赛事结构');
+  for(const [code,E]of Object.entries(w.nationalCups||{})){
+    const history=code==='NWC'?w.wcHistory:w.continentalHistory?.[NATIONAL_COMPS[code].key];
+    if(E.v!==1||E.code!==code||E.season!==w.season||!['G','K','F','D'].includes(E.stage)||!Array.isArray(E.fixtures)||!Array.isArray(E.teams)||!E.teams.every(known)||new Set(E.teams).size!==E.teams.length)fail('国家队赛事状态');
+    if(E.legacy){if(E.stage!=='F'||E.fixtures.length||!history?.some(h=>h.season===E.season&&h.champion===E.champion))fail('旧国家队赛事');continue;}
+    if(E.stage==='D'){if(E.fixtures.length)fail('延期国家队赛程');continue;}
+    if(E.season%NATIONAL_COMPS[code].cycle!==0||!Array.isArray(E.groups)||!E.groups.length||E.groups.some(g=>g.length!==4)||new Set(E.groups.flat()).size!==E.teams.length||!E.groups.flat().every(n=>E.teams.includes(n))||!E.gtable||!E.squads||!E.discipline||!Array.isArray(E.knockout))fail('国家队分组');
+    if(!Array.isArray(E.gdays)||E.gdays.length!==3||!Array.isArray(E.kdays)||E.kdays.length!==Math.log2(E.groups.length*2))fail('国家队日期');
+    const days=[...E.gdays,...E.kdays];if(days.some((d,i)=>!Number.isInteger(d)||d<0||d>=SEASON_DAYS||i&&d<=days[i-1]))fail('国家队日期顺序');
+    for(const nat of E.teams){const ids=E.squads[nat];if(!Array.isArray(ids)||ids.length>23||new Set(ids).size!==ids.length||ids.some(id=>!w.players[id]||w.players[id].nat!==nat))fail('国家队赛事名单');for(const k of ['p','w','d','l','gf','ga','gd','pts'])if(!Number.isFinite(E.gtable[nat]?.[k]))fail('国家队积分');}
+    for(const [id,d]of Object.entries(E.discipline))if(!w.players[id]||!Number.isInteger(d.yellow)||d.yellow<0||!Number.isInteger(d.susp)||d.susp<0)fail('国家队停赛');
+    if(E.fixtures.filter(f=>f.stage==='G').length!==E.groups.length*6)fail('国家队小组赛缺失');const used=new Set();
+    for(const f of E.fixtures){
+      if(!f.national||f.comp!==code||!E.teams.includes(f.home)||!E.teams.includes(f.away)||f.home===f.away||!['G','K'].includes(f.stage)||!Number.isInteger(f.round)||typeof f.played!=='boolean'||!Number.isFinite(f.hg)||!Number.isFinite(f.ag)||f.hg<0||f.ag<0)fail('国家队对阵');
+      if(f.stage==='G'&&(!E.groups[f.grp]?.includes(f.home)||!E.groups[f.grp].includes(f.away)||f.day!==E.gdays[f.round-1])||f.stage==='K'&&(f.day!==E.kdays[f.round-1]||f.played&&!nationalWinner(f)))fail('国家队赛程引用');
+      for(const nat of [f.home,f.away]){const k=f.day+':'+nat;if(used.has(k)||Object.values(w.nationalCups).some(other=>other!==E&&other.fixtures?.some(g=>g.day===f.day&&(g.home===nat||g.away===nat))))fail('国家队同日冲突');used.add(k);}
+      if(w.fixtures.some(g=>g.day===f.day))fail('国家队与俱乐部日程冲突');
+    }
+    if(E.stage==='K'&&(!E.ko||!Number.isInteger(E.ko.round)||E.ko.round<0||E.ko.round>=E.kdays.length||!Array.isArray(E.ko.teams)||E.ko.teams.some(n=>!E.teams.includes(n))||E.fixtures.filter(f=>f.stage==='K'&&f.round===E.ko.round+1).length!==E.ko.teams.length/2))fail('国家队淘汰赛轮次');
+    if(E.stage==='F'&&(!known(E.champion)||!known(E.runnerUp)||E.champion===E.runnerUp||!history?.some(h=>h.season===E.season&&h.champion===E.champion)))fail('国家队冠军');
+  }
+}
+
+function nationalPreview(nat){
+  const T=ensureNationalTeam(nat),E=Object.values(WORLD.nationalCups||{}).find(E=>['G','K'].includes(E.stage)&&E.teams.includes(nat)),players={};
+  for(const id of E?.squads[nat]||T.players){const p=P(id);if(p){players[id]=structuredClone(p);players[id].susp=E?.discipline[id]?.susp||0;}}
+  return nationalTeamModel({national:E?.code,players},nat,0);
+}
+function nationalFixtureRow(f){
+  const d=el('div','national-fixture');d.style.cssText='display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid var(--row-line);font-size:12px';
+  d.innerHTML=`<span class="hint">${fmtDateShort(dateOf(f.day))}</span><span class="tag">${esc(NATIONAL_COMPS[f.comp].name)}</span><span style="flex:1;min-width:150px">${esc(f.home)} ${f.played?`<b>${f.hg} - ${f.ag}</b>`:'vs'} ${esc(f.away)}${f.pens?'（点球 '+f.pens.join('-')+'）':''}</span>`;
+  if(f.played){const b=el('button','sm','比赛报告');b.onclick=()=>showNationalReport(f);d.appendChild(b);}else if(f.day===WORLD.day&&(f.home===WORLD.userNation||f.away===WORLD.userNation)){const b=el('button','sm','进入国家队比赛');b.onclick=onContinue;d.appendChild(b);}
+  return d;
+}
+function renderNationalSchedule(v,compact){
+  if(!WORLD.userNation)return;
+  const fs=nationalFixtures().filter(f=>f.home===WORLD.userNation||f.away===WORLD.userNation).sort((a,b)=>a.day-b.day),box=el('div','card');
+  box.innerHTML=`<h3>🇺🇳 ${esc(WORLD.userNation)} 国家队赛程</h3><p class="hint">大赛比赛日通过「继续」进入临场，可换人和调整战术。国家队出场与俱乐部统计分开记录。</p>`;
+  const rows=compact?fs.filter(f=>!f.played&&f.day>=WORLD.day).slice(0,1):fs;
+  rows.forEach(f=>box.appendChild(nationalFixtureRow(f)));
+  if(!rows.length)box.appendChild(el('div','hint',fs.length?'本届已赛对阵可在国家队页查看；后续淘汰赛随晋级生成。':'本季尚无已排定的本队比赛。已结算旧届次保留结果，后续举办年启用临场赛程；参赛资格仍按原球队实力规则产生。'));
+  v.appendChild(box);
+}
+function renderNationalTournaments(v,userOnly){
+  for(const [code,E]of Object.entries(WORLD.nationalCups||{})){
+    if(userOnly&&!E.teams.includes(WORLD.userNation)&&!E.legacy)continue;
+    const name=NATIONAL_COMPS[code].name,box=el('div','card');box.innerHTML=`<h3>🌍 ${name}（${E.season}）</h3><div class="hint">${esc(E.legacy?'本届已按旧版结算，后续举办年启用临场赛程':E.stage==='D'?E.reason:E.stage==='F'?'已完赛，冠军：'+E.champion+' · 亚军：'+E.runnerUp:E.stage==='G'?'小组赛进行中':E.ko.name+'进行中')}</div>`;
+    if(!E.legacy&&['G','K','F'].includes(E.stage)){
+      E.groups.forEach((g,i)=>{if(userOnly&&!g.includes(WORLD.userNation))return;const details=el('details');if(g.includes(WORLD.userNation))details.open=true;details.innerHTML=`<summary style="cursor:pointer;margin:8px 0">${String.fromCharCode(65+i)}组</summary><table class="tbl"><thead><tr><th>国家队</th><th>场</th><th>分</th><th>净胜</th></tr></thead><tbody>${nationalStandings(E,g).map(s=>`<tr><td>${esc(s.nat)}</td><td>${s.p}</td><td>${s.pts}</td><td>${s.gd}</td></tr>`).join('')}</tbody></table>`;box.appendChild(details);});
+      E.fixtures.filter(f=>f.stage==='K'&&(!userOnly||f.home===WORLD.userNation||f.away===WORLD.userNation)).forEach(f=>box.appendChild(nationalFixtureRow(f)));
+    }
+    v.appendChild(box);
+  }
+}
+function showNationalReport(f){
+  const score=f.home+' '+f.hg+'-'+f.ag+' '+f.away+(f.pens?'（点球 '+f.pens.join('-')+'）':''),s=f.stats||[blankStats(),blankStats()];
+  openModal(esc(score),`<p>${fmtDate(dateOf(f.day))} · ${esc(compLabel(f))}</p><div class="tw"><table><thead><tr><th>国家队</th><th>控球</th><th>射门</th><th>射正</th><th>xG</th></tr></thead><tbody>${[f.home,f.away].map((n,i)=>`<tr><td>${esc(n)}</td><td>${s[i].poss}%</td><td>${s[i].shots}</td><td>${s[i].sot}</td><td>${s[i].xg.toFixed(2)}</td></tr>`).join('')}</tbody></table></div><div>${(f.events||[]).map(e=>`<div class="hint">${e.t}' ${esc(e.x)}</div>`).join('')}</div>`);
+}
+function vNationSquad(v){
+  const nat=WORLD.userNation;if(!nat){NAT_SCOPE=null;vSquad(v);return;}
+  const T=ensureNationalTeam(nat),locked=nationalRosterLocked(nat);v.appendChild(el('div','',`<h1>🇺🇳 ${esc(nat)} 国家队阵容</h1><div class="sub">征召 ${T.players.length}/23 人 · ${locked?'本届名单已锁定，首发与战术仍可调整':'大赛开赛前可调整征召名单'}</div>`));nationScopeBar(v);
+  const card=el('div','card');card.innerHTML='<h3>征召名单</h3><p class="hint">这里的征召不会转移球员俱乐部归属、合同或薪资。俱乐部停赛不影响国家队资格；国家队停赛仅在对应大赛生效。</p>';
+  const selected=T.players.map(P).filter(Boolean),pool=natPlayerPool(nat).sort((a,b)=>b.ca-a.ca).slice(0,60),all=[...selected,...pool.filter(p=>!T.players.includes(p.id))];
+  for(const p of all){const row=el('div');row.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;border-bottom:1px solid var(--row-line)';row.innerHTML=`<span style="flex:1;min-width:160px">${playerLink(p)} <span class="hint">${POS_CN[p.pos]} · ${p.ca} · ${p.clubId>=0?esc(C(p.clubId)?.short||''):'自由球员'}${p.injury>0?' · 受伤':''}</span></span>`;const b=el('button','sm',T.players.includes(p.id)?'移出名单':'征召');b.disabled=locked;b.onclick=()=>{if(toggleNationalCallup(p.id))render();};row.appendChild(b);card.appendChild(row);}
+  v.appendChild(card);
+}
+function setNationalTactic(key,value){const T=WORLD.userNation&&ensureNationalTeam(WORLD.userNation);if(!T||!['mentality','tempo','press','width'].includes(key))return;T.tactic[key]=clamp(Math.round(+value),0,4);markDirty();render();}
+function vNationTactics(v){
+  const nat=WORLD.userNation;if(!nat){NAT_SCOPE=null;vTactics(v);return;}
+  const T=ensureNationalTeam(nat),model=nationalPreview(nat);v.appendChild(el('div','',`<h1>🇺🇳 ${esc(nat)} 国家队战术</h1><div class="sub">阵型、首发与临场调整独立于俱乐部保存</div>`));nationScopeBar(v);
+  const box=el('div','card'),form=el('label','', '阵型 '),select=el('select');select.id='national-formation';select.innerHTML=Object.keys(FORMATIONS).map(k=>`<option value="${esc(k)}"${k===T.tactic.formation?' selected':''}>${esc(k)}</option>`).join('');select.onchange=e=>setNationalFormation(e.target.value);form.appendChild(select);box.appendChild(form);
+  const best=el('button','sm','自动选择国家队首发');best.onclick=()=>{T.lineup=[];T.subs=[];markDirty();render();};box.appendChild(best);
+  for(const [key,label,values]of [['mentality','心态',MENTALITY],['tempo','节奏',TEMPO_N],['press','逼抢',PRESS_N],['width','宽度',WIDTH_N]]){const row=el('label');row.style.cssText='display:block;margin:12px 0';row.innerHTML=`${label}：${esc(values[T.tactic[key]])} <input type="range" min="0" max="4" value="${T.tactic[key]}" style="width:100%" aria-label="国家队${label}">`;row.querySelector('input').onchange=e=>setNationalTactic(key,e.target.value);box.appendChild(row);}
+  const table=el('div');table.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;margin-top:16px';
+  FORMATIONS[T.tactic.formation].forEach((s,i)=>{const row=el('label','',`首发${i+1} ${POS_CN[s[0]]} `),sel=el('select');sel.style.maxWidth='100%';sel.setAttribute('aria-label','国家队首发'+(i+1));const eligible=model.squad.filter(id=>P(id)?.injury<=0);sel.innerHTML=`<option value="">空缺</option>`+eligible.map(id=>`<option value="${id}"${T.lineup[i]===id?' selected':''}>${esc(P(id).cn)} · ${POS_CN[P(id).pos]}</option>`).join('');sel.onchange=e=>{setNationalStarter(i,e.target.value);render();};row.appendChild(sel);table.appendChild(row);});box.appendChild(table);v.appendChild(box);
+  v.appendChild(el('div','card',`<h3>替补名单</h3><p>${model.subs.map(id=>esc(P(id).cn)).join('、')||'暂无可用替补'}</p><p class="hint">可用替补按当前征召名单与首发自动生成。比赛中可手动换人、调整心态、节奏、逼抢和宽度。</p>`));
+}
+
 function checkIntlCallups(){ // 国际比赛日：通知玩家球员入选国家队
   const userPlayers = Object.values(WORLD.players).filter(p=>p.clubId===WORLD.userClub);
   const called = userPlayers.filter(p=>p.nat && WC_NATIONS.includes(p.nat) && p.ca>=78);
@@ -4547,6 +4705,9 @@ function vIntl(v){ // 世界杯/国家队视图
 function vNation(v){ // 国家队视图：执教状态 + 阵容 + 赛事
   initNationalManager();
   v.appendChild(el("div","",`<h1>🇺🇳 国家队</h1>`));
+  renderNationalSchedule(v,false);
+  renderNationalTournaments(v,true);
+  if(WORLD.userNation){const actions=el("div","card");for(const [label,view]of [["调整国家队征召名单","squad"],["设置国家队阵容与战术","tactics"]]){const b=el("button","btn",label);b.onclick=()=>{NAT_SCOPE="nation";go(view)};actions.appendChild(b);}v.appendChild(actions);}
   // 1. 执教状态面板
   const panel=el("div","card");
   panel.style.cssText="border-left:3px solid var(--acc)";
@@ -4557,11 +4718,11 @@ function vNation(v){ // 国家队视图：执教状态 + 阵容 + 赛事
     panel.innerHTML=`<h3>🎖️ 你正在执教：${nationFlag(nat)} ${esc(nat)} 国家队</h3>
       <div class="attr"><span class="an">球队实力</span>${barHTML(str,100,"#4a9eff")}<span class="av">${str}</span></div>
       <div class="attr"><span class="an">教练声望</span>${barHTML(coachRep(),100,lv.color)}<span class="av">${coachRep()}</span></div>
-      <p class="hint">执教加成：国家队比赛实力 +8%。带队在世界杯/洲际赛夺冠可获教练荣誉与声望。</p>
+      <p class="hint">执教加成：国家队比赛实力 +8%。可手动临场指挥，夺冠会记入国家队教练荣誉。</p>
       <button class="btn" onclick="resignNationalJob();render();">🚪 辞去国家队帅位</button>`;
     v.appendChild(panel);
     // 2. 国家队阵容
-    const squad=buildNationalSquad(nat);
+    const squad={players:ensureNationalTeam(nat).players};
     const g=el("div"); g.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:8px";
     const posOrder=["gk","df","mf","fw"]; const posName={gk:"门将",df:"后卫",mf:"中场",fw:"前锋"};
     posOrder.forEach(pg=>{
@@ -4698,35 +4859,8 @@ function nationScopeBar(v, label){ // 俱乐部/国家队切换栏（执教国�
   bar.appendChild(cb); bar.appendChild(nb);
   v.appendChild(bar);
 }
-function vNationSquad(v){ // 国家队阵容视图
-  const nat=WORLD.userNation;
-  if(!nat){ NAT_SCOPE=null; vSquad(v); return; }
-  const squad=buildNationalSquad(nat);
-  v.appendChild(el("div","",`<h1>🇺🇳 ${esc(nat)} 国家队阵容</h1><div class="sub">23 人名单 · 球队实力 ${Math.round(squad.strength)}</div>`));
-  nationScopeBar(v);
-  const g=el("div"); g.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:8px";
-  const posOrder=["gk","df","mf","fw"]; const posName={gk:"门将",df:"后卫",mf:"中场",fw:"前锋"};
-  posOrder.forEach(pg=>{
-    const players=squad.players.map(id=>P(id)).filter(p=>p&&POS_GRP[p.pos]===pg).sort((a,b)=>b.ca-a.ca);
-    if(!players.length) return;
-    const c=el("div","card"); c.innerHTML=`<h4>${posName[pg]}（${players.length}）</h4>`;
-    players.forEach(p=>{
-      c.appendChild(el("div","",`<div style="font-size:12px;padding:3px 0;display:flex;justify-content:space-between;align-items:center"><span>${playerLink(p)}</span><span class="hint">${p.ca} · ${p.age}岁 · ${esc(p.clubId!=null?(C(p.clubId)?C(p.clubId).short:""):"自由")}</span></div>`));
-    });
-    g.appendChild(c);
-  });
-  v.appendChild(g);
-}
-function vNationTactics(v){ // 国家队战术视图（简化）
-  const nat=WORLD.userNation;
-  if(!nat){ NAT_SCOPE=null; vTactics(v); return; }
-  const squad=buildNationalSquad(nat);
-  v.appendChild(el("div","",`<h1>🇺🇳 ${esc(nat)} 国家队战术</h1><div class="sub">国家队比赛采用 ${esc(nat)} 默认阵型（4-3-3）</div>`));
-  nationScopeBar(v);
-  v.appendChild(el("div","card",`<h3>阵型：4-3-3</h3>
-    <p>国家队由主教练统一指挥。你的执教加成让 ${esc(nat)} 比赛实力 +8%。</p>
-    <div class="hint">球队实力：${Math.round(squad.strength)} · 核心球员：${squad.players.map(id=>P(id)).filter(Boolean).sort((a,b)=>b.ca-a.ca).slice(0,3).map(p=>p.cn).join("、")}</div>`));
-}
+
+
 
 
 
@@ -6036,6 +6170,7 @@ const LGS = c => { const l=LG(c); return l? l.short : (c.nation===EURO_NATION? (
 function leagueRowOf(c){ const l=LG(c); if(!l) return null; return leagueTable(l.lg).find(r=>r.id===c.id)||null; }
 // 赛事标签（用于赛程 / 战报）
 function compShort(f){
+  if(f.national)return NATIONAL_COMPS[f.comp].name;
   if(Object.hasOwn(CLUB_CUP_CODES,f.comp))return {LIB:"解放者",AFC:"亚冠",CON:"中北美",SUP:"欧超杯",CWC:"世俱杯"}[f.comp];
   if(f.comp==="WCL")return "世冠";
   if(f.comp==="L") return WORLD.leagues[f.lg]? WORLD.leagues[f.lg].short : "联赛";
@@ -6045,6 +6180,7 @@ function compShort(f){
   return f.comp;
 }
 function compLabel(f){
+  if(f.national)return NATIONAL_COMPS[f.comp].name+" "+(f.stage==="G"?"小组赛 第"+f.round+"轮":(WORLD.nationalCups?.[f.comp]?.knockout[f.round-1]?.name||WORLD.nationalCups?.[f.comp]?.ko?.name||"淘汰赛"));
   if(Object.hasOwn(CLUB_CUP_CODES,f.comp))return clubCupName(f.comp)+" "+(f.stage==="G"?"小组赛 第"+f.round+"轮":(WORLD.clubCups?.[f.comp]?.knockout[f.round-1]?.name||WORLD.clubCups?.[f.comp]?.ko?.name||"淘汰赛"));
   if(f.comp==="WCL")return "世冠联赛 "+(f.stage==="G"?"小组赛 第"+f.round+"轮":WCL_KO_NAMES[4-(WORLD.wcl?.kdays.length||4)+f.round-1]);
   if(f.comp==="L") return compShort(f)+" 第"+f.round+"轮";
@@ -6133,6 +6269,8 @@ function buildSeason(){
   WORLD.fixtures=[];
   WORLD.wcl=null;
   WORLD.clubCups={};
+  WORLD.nationalCups={};
+  refreshNationalTeams();
   WORLD.calStart=seasonStart();
   // 联赛对象
   WORLD.leagues=LEAGUE_DEFS.map(d=>({
@@ -6178,6 +6316,7 @@ function buildSeason(){
   WORLD.cups.forEach(cup=>{cup.calendarV3=1;scheduleCupRound(cup);});
   runWorldChampionsLeague(WORLD.season);
   buildClubCups();
+  buildNationalCalendars();
   WORLD.fixtures.sort((a,b)=>a.day-b.day);
 }
 
@@ -6240,7 +6379,7 @@ function poRoundSpec(po, r){
 }
 // 找一个两队前后两天都没比赛的日子（杯赛决赛、欧战决赛可能撞上）
 function poFreeDay(d, ids){
-  const busy=dd=>clubCupReservedDays(ids).some(d=>Math.abs(d-dd)<=2)||(WORLD.wcl?.teams.some(id=>ids.includes(id))&&wclReservedDays().some(d=>Math.abs(d-dd)<=2))||WORLD.fixtures.some(f=>(ids.includes(f.home)||ids.includes(f.away)) && Math.abs(f.day-dd)<=2);
+  const busy=dd=>nationalReservedDays().some(d=>Math.abs(d-dd)<=2)||clubCupReservedDays(ids).some(d=>Math.abs(d-dd)<=2)||(WORLD.wcl?.teams.some(id=>ids.includes(id))&&wclReservedDays().some(d=>Math.abs(d-dd)<=2))||WORLD.fixtures.some(f=>(ids.includes(f.home)||ids.includes(f.away)) && Math.abs(f.day-dd)<=2);
   let g=0; while(busy(d) && g++<30) d++;
   return d;
 }
@@ -6646,6 +6785,7 @@ function competitionsDayEnd(day){
 }
 // 创建比赛时的淘汰赛参数（是否需要点球、总比分基数）
 function knockoutOpts(f){
+  if(f.national)return {national:f.comp,knockout:f.stage==="K",neutral:true};
   if(Object.hasOwn(CLUB_CUP_CODES,f.comp))return {knockout:f.stage==="K",neutral:!!f.neutral};
   if(f.comp==="WCL")return {knockout:f.stage==="K",neutral:!!f.neutral};
   if(f.comp==="PO") return poKnockoutOpts(f);
@@ -6834,7 +6974,7 @@ function checkMatchNumbers(M){
   if(!short.some(Boolean)) return false;
   M.score=short[0]&&short[1]?[0,0]:short[0]?[0,Math.max(3,M.score[1])]:[Math.max(3,M.score[0]),0];
   M.forfeit=true;
-  addEvent(M,"sys",`${short[0]?C(M.h).short:""}${short.every(Boolean)?" 与 ":""}${short[1]?C(M.a).short:""} 可参赛人数不足 7 人，比赛终止，判定 ${M.score.join("-")}`,"sys");
+  addEvent(M,"sys",`${short[0]?matchTeam(M,0).short:""}${short.every(Boolean)?" 与 ":""}${short[1]?matchTeam(M,1).short:""} 可参赛人数不足 7 人，比赛终止，判定 ${M.score.join("-")}`,"sys");
   endMatch(M); return true;
 }
 function executionF(m){
@@ -6855,16 +6995,17 @@ function createMatch(homeId, awayId, opts){
     teams:[], possTicks:[0,0], ballOwner:null, side:0,
     ball:{x:PW/2,y:PH/2}, lastTouch:null, subsMade:[0,0], pens:null,
     userSide: opts.userSide!=null?opts.userSide:-1,
-    derby: isDerby(homeId,awayId),
+    national:opts.national||null, players:opts.national?nationalMatchPlayers(opts.national,[homeId,awayId]):null,
+    derby: opts.national?false:isDerby(homeId,awayId),
 
   };
   [homeId,awayId].forEach((cid,side)=>{
-    const club=C(cid);
+    const club=M.national?nationalTeamModel(M,cid,side):C(cid);
     const oppId = side===0 ? awayId : homeId;
-    repairLineup(club,true);
+    if(!M.national)repairLineup(club,true);
     // 不能对阵母队条款：租借球员对阵母队时不能上场，用替补顶替（局部数组，不改持久阵容）
     let lu = club.lineup.slice();
-    const banned = lu.map((pid,i)=>pid!=null && P(pid) && P(pid).loan && P(pid).loan.owner===oppId ? i : -1).filter(i=>i>=0);
+    const banned = lu.map((pid,i)=>!M.national && pid!=null && P(pid) && P(pid).loan && P(pid).loan.owner===oppId ? i : -1).filter(i=>i>=0);
     if(banned.length){
       banned.forEach(slotIdx=>{
         const used=new Set(lu.filter((id,i)=>i!==slotIdx && !banned.includes(i)));
@@ -6880,18 +7021,18 @@ function createMatch(homeId, awayId, opts){
     const arr=[];
     lu.forEach((pid,i)=>{
       if(pid==null) return;
-      const p=P(pid), w=slotWorld(slots[i][1],slots[i][2],side);
+      const p=matchPlayer(M,pid), w=slotWorld(slots[i][1],slots[i][2],side);
       arr.push({
-        id:pid, p, coach:club.coachRating||10, slot:i, pos:slots[i][0], bx:w.x, by:w.y, x:w.x, y:w.y,
+        id:pid, p, nationBoost:M.national?nationManagerBonus(cid):1, coach:club.coachRating||10, slot:i, pos:slots[i][0], bx:w.x, by:w.y, x:w.x, y:w.y,
         cond:p.condition, rating:6.4, goals:0, assists:0, shots:0, sot:0,
         passes:0, passOk:0, tackles:0, tackleOk:0, saves:0, keyp:0, drib:0,
         yellow:0, red:0, off:false, mins:0
       });
     });
     const bench=(club.subs||[]).filter(id=>{
-      const p=P(id); return p && !lu.includes(id) && p.injury<=0 && p.susp<=0 && !(p.loan&&p.loan.owner===oppId);
+      const p=matchPlayer(M,id); return p && !lu.includes(id) && p.injury<=0 && p.susp<=0 && (M.national||!(p.loan&&p.loan.owner===oppId));
     });
-    M.teams.push({cid, club, suspServing:club.squad.filter(id=>P(id)?.susp>0), men:arr, bench, benchUsed:[], gk:arr.find(m=>m.pos==="GK")||arr[0],
+    M.teams.push({cid, club, suspServing:club.squad.filter(id=>matchPlayer(M,id)?.susp>0), men:arr, bench, benchUsed:[], gk:arr.find(m=>m.pos==="GK")||arr[0],
       form:club.tactic.formation, tac:club.tactic,
       homeAdv: side===0 && !M.neutral ? 1.17 : 1});
   });
@@ -6948,7 +7089,7 @@ function matchKeeper(M,side){
     keeper.fieldRole={pos:keeper.pos,bx:keeper.bx,by:keeper.by};
     keeper.emergencyGK=true; keeper.pos="GK";
     const w=slotWorld(5,50,side); keeper.bx=w.x; keeper.by=w.y; keeper.x=w.x; keeper.y=w.y;
-    addEvent(M,"sys",`${C(T.cid).short} 由 ${nm(keeper)} 临时守门`,"sys");
+    addEvent(M,"sys",`${T.club.short} 由 ${nm(keeper)} 临时守门`,"sys");
   }
   if(!keeper) throw new Error("没有可以担任门将的场上球员");
   T.gk=keeper; return keeper;
@@ -7010,7 +7151,7 @@ const att=(m,k)=>{
       if(b && b.attr===k) v += plus.includes(id) ? b.gold : b.silver;
     }
   }
-  return v*(0.62+0.38*(m.cond/100))*executionF(m)
+  return v*(m.nationBoost||1)*(0.62+0.38*(m.cond/100))*executionF(m)
     *(m.emergencyGK&&["reflex","handling","oneonone","aerial","gkkick","command","positioning"].includes(k)?0.35:1);
 };
 
@@ -7277,7 +7418,7 @@ function scoreGoal(M,side,o,how){
     asst=M.lastTouch; asst.assists++; asst.rating+=0.55;
   }
   const T=M.teams[side];
-  addEvent(M,"goal",`⚽ 进球！${C(T.cid).short} ${nm(o)} ${how}破门${asst?"（"+nm(asst)+" 助攻）":""}  ${M.score[0]}-${M.score[1]}`,"goal");
+  addEvent(M,"goal",`⚽ 进球！${T.club.short} ${nm(o)} ${how}破门${asst?"（"+nm(asst)+" 助攻）":""}  ${M.score[0]}-${M.score[1]}`,"goal");
   M.teams[1-side].men.forEach(m=>{ if(m.off)return; if(m.pos==="GK") m.rating-=0.32; else if(POS_GRP[m.pos]==="df") m.rating-=0.11; });
   T.men.forEach(m=>{if(!m.off)m.rating+=0.03;});
   // 中圈开球
@@ -7290,7 +7431,7 @@ function penalty(M,side,victim){
   M.lastTouch=null;
   const T=M.teams[side], gk=matchKeeper(M,1-side);
   const taker=T.men.filter(m=>!m.off).reduce((b,m)=> (att(m,'finishing')*0.6+att(m,'composure')*0.4)>(att(b,'finishing')*0.6+att(b,'composure')*0.4)?m:b);
-  addEvent(M,"pen",`点球！${C(T.cid).short} 获得 12 码机会`,"chance");
+  addEvent(M,"pen",`点球！${T.club.short} 获得 12 码机会`,"chance");
   taker.shots++; M.stats[side].shots++; M.stats[side].xg+=0.78;
   const p=clamp(0.62+att(taker,'finishing')*0.012+att(taker,'composure')*0.010-att(gk,'reflex')*0.008,0.4,0.94);
   M.ball={x:side===0?PW-11:11,y:PH/2};
@@ -7347,11 +7488,11 @@ function cardCheck(M,side,D,inBox){
 function canSub(M,side){ return !M.done && M.subsMade[side]<5; }
 function doSub(M,side,outMan,inPid){
   if(!canSub(M,side)) return false;
-  const T=M.teams[side], p=P(inPid), oppId=side===0?M.a:M.h;
+  const T=M.teams[side], p=matchPlayer(M,inPid), oppId=side===0?M.a:M.h;
   if(!p || !outMan || !T.men.includes(outMan) || outMan.red || outMan.subDone===2 ||
      (outMan.off&&!outMan.injured) || !(T.bench||T.club.subs||[]).includes(inPid) ||
-     p.injury>0 || p.susp>0 || (p.loan&&p.loan.owner===oppId) ||
-     !T.club.squad.includes(inPid) || p.clubId!==T.cid || T.men.some(m=>m.id===inPid) || T.benchUsed.includes(inPid)) return false;
+     p.injury>0 || p.susp>0 || (!M.national&&p.loan&&p.loan.owner===oppId) ||
+     !T.club.squad.includes(inPid) || (!M.national&&p.clubId!==T.cid) || T.men.some(m=>m.id===inPid) || T.benchUsed.includes(inPid)) return false;
   const slots=FORMATIONS[T.form];
   const w=slotWorld(slots[outMan.slot][1],slots[outMan.slot][2],side);
   const occupiedKeeper=T.gk&&!T.gk.off&&T.gk!==outMan&&!T.gk.emergencyGK;
@@ -7370,14 +7511,14 @@ function doSub(M,side,outMan,inPid){
     const home=slotWorld(5,50,side); w.x=home.x; w.y=home.y;
   }
   outMan.off=true; outMan.subDone=2;
-  const nm2={id:inPid,p,coach:T.club.coachRating||10,slot:outMan.slot,pos:replacingKeeper?"GK":slots[outMan.slot][0],bx:w.x,by:w.y,x:w.x,y:w.y,
+  const nm2={id:inPid,p,nationBoost:M.national?nationManagerBonus(T.cid):1,coach:T.club.coachRating||10,slot:outMan.slot,pos:replacingKeeper?"GK":slots[outMan.slot][0],bx:w.x,by:w.y,x:w.x,y:w.y,
     cond:p.condition,rating:6.4,goals:0,assists:0,shots:0,sot:0,passes:0,passOk:0,tackles:0,tackleOk:0,
     saves:0,keyp:0,drib:0,yellow:0,red:0,off:false,mins:0,subIn:M.t};
   if(replacementRole) Object.assign(nm2,replacementRole,{x:replacementRole.bx,y:replacementRole.by});
   if(vacatedRole) nm2.vacatedRole=vacatedRole;
   T.men.push(nm2); T.benchUsed.push(inPid); M.subsMade[side]++;
   if(replacingKeeper) T.gk=nm2;
-  addEvent(M,"sub",`🔁 ${C(T.cid).short} 换人：${nm(nm2)} 换下 ${nm(outMan)}`,"sys");
+  addEvent(M,"sub",`🔁 ${T.club.short} 换人：${nm(nm2)} 换下 ${nm(outMan)}`,"sys");
   if(M.ballOwner===outMan) M.ballOwner=nm2;
   return true;
 }
@@ -7396,12 +7537,12 @@ function aiSubs(M){
       if(!cands.length) return;
       out=cands.reduce((b,m)=>m.cond<b.cond?m:b);
     }
-    const club=C(T.cid);
-    const bench=(T.bench||club.subs).filter(id=>P(id)&&!T.benchUsed.includes(id)&&!T.men.some(m=>m.id===id)&&P(id).injury<=0&&P(id).susp<=0);
+    const club=T.club;
+    const bench=(T.bench||club.subs).filter(id=>matchPlayer(M,id)&&!T.benchUsed.includes(id)&&!T.men.some(m=>m.id===id)&&matchPlayer(M,id).injury<=0&&matchPlayer(M,id).susp<=0);
     if(!bench.length) return;
     const slots=FORMATIONS[T.form], want=slots[out.slot][0];
     let bestId=null,bs=-1;
-    bench.forEach(id=>{ const sc=playerScore(P(id),want)* (P(id).pos===want?1.1:1);
+    bench.forEach(id=>{ const sc=playerScore(matchPlayer(M,id),want)* (matchPlayer(M,id).pos===want?1.1:1);
       if(sc>bs){bs=sc;bestId=id;} });
     if(bestId) doSub(M,side,out,bestId);
   });
@@ -7435,9 +7576,9 @@ function endMatch(M){
     for(let i=0;i<5;i++){ if(rnd()<0.75)p[0]++; if(rnd()<0.75)p[1]++; }
     while(p[0]===p[1]){ if(rnd()<0.75)p[0]++; if(rnd()<0.75)p[1]++; }
     M.pens=p;
-    addEvent(M,"sys",`点球大战 ${p[0]}-${p[1]}，${C(p[0]>p[1]?M.h:M.a).cn} 晋级`,"sys");
+    addEvent(M,"sys",`点球大战 ${p[0]}-${p[1]}，${matchTeam(M,p[0]>p[1]?0:1).cn} 晋级`,"sys");
   }
-  addEvent(M,"sys",`—— 全场结束  ${C(M.h).short} ${M.score[0]} : ${M.score[1]} ${C(M.a).short} ——`,"sys");
+  addEvent(M,"sys",`—— 全场结束  ${matchTeam(M,0).short} ${M.score[0]} : ${M.score[1]} ${matchTeam(M,1).short} ——`,"sys");
 }
 function runMatch(M){ let guard=0; while(!M.done && guard++<20000) stepMatch(M); return M; }
 /* =========================================================
@@ -7865,6 +8006,7 @@ const NEWS_EVENT_POOL = [
 
 // ---------- 结果落地 ----------
 function applyResult(fx, M){
+  if(fx.national)return applyNationalResult(fx,M);
   if(fx.played) return false;
   fx.played=true; fx.hg=M.score[0]; fx.ag=M.score[1]; fx.pens=M.pens;
   fx.stats=[M.stats[0],M.stats[1]];
@@ -10665,9 +10807,9 @@ function endSeason(){
   });
   setBoardExpectation();
   // 世界杯（每 4 年一届，在双数年赛季结束时举行）
-  if(WORLD.season%4===0){ try{ runWorldCup(WORLD.season); }catch(e){} }
+  // 国家队大赛已由 buildSeason 编入日历，不在赛季交接时模拟整届。
   // 洲际赛（欧洲杯/美洲杯/亚洲杯/非洲杯，按各自周期触发）
-  try{ runAllContinentalCups(WORLD.season); }catch(e){}
+
   // 国家队主教练空缺（大赛后战绩不佳者下课）
   try{ genNationalVacancies(); }catch(e){}
   // 国家队执教邀请（根据声望从弱到强）
@@ -10726,7 +10868,7 @@ function clubCupHistory(code){
 }
 function clubCupReservedDays(ids){return Object.values(WORLD.clubCups||{}).filter(E=>['G','K'].includes(E.stage)&&(!ids||E.teams.some(id=>ids.includes(id)))).flatMap(E=>[...E.gdays,...E.kdays]);}
 function clubCupPlanDays(teams,count,minDay,early){
-  const reserved=new Set([...Object.values(WORLD.euro||{}).flatMap(E=>[...E.gdays,...E.kdays.flat(),E.finalDay]),...WORLD.cups.flatMap(c=>c.days),...wclReservedDays(),...clubCupReservedDays()]),days=[];
+  const reserved=new Set([...Object.values(WORLD.euro||{}).flatMap(E=>[...E.gdays,...E.kdays.flat(),E.finalDay]),...WORLD.cups.flatMap(c=>c.days),...wclReservedDays(),...clubCupReservedDays(),...nationalReservedDays()]),days=[];
   const latest=SEASON_DAYS-2,preferred=early?[12]:count===2?[245,280]:[35,85,135,180,220,260];
   for(let i=0;i<count;i++){
     const aim=minDay===0?preferred[i]:minDay+2+i*Math.max(2,Math.floor((latest-minDay-3)/Math.max(1,count-1))),low=Math.max(minDay,days.length?days.at(-1)+2:0),high=latest-(count-i-1)*2;
@@ -11023,91 +11165,8 @@ function nationManagerBonus(natCN){ // 玩家执教该国家队时的比赛加�
   if(WORLD.userNation===natCN) return 1.08;
   return 1.0;
 }
-function runContinentalCup(confKey, season){ // 跑一届洲际赛
-  const conf = CONTINENTAL_CONF[confKey];
-  if(!conf) return;
-  const pool = conf.nations.map(n=>buildNationalSquad(n)).filter(s=>s.strength>0);
-  if(pool.length < 4) return;
-  pool.sort((a,b)=>b.strength-a.strength);
-  const n = Math.min(pool.length, confKey==="euro"?16: confKey==="africa"?8: 8);
-  const teams = pool.slice(0, n);
-  const nGroups = n<=8 ? 2 : 4; // 8队→2组，16队→4组
-  const perGroup = n/nGroups;
-  // 小组赛
-  const groups=[];
-  for(let g=0; g<nGroups; g++){
-    const grp = teams.slice(g*perGroup, g*perGroup+perGroup);
-    const standings = grp.map(t=>({t, pts:0, gd:0, gf:0, ga:0}));
-    const results=[];
-    for(let i=0;i<grp.length;i++) for(let j=i+1;j<grp.length;j++){
-      const A=grp[i], B=grp[j];
-      const [ga,gb]=simIntlGame(A,B);
-      results.push({a:A.nat,b:B.nat,ga,gb});
-      const sa=standings[i], sb=standings[j];
-      sa.gf+=ga; sa.ga+=gb; sb.gf+=gb; sb.ga+=ga;
-      sa.gd+=(ga-gb); sb.gd+=(gb-ga);
-      if(ga>gb) sa.pts+=3; else if(gb>ga) sb.pts+=3; else {sa.pts+=1; sb.pts+=1;}
-    }
-    standings.sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);
-    groups.push({standings:standings.map(s=>({nat:s.t.nat,pts:s.pts,gd:s.gd,t:s.t})), results});
-  }
-  // 淘汰赛：各组前2名出线
-  let round=[];
-  if(nGroups===2){
-    round = [groups[0].standings[0].t, groups[1].standings[1].t, groups[1].standings[0].t, groups[0].standings[1].t];
-  } else { // 4组：每组前2
-    for(let g=0;g<4;g+=2){
-      round.push(groups[g].standings[0].t, groups[g+1].standings[1].t);
-      round.push(groups[g+1].standings[0].t, groups[g].standings[1].t);
-    }
-  }
-  const knockout=[];
-  const roundNames = round.length===8 ? ["1/4决赛","半决赛","决赛"] : ["半决赛","决赛"];
-  let roundIdx=0;
-  while(round.length>=2){
-    const next=[]; const results=[];
-    for(let i=0;i<round.length;i+=2){
-      const A=round[i], B=round[i+1];
-      let [ga,gb]=simIntlGame(A,B);
-      let pens=ga===gb;
-      let winner = ga>gb ? A : (gb>ga ? B : (Math.random()<0.5?A:B));
-      results.push({a:A.nat,b:B.nat,ga,gb,winner:winner.nat, pens});
-      next.push(winner);
-    }
-    knockout.push({name:roundNames[roundIdx], results});
-    round=next; roundIdx++;
-  }
-  const champion=round[0];
-  // 记录历史
-  if(!WORLD.continentalHistory) WORLD.continentalHistory={};
-  if(!WORLD.continentalHistory[confKey]) WORLD.continentalHistory[confKey]=[];
-  WORLD.continentalHistory[confKey].push({season, champion:champion.nat, groups, knockout});
-  // 冠军球员荣誉
-  champion.players.map(id=>P(id)).filter(Boolean).forEach(p=>{ p.honors=p.honors||[]; p.honors.push(season+" "+conf.name+"冠军"); });
-  // 新闻
-  const userPlayers = Object.values(WORLD.players).filter(p=>p.clubId===WORLD.userClub);
-  const userInChamp = userPlayers.filter(p=>champion.players.includes(p.id));
-  if(userInChamp.length){
-    news("🏆 "+conf.name+"冠军！", `${champion.nat} 夺得 ${season} ${conf.name}！你的球员 ${userInChamp.map(p=>p.cn).join("、")} 随队夺冠！`, "good");
-  } else {
-    news("🏆 "+conf.name+"落幕", `${champion.nat} 夺得 ${season} ${conf.name}冠军！`, "info");
-  }
-  // 玩家执教的国家队夺冠
-  if(WORLD.userNation===champion.nat){
-    WORLD.managerHonors = WORLD.managerHonors || [];
-    WORLD.managerHonors.push(season+" "+conf.name+"冠军（"+champion.nat+"）");
-    news("🏆 国家队夺冠！", `你执教的 ${champion.nat} 国家队夺得 ${season} ${conf.name}冠军！你的教练生涯再添一座洲际奖杯！`, "good");
-  }
-  return {season, champion:champion.nat, confKey};
-}
-function runAllContinentalCups(season){ // 按周期触发各大洲杯赛
-  for(const confKey in CONTINENTAL_CONF){
-    const conf = CONTINENTAL_CONF[confKey];
-    if(season % conf.cycle === 0){
-      try{ runContinentalCup(confKey, season); }catch(e){}
-    }
-  }
-}
+
+
 
 
 // ===== 世界冠军联赛（世冠联赛）=====
@@ -11129,7 +11188,7 @@ function wclReservedDays(){
 function wclPlanDays(teams,count,minDay){
   const reserved=new Set([
     ...Object.values(WORLD.euro||{}).flatMap(E=>[...E.gdays,...E.kdays.flat(),E.finalDay]),
-    ...WORLD.cups.flatMap(c=>c.days),...clubCupReservedDays()
+    ...WORLD.cups.flatMap(c=>c.days),...clubCupReservedDays(),...nationalReservedDays()
   ]), days=[];
   const latest=SEASON_DAYS-2;
   // 为淘汰赛预留逐轮推进空间；旧档只使用未来日期。
@@ -11706,6 +11765,10 @@ function renderJobHunt(){ // 待业状态：应聘新俱乐部
   const cont=el("button","btn","继续（等待新机会）");
   cont.onclick=onContinue;
   v.appendChild(cont);
+  if(WORLD.userNation){
+    const box=el("div","card",`<h3>🇺🇳 ${esc(WORLD.userNation)} 国家队</h3><p class="hint">俱乐部待业不影响国家队执教，可继续调整征召、阵容与战术。</p>`);
+    for(const [label,view]of [["国家队赛事","nation"],["国家队阵容","squad"],["国家队战术","tactics"]]){const b=el("button","btn",label);b.onclick=()=>{NAT_SCOPE="nation";go(view)};box.appendChild(b);}v.appendChild(box);
+  }
   const backup=el("button","btn","导出存档文件"); backup.onclick=exportSave; v.appendChild(backup);
 }
 function coachCareerMovement(summary){ // 赛季末教练流动（AI 解雇 + 招聘 + 玩家解雇）
@@ -12148,6 +12211,8 @@ let CURMATCH=null;      // 正在进行的用户比赛
 
 
 function userFixtureOn(day){
+  const national=nationalFixtures().find(f=>f.day===day&&!f.played&&(f.home===WORLD.userNation||f.away===WORLD.userNation));
+  if(national)return national;
   if(WORLD.needJob) return null;
   return WORLD.fixtures.find(f=>f.day===day && !f.played && (f.home===WORLD.userClub||f.away===WORLD.userClub));
 }
@@ -12167,6 +12232,7 @@ function simDay(day, skipUser){
   });
   // 杯赛 / 欧战轮次推进
   competitionsDayEnd(day);
+  simNationalDay(day,skipUser);
 }
 
 function contractReminder(stage){
@@ -12238,13 +12304,13 @@ function advance(){
   prepareDeadlineMarket();
   return {t:"day"};
 }
-function allFixturesDone(){ return !WORLD.fixtures.some(f=>!f.played); }
+function allFixturesDone(){ return !WORLD.fixtures.some(f=>!f.played)&&!nationalFixtures().some(f=>!f.played); }
 
 // 用户比赛结束后收尾
 function finishUserMatch(){
   const M=CURMATCH;
   if(!M || !M.done) return "ignored";
-  const fx=WORLD.fixtures.find(f=>f.day===WORLD.day && !f.played && (f.home===M.h&&f.away===M.a));
+  const fx=(M.national?nationalFixtures():WORLD.fixtures).find(f=>f.day===WORLD.day && !f.played && (f.home===M.h&&f.away===M.a));
   if(fx) applyResult(fx,M);
   simDay(WORLD.day,false);
   processDayEnd(WORLD.day);
@@ -12337,7 +12403,7 @@ function renderNav(){
     });
   });
 }
-function go(v){ if(WORLD?.needJob){render();return;} VIEW=v; SORT={k:null,d:1}; render(); }
+function go(v){ if(WORLD?.needJob&&!(WORLD.userNation&&(v==="nation"||NAT_SCOPE==="nation"&&["squad","tactics"].includes(v)))){render();return;} VIEW=v; SORT={k:null,d:1}; render(); }
 
 function renderTop(){
   if(WORLD.needJob){
@@ -12355,7 +12421,7 @@ function renderTop(){
   const available=avail(c);
   $("#tb-bal").textContent=money(available);
   $("#tb-bal").style.color=available<0?"#e5484d":"";
-  const nf=nextUserFixture();
+  const nf=nextManagedFixture();
   $("#tb-next").textContent = nf? (nf.day===WORLD.day?"今天":(nf.day-WORLD.day)+"天") : "赛季末";
 }
 
@@ -12365,7 +12431,7 @@ let LAST_VIEW=null;
 function render(){
   markDirty();
   // 待业状态：显示应聘界面
-  if(WORLD.needJob){ renderJobHunt(); return; }
+  if(WORLD.needJob&&!(CURMATCH?.national&&VIEW==="match")&&VIEW!=="nation"&&!(WORLD.userNation&&NAT_SCOPE==="nation"&&["squad","tactics"].includes(VIEW))){ renderJobHunt(); return; }
   renderNav(); renderTop();
   const v=$("#view");
   const keepY = (LAST_VIEW===VIEW)? v.scrollTop : 0;
@@ -14100,6 +14166,7 @@ function vWorld(v){
   v.appendChild(el("div","",`<h1>世界赛事</h1><div class="sub">世冠联赛 · 世俱杯 · 世界杯 · 洲际俱乐部赛事</div>`));
   renderWorldChampionsLeague(v);
   ['CWC','AFC','LIB','CON','SUP'].forEach(code=>renderClubCup(v,code));
+  renderNationalTournaments(v,false);
   // 世界杯
   const wc = WORLD.wcHistory && WORLD.wcHistory.length ? WORLD.wcHistory[WORLD.wcHistory.length-1] : null;
   if(wc){
@@ -14199,6 +14266,7 @@ function showClub(id){
 
 /* ================= 赛程 ================= */
 function vSchedule(v){
+  renderNationalSchedule(v,false);
   const c=UC();
   v.appendChild(el("div","",`<h1>赛程</h1><div class="sub">${esc(c.cn)} ${WORLD.season}/${String(WORLD.season+1).slice(2)} 赛季全部比赛</div>`));
   const fx=WORLD.fixtures.filter(f=>f.home===c.id||f.away===c.id).sort((a,b)=>a.day-b.day);
@@ -14542,7 +14610,7 @@ const PHASE_MS=230;
 function startUserMatch(fx){
   // 防御：同一场比赛已有未结算的实例，不重开（重开会重掷随机结果）
   if(CURMATCH && CURMATCH.h===fx.home && CURMATCH.a===fx.away){ VIEW="match"; render(); return; }
-  const side = fx.home===WORLD.userClub?0:1;
+  const side = fx.home===(fx.national?WORLD.userNation:WORLD.userClub)?0:1;
   CURMATCH=createMatch(fx.home,fx.away,{comp:fx.comp,round:fx.round, record:true, userSide:side, ...knockoutOpts(fx)});
   ANIM={raf:0,playing:false,speed:(WORLD.settings&&WORLD.settings.matchSpeed)||1,acc:0,last:0,prev:null,cur:CURMATCH.frames[0]||null,evShown:0,ended:false,trail:[],cap:null};
   VIEW="match"; render();
@@ -14553,16 +14621,16 @@ function vMatch(v){
   const M=CURMATCH;
   if(!M){ v.innerHTML='<div class="empty">当前没有进行中的比赛</div>'; return; }
   ANIM.evShown=0;                    // 视图重建（如旋转屏幕）后重新铺满事件流
-  const H=C(M.h), A=C(M.a);
+  const H=matchTeam(M,0), A=matchTeam(M,1);
   v.innerHTML=`
    <div class="card" style="padding:0;overflow:hidden;margin-bottom:12px">
      <div id="mscore">
-       <div class="tn a">${esc(H.cn)}</div>${crestHTML(H,30)}
+       <div class="tn a">${esc(H.cn)}</div>${matchCrest(M,0,30)}
        <div class="sc" id="m-sc">0 : 0</div>
-       ${crestHTML(A,30)}<div class="tn">${esc(A.cn)}</div>
+       ${matchCrest(M,1,30)}<div class="tn">${esc(A.cn)}</div>
      </div>
      <div id="mclock" style="padding:4px">0'</div>
-     <div class="hint" style="text-align:center;font-size:11px;padding:0 8px 6px">${(()=>{const f=WORLD.fixtures.find(f=>f.day===WORLD.day&&f.home===M.h&&f.away===M.a); return f? esc(compLabel(f))+" · " : "";})()}${esc(M.neutral?"中立场地":H.stadium)}</div>
+     <div class="hint" style="text-align:center;font-size:11px;padding:0 8px 6px">${(()=>{const f=(M.national?nationalFixtures():WORLD.fixtures).find(f=>f.day===WORLD.day&&f.home===M.h&&f.away===M.a); return f? esc(compLabel(f))+" · " : "";})()}${esc(M.neutral?"中立场地":H.stadium)}</div>
    </div>
    <div class="row">
      <div class="mcol-main">
@@ -14661,7 +14729,7 @@ function completeMatch(){
   showPostMatch(M, res==="season");
 }
 function showPostMatch(M, seasonEnded){
-  const H=C(M.h),A=C(M.a);
+  const H=matchTeam(M,0),A=matchTeam(M,1);
   const tbl=side=>`<table><thead><tr><th>球员</th><th class="num">分钟</th><th class="num">评分</th><th class="num">球</th><th class="num">助</th><th class="num">射</th><th class="num">传</th></tr></thead><tbody>
     ${M.teams[side].men.map(m=>`<tr><td>${esc(nm(m))} <span class="tag t-${POS_GRP[m.pos]}">${POS_CN[m.pos]}</span>${m.yellow?" 🟨":""}${m.red?" 🟥":""}</td>
       <td class="num">${Math.round(m.mins)}'</td>
@@ -14727,7 +14795,7 @@ function refreshMatchUI(force){
   const bs=$("#btn-sub"); if(bs && M.userSide>=0){ const t=`🔁 换人 (${5-M.subsMade[M.userSide]})`; if(bs.textContent!==t) bs.textContent=t; }  // 只在变化时改，iOS 上每帧改文本会吞掉同一行按钮的点击
   const pl=$("#m-players");
   if(pl){
-    const mk=side=>`<div class="col"><div class="hint" style="margin-bottom:3px">${esc(C(side===0?M.h:M.a).cn)}${side===M.userSide?' <span style="opacity:.6">（点球员可直接换人）</span>':''}</div>
+    const mk=side=>`<div class="col"><div class="hint" style="margin-bottom:3px">${esc(matchTeam(M,side).cn)}${side===M.userSide?' <span style="opacity:.6">（点球员可直接换人）</span>':''}</div>
       <div style="display:flex;flex-wrap:wrap;gap:4px">${M.teams[side].men.filter(m=>!m.off).map((m,i)=>
         `<span class="pill" ${side===M.userSide&&!M.done?`onclick="subDialog(${i})" title="换下 ${esc(nm(m))}"`:""} style="font-size:11px;${side===M.userSide&&!M.done?'cursor:pointer;':''}${m.cond<60?'border-color:#f0a020':''}">${POS_CN[m.pos]} ${esc(nm(m))}
          <b style="color:${m.cond>70?'#00d47e':m.cond>50?'#f0a020':'#e5484d'}">${Math.round(m.cond)}</b>
@@ -14782,7 +14850,7 @@ function drawPitch(alpha){
   const men=M.teams.flatMap((T,s)=>T.men.filter(m=>!m.off).map(m=>({m,s})));
   const ownerIdx = (B&&B.o!=null&&B.o>=0)? B.o : men.findIndex(i=>i.m===M.ballOwner);
   // 控球方提示（顶部小角标）
-  if(B){ const pc=C(B.s===0?M.h:M.a);
+  if(B){ const pc=matchTeam(M,B.s);
     ctx.fillStyle="rgba(0,0,0,.45)"; ctx.fillRect(mx+6,my+6,118*fs,20*fs);
     ctx.fillStyle=pc.c1; ctx.beginPath(); ctx.arc(mx+6+11*fs,my+6+10*fs,6*fs,0,6.2832); ctx.fill();
     ctx.strokeStyle="rgba(255,255,255,.7)"; ctx.lineWidth=1; ctx.stroke();
@@ -14808,7 +14876,7 @@ function drawPitch(alpha){
     ctx.fillStyle="rgba(0,0,0,.34)"; ctx.beginPath(); ctx.arc(X(q[0])+2,Y(q[1])+3,10,0,6.2832); ctx.fill(); });
   pts.forEach((q,i)=>{
     const info=men[i]; if(!info) return;
-    const club=C(info.s===0?M.h:M.a);
+    const club=matchTeam(M,info.s);
     const isOwner = i===ownerIdx;
     const r=info.m.pos==="GK"?10:11, cx=X(q[0]), cy=Y(q[1]);
     // 体能环
@@ -14875,14 +14943,14 @@ function subDialog(preOut){
 function subLeft(){ const M=CURMATCH; return 5-M.subsMade[M.userSide]-SUBQ.length; }
 function subOuts(T){ return T.men.filter(m=>!m.off || (m.injured&&!m.red&&m.subDone!==2)); }
 function renderSubDialog(){
-  const M=CURMATCH, side=M.userSide, T=M.teams[side], club=C(T.cid);
+  const M=CURMATCH, side=M.userSide, T=M.teams[side], club=T.club;
   const on=subOuts(T);
   const queuedOut=SUBQ.map(q=>q.out), queuedIn=SUBQ.map(q=>q.in);
-  const bench=(T.bench||club.subs).filter(id=>P(id)&&!T.benchUsed.includes(id)&&!T.men.some(m=>m.id===id)&&P(id).injury<=0&&P(id).susp<=0&&!queuedIn.includes(id));
+  const bench=(T.bench||club.subs).filter(id=>matchPlayer(M,id)&&!T.benchUsed.includes(id)&&!T.men.some(m=>m.id===id)&&matchPlayer(M,id).injury<=0&&matchPlayer(M,id).susp<=0&&!queuedIn.includes(id));
   const slots=FORMATIONS[T.form];
   const outM = SUBOUT!=null? on[SUBOUT]:null;
   const want = outM? slots[outM.slot][0] : null;
-  const benchSorted=bench.slice().sort((a,b)=> want? playerScore(P(b),want)-playerScore(P(a),want) : ovr(P(b))-ovr(P(a)));
+  const benchSorted=bench.slice().sort((a,b)=> want? playerScore(matchPlayer(M,b),want)-playerScore(matchPlayer(M,a),want) : ovr(matchPlayer(M,b))-ovr(matchPlayer(M,a)));
   const body=`
    <div class="hint" style="margin-bottom:8px">点左侧要换下的球员，再点右侧替补，可连续配好几组后一并确认。本次还可换 <b style="color:var(--acc)">${subLeft()}</b> 人。</div>
    <div class="row">
@@ -14893,7 +14961,7 @@ function renderSubDialog(){
         <span style="color:${m.cond>70?'#00d47e':m.cond>50?'#f0a020':'#e5484d'}">${Math.round(m.cond)}%</span>
         <span style="color:var(--gold);min-width:26px;text-align:right">${m.rating.toFixed(1)}</span></div>`;}).join("")}</div>
     <div class="col"><div class="hint" style="margin-bottom:5px">替补席${want?`（换下 ${POS_CN[want]}，已按适配排序）`:""}</div>
-     ${benchSorted.map(id=>{const p=P(id); const fit=want?Math.round(posFit(p,want)*100):null;
+     ${benchSorted.map(id=>{const p=matchPlayer(M,id); const fit=want?Math.round(posFit(p,want)*100):null;
        return `<div class="clickable" onclick="pickIn(${id})" style="display:flex;gap:8px;padding:5px;border-bottom:1px solid var(--row-line);${SUBOUT==null?'opacity:.55':''}">
         <span class="tag t-${POS_GRP[p.pos]}">${POS_CN[p.pos]}</span><span style="flex:1;white-space:nowrap">${esc(p.cn)}</span>
         ${fit!=null?`<span class="hint">适配 ${fit}%</span>`:""}<b style="color:${caColor(p.ca)}">${ovr(p)}</b><span class="hint" style="min-width:34px;text-align:right">${Math.round(p.condition)}%</span></div>`;}).join("")
@@ -14901,7 +14969,7 @@ function renderSubDialog(){
    </div>
    <div class="hr"></div>
    <div class="hint" style="margin-bottom:4px">待执行换人</div>
-   <div id="subq" style="display:flex;flex-wrap:wrap;gap:4px">${SUBQ.length? SUBQ.map((q,i)=>`<span class="pill" style="border-color:var(--acc)">🔁 ${esc(P(q.in).cn)} <span class="hint">换下</span> ${esc(nm(q.out))} <a onclick="unqueueSub(${i})" style="cursor:pointer;color:#e5484d;margin-left:4px">✕</a></span>`).join("") : '<span class="hint">暂无——也可以点「智能建议」自动配对体能不足的球员</span>'}</div>`;
+   <div id="subq" style="display:flex;flex-wrap:wrap;gap:4px">${SUBQ.length? SUBQ.map((q,i)=>`<span class="pill" style="border-color:var(--acc)">🔁 ${esc(matchPlayer(M,q.in).cn)} <span class="hint">换下</span> ${esc(nm(q.out))} <a onclick="unqueueSub(${i})" style="cursor:pointer;color:#e5484d;margin-left:4px">✕</a></span>`).join("") : '<span class="hint">暂无——也可以点「智能建议」自动配对体能不足的球员</span>'}</div>`;
   const sc=$("#modal-bd")? $("#modal-bd").scrollTop : 0;
   openModal(`换人（剩余 ${5-M.subsMade[side]} 个名额）`, body,
     `<button onclick="autoSubSuggest()">🤖 智能建议</button><button onclick="cancelSubDialog()">取消</button>
@@ -14918,16 +14986,16 @@ function pickIn(id){
 }
 function unqueueSub(i){ SUBQ.splice(i,1); renderSubDialog(); }
 function autoSubSuggest(){
-  const M=CURMATCH, side=M.userSide, T=M.teams[side], club=C(T.cid), slots=FORMATIONS[T.form];
+  const M=CURMATCH, side=M.userSide, T=M.teams[side], club=T.club, slots=FORMATIONS[T.form];
   const queuedOut=SUBQ.map(q=>q.out), queuedIn=SUBQ.map(q=>q.in);
   const cands=T.men.filter(m=>!m.off&&m.pos!=="GK"&&!queuedOut.includes(m)&&(m.cond<62||m.rating<5.6)).sort((a,b)=>a.cond-b.cond);
   let added=0;
   for(const out of cands){
     if(subLeft()<=0) break;
     const want=slots[out.slot][0];
-    const bench=(T.bench||club.subs).filter(id=>P(id)&&!T.benchUsed.includes(id)&&!T.men.some(m=>m.id===id)&&P(id).injury<=0&&P(id).susp<=0&&!queuedIn.includes(id));
+    const bench=(T.bench||club.subs).filter(id=>matchPlayer(M,id)&&!T.benchUsed.includes(id)&&!T.men.some(m=>m.id===id)&&matchPlayer(M,id).injury<=0&&matchPlayer(M,id).susp<=0&&!queuedIn.includes(id));
     let best=null,bs=-1;
-    bench.forEach(id=>{ const sc=playerScore(P(id),want)*(P(id).pos===want?1.1:1); if(sc>bs){bs=sc;best=id;} });
+    bench.forEach(id=>{ const sc=playerScore(matchPlayer(M,id),want)*(matchPlayer(M,id).pos===want?1.1:1); if(sc>bs){bs=sc;best=id;} });
     if(best==null) break;
     SUBQ.push({out,in:best}); queuedIn.push(best); added++;
   }
@@ -15243,7 +15311,7 @@ async function storageSelfTest(onStep){
   log("环境",true,`${location.protocol}//${location.host||"本地文件"}　${window.isSecureContext===false?"非安全上下文":"安全上下文"}　${mode}`);
   log("浏览器",true,navigator.userAgent);
   log("界面版本",true,"iOS 底栏修复 20261018.4");
-  log("修复同步",true,"足球经理修复迁移 20261020.1");
+  log("修复同步",true,"足球经理修复迁移 20261020.2");
   const layout=layoutSnapshot();
   log("视口",true,`窗口 ${layout.innerWidth}×${layout.innerHeight}，可视 ${layout.visualWidth}×${layout.visualHeight}，偏移 ${layout.visualTop}，屏幕 ${layout.screenWidth}×${layout.screenHeight}`);
   log("缩放",true,`可视倍率 ${layout.visualScale}，像素倍率 ${layout.pixelRatio}，全屏目标高度 ${layout.targetHeight}`);
@@ -16128,6 +16196,7 @@ function adoptCandidate(obj){
   repairLegacyFinalNews();
   migrateWclCalendar();
   migrateClubCups();
+  migrateNationalCalendars();
   validateWorld(WORLD);
 }
 
@@ -16214,7 +16283,7 @@ function findAwardPlayer(entry){
 function cupFreeDay(cup,desired,ids,ignore){
   const remaining=cup.days.length-cup.cur-1,min=Math.max(WORLD.day+(WORLD.day>0?1:0),cup.cur?cup.days[cup.cur-1]+1:0);
   const max=SEASON_DAYS-1-remaining;
-  const reserved=new Set(Object.values(WORLD.euro||{}).flatMap(E=>[...E.gdays,...E.kdays.flat(),E.finalDay]).concat(wclReservedDays(),clubCupReservedDays()));
+  const reserved=new Set(Object.values(WORLD.euro||{}).flatMap(E=>[...E.gdays,...E.kdays.flat(),E.finalDay]).concat(wclReservedDays(),clubCupReservedDays(),nationalReservedDays()));
   const free=d=>!reserved.has(d)&&!WORLD.fixtures.some(f=>!ignore?.has(f)&&f.day===d&&(ids.includes(f.home)||ids.includes(f.away)));
   for(let distance=0;distance<SEASON_DAYS;distance++){
     for(const d of distance?[desired+distance,desired-distance]:[desired])if(d>=min&&d<=max&&free(d))return d;
@@ -16304,6 +16373,7 @@ function validateV3Details(w){
   }
   validateWclCalendar(w,fail);
   validateClubCups(w,fail);
+  validateNationalCalendars(w,fail);
   return true;
 }
 

@@ -1,0 +1,26 @@
+<!doctype html><meta charset="utf-8"><title>国家队赛事临场 QA</title>
+<script>
+(async()=>{
+ const html=await(await fetch('../index.html',{cache:'no-store'})).text();
+ const setup=()=>document.addEventListener('DOMContentLoaded',()=>{
+ const start=startMenu;startMenu=async function(){await start();try{
+  newWorld(4242,'Manchester City');SAVE_PAUSED=true;
+  WORLD.season=2028;buildSeason();
+  const params=new URLSearchParams(location.search),code=params.get('comp')||'NWC',E=WORLD.nationalCups[code],knockout=params.get('stage')==='knockout'||params.get('stage')==='final';
+  const phase=()=>{const day=E.stage==='G'?E.gdays.find(d=>E.fixtures.some(f=>f.day===d&&!f.played)):E.kdays[E.ko.round];WORLD.day=day;E.fixtures.filter(f=>f.day===day&&!f.played).forEach(f=>applyResult(f,runMatch(createMatch(f.home,f.away,{comp:code,record:false,...knockoutOpts(f)}))));nationalCupsDayEnd(day);};
+  if(knockout)while(E.stage==='G')phase();
+  if(params.get('stage')==='final')while(E.stage==='K'&&E.ko.teams.length>2)phase();
+  const fx=E.fixtures.find(f=>!f.played);WORLD.userNation=fx.home;WORLD.day=fx.day;
+  for(const nat of [fx.home,fx.away])E.squads[nat].map(P).forEach(p=>{p.injury=0;p.condition=100;});
+  const originalClub={squad:[...UC().squad],lineup:[...UC().lineup],tactic:structuredClone(UC().tactic)},T=ensureNationalTeam(WORLD.userNation);
+  const report=document.createElement('script');report.type='application/json';report.id='national-report';document.body.appendChild(report);
+  function update(){const M=CURMATCH,side=M?.userSide;report.textContent=JSON.stringify({code,day:WORLD.day,matchDay:fx.day,nation:WORLD.userNation,roster:T.players.length,formation:T.tactic.formation,nationalLineup:T.lineup,clubTacticUnchanged:JSON.stringify(originalClub.tactic)===JSON.stringify(UC().tactic),clubOwnershipUnchanged:originalClub.squad.every(id=>P(id)?.clubId===UC().id),fixture:{stage:fx.stage,played:fx.played,hg:fx.hg,ag:fx.ag,pens:fx.pens,stats:!!fx.stats,ratings:fx.ratings?.length||0},match:M?{national:M.national,done:M.done,knockout:!!M.knockout,minute:M.t,subs:M.subsMade[side],mentality:M.teams[side].tac.mentality,bench:M.teams[side].bench.map(id=>({id,name:P(id).cn,nat:P(id).nat,club:P(id).clubId}))}:null})}
+
+  const render0=render;render=function(){render0();update()};const refresh0=refreshMatchUI;refreshMatchUI=function(){refresh0();update()};document.addEventListener('input',()=>setTimeout(update,0));document.addEventListener('click',()=>setTimeout(update,0));
+  if(params.get('unemployed')==='1')WORLD.needJob=true;
+  VIEW=params.get('unemployed')==='1'?'home':params.get('view')==='nation'?'nation':'schedule';enterGame();fitAppHeight();
+ }catch(e){console.error(e);const x=document.createElement('pre');x.id='national-error';x.textContent=e.stack;document.body.appendChild(x)}};
+ });
+ document.open();document.write(html.replace('</head>','<script>('+setup.toString()+')();<\/script></head>'));document.close();
+})();
+</script>

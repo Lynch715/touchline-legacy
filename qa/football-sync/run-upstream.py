@@ -35,7 +35,7 @@ with tempfile.TemporaryDirectory(prefix='touchline-upstream-') as tmp:
   if name=='regression.cjs':
    # Finance-only legacy fixture manually increments the year without rebuilding
    # any competitions. Keep its inert WCL state in the same year for validation.
-   s=s.replace('const save=JSON.parse(JSON.stringify(WORLD));assertLoadable(save);','const save=JSON.parse(JSON.stringify(WORLD));if(save.wcl)save.wcl.season=save.season;for(const E of Object.values(save.clubCups||{}))E.season=save.season;assertLoadable(save);')
+   s=s.replace('const save=JSON.parse(JSON.stringify(WORLD));assertLoadable(save);','const save=JSON.parse(JSON.stringify(WORLD));if(save.wcl)save.wcl.season=save.season;for(const E of Object.values(save.clubCups||{}))E.season=save.season;delete save.nationalCups;delete save.nationalTeams;assertLoadable(save);')
   if name=='instant-competitions.cjs':
    # The five formerly instant club events now have dedicated calendar, live
    # match, prize, legacy-save and full-season suites (club-cups*.cjs).

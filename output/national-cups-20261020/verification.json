@@ -1,0 +1,105 @@
+{
+  "version": "20261020.2",
+  "passed": true,
+  "sha256": "54c7ee8575a957e58ad4c383cf716156127585ccc223c3d76e2b3158f95a17ba",
+  "bytes": 13014910,
+  "automatedChecks": 236,
+  "suites": [
+    {
+      "suite": "checksum.json",
+      "checks": 5,
+      "passed": true
+    },
+    {
+      "suite": "club-cups.json",
+      "checks": 22,
+      "passed": true
+    },
+    {
+      "suite": "deadline-independent.json",
+      "checks": 12,
+      "passed": true
+    },
+    {
+      "suite": "deadline.json",
+      "checks": 14,
+      "passed": true
+    },
+    {
+      "suite": "engine.json",
+      "checks": 16,
+      "passed": true
+    },
+    {
+      "suite": "offer-expiry.json",
+      "checks": 6,
+      "passed": true
+    },
+    {
+      "suite": "round2.json",
+      "checks": 12,
+      "passed": true
+    },
+    {
+      "suite": "upstream-edge-results.json",
+      "checks": 8,
+      "passed": true
+    },
+    {
+      "suite": "upstream-instant-results.json",
+      "checks": 7,
+      "passed": true
+    },
+    {
+      "suite": "upstream-regression-results.json",
+      "checks": 25,
+      "passed": true
+    },
+    {
+      "suite": "upstream-storage-extra-results.json",
+      "checks": 7,
+      "passed": true
+    },
+    {
+      "suite": "upstream-v1-regression-results.json",
+      "checks": 9,
+      "passed": true
+    },
+    {
+      "suite": "upstream-v2-regression-results.json",
+      "checks": 19,
+      "passed": true
+    },
+    {
+      "suite": "wcl.json",
+      "checks": 12,
+      "passed": true
+    },
+    {
+      "suite": "national-cups.cjs",
+      "checks": 27,
+      "passed": true
+    },
+    {
+      "suite": "mobile-layout.cjs",
+      "checks": 27,
+      "passed": true
+    },
+    {
+      "suite": "themes.cjs",
+      "checks": 8,
+      "passed": true
+    }
+  ],
+  "seasonSourceSHA256": "2804cd73f65df513c6f4acbf47715f9a63d9a970a782e27d6b0925bae171b104",
+  "postSeasonChange": "Only go UI navigation guard; all other HTML bytes unchanged. Added regression and actual browser click passed.",
+  "fullSeasons": 2,
+  "clubMatches": 40624,
+  "nationalMatches": 154,
+  "totalMatches": 40778,
+  "manualBrowserMatches": 11,
+  "browserEngine": "Codex In-app Browser",
+  "physicalIPhoneTest": false,
+  "embeddedImagesUnchanged": 1273,
+  "aliasesEqual": true
+}

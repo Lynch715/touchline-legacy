@@ -1,0 +1,1362 @@
+{
+  "passed": true,
+  "engine": "Codex In-app Browser",
+  "manualMatches": 11,
+  "isolatedFixtures": true,
+  "savePaused": true,
+  "scenarios": [
+    {
+      "scenario": "NWC G manual",
+      "report": {
+        "code": "NWC",
+        "day": 31,
+        "matchDay": 31,
+        "nation": "西班牙",
+        "roster": 23,
+        "formation": "4-3-3",
+        "nationalLineup": [
+          2630,
+          2658,
+          2631,
+          2688,
+          2598,
+          2625,
+          2626,
+          6277,
+          2657,
+          8242,
+          2627
+        ],
+        "clubTacticUnchanged": true,
+        "clubOwnershipUnchanged": true,
+        "fixture": {
+          "stage": "G",
+          "played": false,
+          "hg": 0,
+          "ag": 0,
+          "pens": null,
+          "stats": false,
+          "ratings": 0
+        },
+        "match": {
+          "national": "NWC",
+          "done": false,
+          "knockout": false,
+          "minute": 0.2153259573566417,
+          "subs": 1,
+          "mentality": 4,
+          "bench": [
+            {
+              "id": 65,
+              "name": "大卫·拉亚",
+              "nat": "西班牙",
+              "club": 2
+            },
+            {
+              "id": 2634,
+              "name": "费尔明·洛佩斯",
+              "nat": "西班牙",
+              "club": 100
+            },
+            {
+              "id": 8239,
+              "name": "法比安·鲁伊斯",
+              "nat": "西班牙",
+              "club": 310
+            },
+            {
+              "id": 2663,
+              "name": "亚历克斯·巴埃纳",
+              "nat": "西班牙",
+              "club": 101
+            },
+            {
+              "id": 166,
+              "name": "佩德罗·波罗",
+              "nat": "西班牙",
+              "club": 5
+            },
+            {
+              "id": 2744,
+              "name": "奥亚萨瓦尔",
+              "nat": "西班牙",
+              "club": 104
+            },
+            {
+              "id": 2612,
+              "name": "迪恩·赫伊森",
+              "nat": "西班牙",
+              "club": 99
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "NWC G finished",
+      "report": {
+        "code": "NWC",
+        "day": 32,
+        "matchDay": 31,
+        "nation": "西班牙",
+        "roster": 23,
+        "formation": "4-3-3",
+        "nationalLineup": [
+          2630,
+          2658,
+          2631,
+          2688,
+          2598,
+          2625,
+          2626,
+          6277,
+          2657,
+          8242,
+          2627
+        ],
+        "clubTacticUnchanged": true,
+        "clubOwnershipUnchanged": true,
+        "fixture": {
+          "stage": "G",
+          "played": true,
+          "hg": 3,
+          "ag": 2,
+          "pens": null,
+          "stats": true,
+          "ratings": 32
+        },
+        "match": null
+      }
+    },
+    {
+      "scenario": "NWC K manual",
+      "report": {
+        "code": "NWC",
+        "day": 153,
+        "matchDay": 153,
+        "nation": "西班牙",
+        "roster": 23,
+        "formation": "4-3-3",
+        "nationalLineup": [
+          65,
+          2658,
+          2688,
+          2633,
+          2598,
+          2625,
+          6277,
+          8239,
+          2663,
+          2721,
+          2627
+        ],
+        "clubTacticUnchanged": true,
+        "clubOwnershipUnchanged": true,
+        "fixture": {
+          "stage": "K",
+          "played": false,
+          "hg": 0,
+          "ag": 0,
+          "pens": null,
+          "stats": false,
+          "ratings": 0
+        },
+        "match": {
+          "national": "NWC",
+          "done": false,
+          "knockout": true,
+          "minute": 0.2160991933941841,
+          "subs": 1,
+          "mentality": 4,
+          "bench": [
+            {
+              "id": 2630,
+              "name": "琼·加西亚",
+              "nat": "西班牙",
+              "club": 100
+            },
+            {
+              "id": 2657,
+              "name": "格里马尔多",
+              "nat": "西班牙",
+              "club": 101
+            },
+            {
+              "id": 2634,
+              "name": "费尔明·洛佩斯",
+              "nat": "西班牙",
+              "club": 100
+            },
+            {
+              "id": 8242,
+              "name": "费兰·托雷斯",
+              "nat": "西班牙",
+              "club": 310
+            },
+            {
+              "id": 166,
+              "name": "佩德罗·波罗",
+              "nat": "西班牙",
+              "club": 5
+            },
+            {
+              "id": 2631,
+              "name": "保·库巴西",
+              "nat": "西班牙",
+              "club": 100
+            },
+            {
+              "id": 2744,
+              "name": "奥亚萨瓦尔",
+              "nat": "西班牙",
+              "club": 104
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "NWC K finished",
+      "report": {
+        "code": "NWC",
+        "day": 154,
+        "matchDay": 153,
+        "nation": "西班牙",
+        "roster": 23,
+        "formation": "4-3-3",
+        "nationalLineup": [
+          65,
+          2658,
+          2688,
+          2633,
+          2598,
+          2625,
+          6277,
+          8239,
+          2663,
+          2721,
+          2627
+        ],
+        "clubTacticUnchanged": true,
+        "clubOwnershipUnchanged": true,
+        "fixture": {
+          "stage": "K",
+          "played": true,
+          "hg": 7,
+          "ag": 2,
+          "pens": null,
+          "stats": true,
+          "ratings": 32
+        },
+        "match": null
+      }
+    },
+    {
+      "scenario": "NEU G manual",
+      "report": {
+        "code": "NEU",
+        "day": 30,
+        "matchDay": 30,
+        "nation": "西班牙",
+        "roster": 23,
+        "formation": "4-3-3",
+        "nationalLineup": [
+          2630,
+          2658,
+          2631,
+          2688,
+          2598,
+          2625,
+          2626,
+          6277,
+          2657,
+          8242,
+          2627
+        ],
+        "clubTacticUnchanged": true,
+        "clubOwnershipUnchanged": true,
+        "fixture": {
+          "stage": "G",
+          "played": false,
+          "hg": 0,
+          "ag": 0,
+          "pens": null,
+          "stats": false,
+          "ratings": 0
+        },
+        "match": {
+          "national": "NEU",
+          "done": false,
+          "knockout": false,
+          "minute": 0.2619734250040104,
+          "subs": 1,
+          "mentality": 4,
+          "bench": [
+            {
+              "id": 65,
+              "name": "大卫·拉亚",
+              "nat": "西班牙",
+              "club": 2
+            },
+            {
+              "id": 2634,
+              "name": "费尔明·洛佩斯",
+              "nat": "西班牙",
+              "club": 100
+            },
+            {
+              "id": 8239,
+              "name": "法比安·鲁伊斯",
+              "nat": "西班牙",
+              "club": 310
+            },
+            {
+              "id": 2663,
+              "name": "亚历克斯·巴埃纳",
+              "nat": "西班牙",
+              "club": 101
+            },
+            {
+              "id": 166,
+              "name": "佩德罗·波罗",
+              "nat": "西班牙",
+              "club": 5
+            },
+            {
+              "id": 2744,
+              "name": "奥亚萨瓦尔",
+              "nat": "西班牙",
+              "club": 104
+            },
+            {
+              "id": 2612,
+              "name": "迪恩·赫伊森",
+              "nat": "西班牙",
+              "club": 99
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "NEU G finished",
+      "report": {
+        "code": "NEU",
+        "day": 31,
+        "matchDay": 30,
+        "nation": "西班牙",
+        "roster": 23,
+        "formation": "4-3-3",
+        "nationalLineup": [
+          2630,
+          2658,
+          2631,
+          2688,
+          2598,
+          2625,
+          2626,
+          6277,
+          2657,
+          8242,
+          2627
+        ],
+        "clubTacticUnchanged": true,
+        "clubOwnershipUnchanged": true,
+        "fixture": {
+          "stage": "G",
+          "played": true,
+          "hg": 3,
+          "ag": 1,
+          "pens": null,
+          "stats": true,
+          "ratings": 32
+        },
+        "match": null
+      }
+    },
+    {
+      "scenario": "NEU K manual",
+      "report": {
+        "code": "NEU",
+        "day": 176,
+        "matchDay": 176,
+        "nation": "德国",
+        "roster": 23,
+        "formation": "4-3-3",
+        "nationalLineup": [
+          30886,
+          6249,
+          6432,
+          205,
+          6338,
+          6258,
+          6310,
+          6282,
+          6255,
+          479,
+          36
+        ],
+        "clubTacticUnchanged": true,
+        "clubOwnershipUnchanged": true,
+        "fixture": {
+          "stage": "K",
+          "played": false,
+          "hg": 0,
+          "ag": 0,
+          "pens": null,
+          "stats": false,
+          "ratings": 0
+        },
+        "match": {
+          "national": "NEU",
+          "done": false,
+          "knockout": true,
+          "minute": 0.0966505438927561,
+          "subs": 1,
+          "mentality": 4,
+          "bench": [
+            {
+              "id": 17851,
+              "name": "马克-安德烈·特尔施特根",
+              "nat": "德国",
+              "club": 677
+            },
+            {
+              "id": 6308,
+              "name": "尼科·施洛特贝克",
+              "nat": "德国",
+              "club": 239
+            },
+            {
+              "id": 6253,
+              "name": "贾马尔·穆西亚拉",
+              "nat": "德国",
+              "club": 237
+            },
+            {
+              "id": 6311,
+              "name": "瓦尔德马·安东",
+              "nat": "德国",
+              "club": 239
+            },
+            {
+              "id": 6251,
+              "name": "乔纳森·塔",
+              "nat": "德国",
+              "club": 237
+            },
+            {
+              "id": 2606,
+              "name": "安东尼奥·吕迪格",
+              "nat": "德国",
+              "club": 99
+            },
+            {
+              "id": 6369,
+              "name": "德尼兹·翁达夫",
+              "nat": "德国",
+              "club": 241
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "NEU K finished",
+      "report": {
+        "code": "NEU",
+        "day": 177,
+        "matchDay": 176,
+        "nation": "德国",
+        "roster": 23,
+        "formation": "4-3-3",
+        "nationalLineup": [
+          30886,
+          6249,
+          6432,
+          205,
+          6338,
+          6258,
+          6310,
+          6282,
+          6255,
+          479,
+          36
+        ],
+        "clubTacticUnchanged": true,
+        "clubOwnershipUnchanged": true,
+        "fixture": {
+          "stage": "K",
+          "played": true,
+          "hg": 4,
+          "ag": 0,
+          "pens": null,
+          "stats": true,
+          "ratings": 32
+        },
+        "match": null
+      }
+    },
+    {
+      "scenario": "NAS G manual",
+      "report": {
+        "code": "NAS",
+        "day": 30,
+        "matchDay": 30,
+        "nation": "日本",
+        "roster": 23,
+        "formation": "4-3-3",
+        "nationalLineup": [
+          252,
+          17926,
+          6266,
+          6505,
+          528,
+          6522,
+          330,
+          6402,
+          265,
+          17883,
+          2747
+        ],
+        "clubTacticUnchanged": true,
+        "clubOwnershipUnchanged": true,
+        "fixture": {
+          "stage": "G",
+          "played": false,
+          "hg": 0,
+          "ag": 0,
+          "pens": null,
+          "stats": false,
+          "ratings": 0
+        },
+        "match": {
+          "national": "NAS",
+          "done": false,
+          "knockout": false,
+          "minute": 0.1842490903272604,
+          "subs": 1,
+          "mentality": 4,
+          "bench": [
+            {
+              "id": 11719,
+              "name": "前川黛也",
+              "nat": "日本",
+              "club": 442
+            },
+            {
+              "id": 49,
+              "name": "远藤航",
+              "nat": "日本",
+              "club": 1
+            },
+            {
+              "id": 568,
+              "name": "坂元达裕",
+              "nat": "日本",
+              "club": 18
+            },
+            {
+              "id": 17882,
+              "name": "渡边刚",
+              "nat": "日本",
+              "club": 678
+            },
+            {
+              "id": 6466,
+              "name": "板仓滉",
+              "nat": "日本",
+              "club": 244
+            },
+            {
+              "id": 8606,
+              "name": "濑古步梦",
+              "nat": "日本",
+              "club": 323
+            },
+            {
+              "id": 676,
+              "name": "菅原由势",
+              "nat": "日本",
+              "club": 22
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "NAS G finished",
+      "report": {
+        "code": "NAS",
+        "day": 31,
+        "matchDay": 30,
+        "nation": "日本",
+        "roster": 23,
+        "formation": "4-3-3",
+        "nationalLineup": [
+          252,
+          17926,
+          6266,
+          6505,
+          528,
+          6522,
+          330,
+          6402,
+          265,
+          17883,
+          2747
+        ],
+        "clubTacticUnchanged": true,
+        "clubOwnershipUnchanged": true,
+        "fixture": {
+          "stage": "G",
+          "played": true,
+          "hg": 4,
+          "ag": 0,
+          "pens": null,
+          "stats": true,
+          "ratings": 32
+        },
+        "match": null
+      }
+    },
+    {
+      "scenario": "NAS K manual",
+      "report": {
+        "code": "NAS",
+        "day": 212,
+        "matchDay": 212,
+        "nation": "日本",
+        "roster": 23,
+        "formation": "4-3-3",
+        "nationalLineup": [
+          11719,
+          17926,
+          11717,
+          6505,
+          6266,
+          6522,
+          6402,
+          330,
+          265,
+          11753,
+          2747
+        ],
+        "clubTacticUnchanged": true,
+        "clubOwnershipUnchanged": true,
+        "fixture": {
+          "stage": "K",
+          "played": false,
+          "hg": 0,
+          "ag": 0,
+          "pens": null,
+          "stats": false,
+          "ratings": 0
+        },
+        "match": {
+          "national": "NAS",
+          "done": false,
+          "knockout": true,
+          "minute": 0.17255738754756747,
+          "subs": 1,
+          "mentality": 4,
+          "bench": [
+            {
+              "id": 252,
+              "name": "铃木彩艳",
+              "nat": "日本",
+              "club": 7
+            },
+            {
+              "id": 528,
+              "name": "前田大然",
+              "nat": "日本",
+              "club": 17
+            },
+            {
+              "id": 568,
+              "name": "坂元达裕",
+              "nat": "日本",
+              "club": 18
+            },
+            {
+              "id": 17883,
+              "name": "上田绮世",
+              "nat": "日本",
+              "club": 678
+            },
+            {
+              "id": 17882,
+              "name": "渡边刚",
+              "nat": "日本",
+              "club": 678
+            },
+            {
+              "id": 6466,
+              "name": "板仓滉",
+              "nat": "日本",
+              "club": 244
+            },
+            {
+              "id": 8606,
+              "name": "濑古步梦",
+              "nat": "日本",
+              "club": 323
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "NAS K finished",
+      "report": {
+        "code": "NAS",
+        "day": 213,
+        "matchDay": 212,
+        "nation": "日本",
+        "roster": 23,
+        "formation": "4-3-3",
+        "nationalLineup": [
+          11719,
+          17926,
+          11717,
+          6505,
+          6266,
+          6522,
+          6402,
+          330,
+          265,
+          11753,
+          2747
+        ],
+        "clubTacticUnchanged": true,
+        "clubOwnershipUnchanged": true,
+        "fixture": {
+          "stage": "K",
+          "played": true,
+          "hg": 2,
+          "ag": 0,
+          "pens": null,
+          "stats": true,
+          "ratings": 32
+        },
+        "match": null
+      }
+    },
+    {
+      "scenario": "NAM G manual",
+      "report": {
+        "code": "NAM",
+        "day": 30,
+        "matchDay": 30,
+        "nation": "巴西",
+        "roster": 23,
+        "formation": "4-3-3",
+        "nationalLineup": [
+          33,
+          11,
+          64,
+          4405,
+          17822,
+          12931,
+          71,
+          12885,
+          2596,
+          132,
+          2770
+        ],
+        "clubTacticUnchanged": true,
+        "clubOwnershipUnchanged": true,
+        "fixture": {
+          "stage": "G",
+          "played": false,
+          "hg": 0,
+          "ag": 0,
+          "pens": null,
+          "stats": false,
+          "ratings": 0
+        },
+        "match": {
+          "national": "NAM",
+          "done": false,
+          "knockout": false,
+          "minute": 0.1842490903272604,
+          "subs": 1,
+          "mentality": 4,
+          "bench": [
+            {
+              "id": 30859,
+              "name": "埃德森",
+              "nat": "巴西",
+              "club": 1191
+            },
+            {
+              "id": 2628,
+              "name": "拉菲尼亚",
+              "nat": "巴西",
+              "club": 100
+            },
+            {
+              "id": 2605,
+              "name": "罗德里戈",
+              "nat": "巴西",
+              "club": 99
+            },
+            {
+              "id": 8238,
+              "name": "马尔基尼奥斯",
+              "nat": "巴西",
+              "club": 310
+            },
+            {
+              "id": 2603,
+              "name": "埃德尔·米利唐",
+              "nat": "巴西",
+              "club": 99
+            },
+            {
+              "id": 4473,
+              "name": "大卫·内雷斯",
+              "nat": "巴西",
+              "club": 170
+            },
+            {
+              "id": 379,
+              "name": "伊戈尔·蒂亚戈",
+              "nat": "巴西",
+              "club": 12
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "NAM G finished",
+      "report": {
+        "code": "NAM",
+        "day": 31,
+        "matchDay": 30,
+        "nation": "巴西",
+        "roster": 23,
+        "formation": "4-3-3",
+        "nationalLineup": [
+          33,
+          11,
+          64,
+          4405,
+          17822,
+          12931,
+          71,
+          12885,
+          2596,
+          132,
+          2770
+        ],
+        "clubTacticUnchanged": true,
+        "clubOwnershipUnchanged": true,
+        "fixture": {
+          "stage": "G",
+          "played": true,
+          "hg": 4,
+          "ag": 1,
+          "pens": null,
+          "stats": true,
+          "ratings": 32
+        },
+        "match": null
+      }
+    },
+    {
+      "scenario": "NAM K manual",
+      "report": {
+        "code": "NAM",
+        "day": 212,
+        "matchDay": 212,
+        "nation": "哥伦比亚",
+        "roster": 23,
+        "formation": "4-3-3",
+        "nationalLineup": [
+          4548,
+          324,
+          27616,
+          4426,
+          2932,
+          15329,
+          339,
+          3074,
+          6250,
+          2775,
+          23426
+        ],
+        "clubTacticUnchanged": true,
+        "clubOwnershipUnchanged": true,
+        "fixture": {
+          "stage": "K",
+          "played": false,
+          "hg": 0,
+          "ag": 0,
+          "pens": null,
+          "stats": false,
+          "ratings": 0
+        },
+        "match": {
+          "national": "NAM",
+          "done": false,
+          "knockout": true,
+          "minute": 0.11410602364999552,
+          "subs": 1,
+          "mentality": 4,
+          "bench": [
+            {
+              "id": 12914,
+              "name": "大卫·奥斯皮纳",
+              "nat": "哥伦比亚",
+              "club": 488
+            },
+            {
+              "id": 16630,
+              "name": "路易斯·哈维尔·苏亚雷斯",
+              "nat": "哥伦比亚",
+              "club": 631
+            },
+            {
+              "id": 29298,
+              "name": "达文森·桑切斯",
+              "nat": "哥伦比亚",
+              "club": 1127
+            },
+            {
+              "id": 4429,
+              "name": "胡安·卡巴尔",
+              "nat": "哥伦比亚",
+              "club": 168
+            },
+            {
+              "id": 16580,
+              "name": "约翰·杜兰",
+              "nat": "哥伦比亚",
+              "club": 629
+            },
+            {
+              "id": 23383,
+              "name": "拉斐尔·桑托斯·博雷",
+              "nat": "哥伦比亚",
+              "club": 892
+            },
+            {
+              "id": 4810,
+              "name": "耶里·米纳",
+              "nat": "哥伦比亚",
+              "club": 182
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "NAM K finished",
+      "report": {
+        "code": "NAM",
+        "day": 213,
+        "matchDay": 212,
+        "nation": "哥伦比亚",
+        "roster": 23,
+        "formation": "4-3-3",
+        "nationalLineup": [
+          4548,
+          324,
+          27616,
+          4426,
+          2932,
+          15329,
+          339,
+          3074,
+          6250,
+          2775,
+          23426
+        ],
+        "clubTacticUnchanged": true,
+        "clubOwnershipUnchanged": true,
+        "fixture": {
+          "stage": "K",
+          "played": true,
+          "hg": 3,
+          "ag": 0,
+          "pens": null,
+          "stats": true,
+          "ratings": 32
+        },
+        "match": null
+      }
+    },
+    {
+      "scenario": "NAF G manual",
+      "report": {
+        "code": "NAF",
+        "day": 30,
+        "matchDay": 30,
+        "nation": "摩洛哥",
+        "roster": 23,
+        "formation": "4-3-3",
+        "nationalLineup": [
+          12892,
+          8236,
+          8291,
+          344,
+          4544,
+          30864,
+          6257,
+          17888,
+          2771,
+          31092,
+          2609
+        ],
+        "clubTacticUnchanged": true,
+        "clubOwnershipUnchanged": true,
+        "fixture": {
+          "stage": "G",
+          "played": false,
+          "hg": 0,
+          "ag": 0,
+          "pens": null,
+          "stats": false,
+          "ratings": 0
+        },
+        "match": {
+          "national": "NAF",
+          "done": false,
+          "knockout": false,
+          "minute": 0.09653524254914372,
+          "subs": 1,
+          "mentality": 4,
+          "bench": [
+            {
+              "id": 29460,
+              "name": "诺兰·佩兰",
+              "nat": "摩洛哥",
+              "club": 1134
+            },
+            {
+              "id": 104,
+              "name": "努赛尔·马兹拉维",
+              "nat": "摩洛哥",
+              "club": 3
+            },
+            {
+              "id": 2735,
+              "name": "伊利亚斯·阿霍马赫",
+              "nat": "摩洛哥",
+              "club": 103
+            },
+            {
+              "id": 29329,
+              "name": "优素福·恩内斯里",
+              "nat": "摩洛哥",
+              "club": 1128
+            },
+            {
+              "id": 8492,
+              "name": "杰西姆·亚辛",
+              "nat": "摩洛哥",
+              "club": 319
+            },
+            {
+              "id": 511,
+              "name": "谢姆斯丁·塔尔比",
+              "nat": "摩洛哥",
+              "club": 16
+            },
+            {
+              "id": 2939,
+              "name": "阿卜杜勒卡比尔·阿卜卡尔",
+              "nat": "摩洛哥",
+              "club": 111
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "NAF G finished",
+      "report": {
+        "code": "NAF",
+        "day": 31,
+        "matchDay": 30,
+        "nation": "摩洛哥",
+        "roster": 23,
+        "formation": "4-3-3",
+        "nationalLineup": [
+          12892,
+          8236,
+          8291,
+          344,
+          4544,
+          30864,
+          6257,
+          17888,
+          2771,
+          31092,
+          2609
+        ],
+        "clubTacticUnchanged": true,
+        "clubOwnershipUnchanged": true,
+        "fixture": {
+          "stage": "G",
+          "played": true,
+          "hg": 5,
+          "ag": 2,
+          "pens": null,
+          "stats": true,
+          "ratings": 32
+        },
+        "match": null
+      }
+    },
+    {
+      "scenario": "NAF K manual",
+      "report": {
+        "code": "NAF",
+        "day": 212,
+        "matchDay": 212,
+        "nation": "塞内加尔",
+        "roster": 23,
+        "formation": "4-3-3",
+        "nationalLineup": [
+          775,
+          8316,
+          12890,
+          594,
+          30938,
+          2907,
+          2724,
+          8262,
+          12908,
+          29503,
+          8253
+        ],
+        "clubTacticUnchanged": true,
+        "clubOwnershipUnchanged": true,
+        "fixture": {
+          "stage": "K",
+          "played": false,
+          "hg": 0,
+          "ag": 0,
+          "pens": null,
+          "stats": false,
+          "ratings": 0
+        },
+        "match": {
+          "national": "NAF",
+          "done": false,
+          "knockout": true,
+          "minute": 0.09842916951204339,
+          "subs": 1,
+          "mentality": 4,
+          "bench": [
+            {
+              "id": 12957,
+              "name": "爱德华·门迪",
+              "nat": "塞内加尔",
+              "club": 490
+            },
+            {
+              "id": 301,
+              "name": "伊利曼·恩迪亚耶",
+              "nat": "塞内加尔",
+              "club": 9
+            },
+            {
+              "id": 141,
+              "name": "尼古拉斯·杰克逊",
+              "nat": "塞内加尔",
+              "club": 4
+            },
+            {
+              "id": 4561,
+              "name": "布拉耶·迪亚",
+              "nat": "塞内加尔",
+              "club": 173
+            },
+            {
+              "id": 326,
+              "name": "伊斯梅拉·萨尔",
+              "nat": "塞内加尔",
+              "club": 10
+            },
+            {
+              "id": 180,
+              "name": "帕普·马塔尔·萨尔",
+              "nat": "塞内加尔",
+              "club": 5
+            },
+            {
+              "id": 533,
+              "name": "伊萨·迪奥普",
+              "nat": "塞内加尔",
+              "club": 17
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "NAF K finished",
+      "report": {
+        "code": "NAF",
+        "day": 213,
+        "matchDay": 212,
+        "nation": "塞内加尔",
+        "roster": 23,
+        "formation": "4-3-3",
+        "nationalLineup": [
+          775,
+          8316,
+          12890,
+          594,
+          30938,
+          2907,
+          2724,
+          8262,
+          12908,
+          29503,
+          8253
+        ],
+        "clubTacticUnchanged": true,
+        "clubOwnershipUnchanged": true,
+        "fixture": {
+          "stage": "K",
+          "played": true,
+          "hg": 5,
+          "ag": 2,
+          "pens": null,
+          "stats": true,
+          "ratings": 32
+        },
+        "match": null
+      }
+    },
+    {
+      "scenario": "NWC K manual",
+      "report": {
+        "code": "NWC",
+        "day": 272,
+        "matchDay": 272,
+        "nation": "意大利",
+        "roster": 23,
+        "formation": "4-3-3",
+        "nationalLineup": [
+          2,
+          381,
+          4378,
+          4529,
+          4377,
+          4406,
+          12974,
+          4394,
+          4414,
+          4587,
+          4613
+        ],
+        "clubTacticUnchanged": true,
+        "clubOwnershipUnchanged": true,
+        "fixture": {
+          "stage": "K",
+          "played": false,
+          "hg": 0,
+          "ag": 0,
+          "pens": null,
+          "stats": false,
+          "ratings": 0
+        },
+        "match": {
+          "national": "NWC",
+          "done": false,
+          "knockout": true,
+          "minute": 0.10312212231258551,
+          "subs": 1,
+          "mentality": 4,
+          "bench": [
+            {
+              "id": 4500,
+              "name": "马尔科·卡尔内塞基",
+              "nat": "意大利",
+              "club": 171
+            },
+            {
+              "id": 4375,
+              "name": "尼科洛·巴雷拉",
+              "nat": "意大利",
+              "club": 167
+            },
+            {
+              "id": 165,
+              "name": "桑德罗·托纳利",
+              "nat": "意大利",
+              "club": 5
+            },
+            {
+              "id": 4474,
+              "name": "亚历山德罗·布翁乔尔诺",
+              "nat": "意大利",
+              "club": 170
+            },
+            {
+              "id": 4838,
+              "name": "弗拉迪米罗·法尔科内",
+              "nat": "意大利",
+              "club": 183
+            },
+            {
+              "id": 4863,
+              "name": "多梅尼科·贝拉尔迪",
+              "nat": "意大利",
+              "club": 184
+            },
+            {
+              "id": 4476,
+              "name": "马泰奥·波利塔诺",
+              "nat": "意大利",
+              "club": 170
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "NWC K finished",
+      "report": {
+        "code": "NWC",
+        "day": 273,
+        "matchDay": 272,
+        "nation": "意大利",
+        "roster": 23,
+        "formation": "4-3-3",
+        "nationalLineup": [
+          2,
+          381,
+          4378,
+          4529,
+          4377,
+          4406,
+          12974,
+          4394,
+          4414,
+          4587,
+          4613
+        ],
+        "clubTacticUnchanged": true,
+        "clubOwnershipUnchanged": true,
+        "fixture": {
+          "stage": "K",
+          "played": true,
+          "hg": 1,
+          "ag": 2,
+          "pens": null,
+          "stats": true,
+          "ratings": 32
+        },
+        "match": null
+      }
+    }
+  ]
+}
