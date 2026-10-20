@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "revision": "20261020.3",
+  "sha256": "2ed3dc97082a4763a4a6f86c3c1deded46247c19be0ae62801d03332bae2d3aa",
+  "bytes": 13020386,
+  "checks": {
+    "allEvents": 63,
+    "activeLegacy": 4,
+    "existing": 127,
+    "inherited": 75,
+    "layoutAndTheme": 35,
+    "total": 304
+  },
+  "fullSeasons": 2,
+  "clubMatches": 40624,
+  "nationalMatches": 154,
+  "totalMatches": 40778,
+  "manualBrowserMatches": 6,
+  "originalSaveMenu": "Manchester City 2026/27 day 0 6.09 MB; not advanced"
+}

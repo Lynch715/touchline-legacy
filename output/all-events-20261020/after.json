@@ -1,0 +1,18 @@
+{
+  "sha256": "2ed3dc97082a4763a4a6f86c3c1deded46247c19be0ae62801d03332bae2d3aa",
+  "preview": {
+    "actualNext": "NAS",
+    "chosenNext": "NAS",
+    "availableForNext": true,
+    "savedLineupUnchanged": true
+  },
+  "sameDay": {
+    "result": "pending",
+    "otherPlayerFixtureAutoSimulated": false,
+    "daysAdvanced": 0
+  },
+  "kickoffScope": {
+    "expected": null,
+    "actual": null
+  }
+}

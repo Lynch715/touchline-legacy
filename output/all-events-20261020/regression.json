@@ -1,0 +1,260 @@
+{
+  "passed": true,
+  "checks": 63,
+  "competitions": 17,
+  "sha256": "2ed3dc97082a4763a4a6f86c3c1deded46247c19be0ae62801d03332bae2d3aa",
+  "results": [
+    {
+      "name": "L正常赛程进入、换人、临场战术、准确结算",
+      "pass": true
+    },
+    {
+      "name": "C正常赛程进入、换人、临场战术、准确结算",
+      "pass": true
+    },
+    {
+      "name": "国内杯赛单场中立决赛可临场指挥",
+      "pass": true
+    },
+    {
+      "name": "CL group临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "CL knockout临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "CL leg2临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "CL final临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "EL group临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "EL knockout临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "EL leg2临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "EL final临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "ECL group临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "ECL knockout临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "ECL leg2临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "ECL final临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "WCL group临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "WCL knockout临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "WCL final临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "LIB group临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "LIB knockout临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "LIB final临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "AFC group临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "AFC knockout临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "AFC final临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "CON group临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "CON knockout临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "CON final临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "SUP final临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "CWC knockout临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "CWC final临场、替补、战术、赛程结果",
+      "pass": true
+    },
+    {
+      "name": "NWC group国家队临场、替补、战术、独立结算",
+      "pass": true
+    },
+    {
+      "name": "NWC knockout国家队临场、替补、战术、独立结算",
+      "pass": true
+    },
+    {
+      "name": "NWC final国家队临场、替补、战术、独立结算",
+      "pass": true
+    },
+    {
+      "name": "NEU group国家队临场、替补、战术、独立结算",
+      "pass": true
+    },
+    {
+      "name": "NEU knockout国家队临场、替补、战术、独立结算",
+      "pass": true
+    },
+    {
+      "name": "NEU final国家队临场、替补、战术、独立结算",
+      "pass": true
+    },
+    {
+      "name": "NAM group国家队临场、替补、战术、独立结算",
+      "pass": true
+    },
+    {
+      "name": "NAM knockout国家队临场、替补、战术、独立结算",
+      "pass": true
+    },
+    {
+      "name": "NAM final国家队临场、替补、战术、独立结算",
+      "pass": true
+    },
+    {
+      "name": "NAS group国家队临场、替补、战术、独立结算",
+      "pass": true
+    },
+    {
+      "name": "NAS knockout国家队临场、替补、战术、独立结算",
+      "pass": true
+    },
+    {
+      "name": "NAS final国家队临场、替补、战术、独立结算",
+      "pass": true
+    },
+    {
+      "name": "NAF group国家队临场、替补、战术、独立结算",
+      "pass": true
+    },
+    {
+      "name": "NAF knockout国家队临场、替补、战术、独立结算",
+      "pass": true
+    },
+    {
+      "name": "NAF final国家队临场、替补、战术、独立结算",
+      "pass": true
+    },
+    {
+      "name": "PO ENG所有轮次/单场或两回合临场",
+      "pass": true
+    },
+    {
+      "name": "PO FRA所有轮次/单场或两回合临场",
+      "pass": true
+    },
+    {
+      "name": "PO GER所有轮次/单场或两回合临场",
+      "pass": true
+    },
+    {
+      "name": "PO ESP所有轮次/单场或两回合临场",
+      "pass": true
+    },
+    {
+      "name": "PO ITA所有轮次/单场或两回合临场",
+      "pass": true
+    },
+    {
+      "name": "预览取最早下一场的本届停赛，查看不篡改已保存首发/替补",
+      "pass": true
+    },
+    {
+      "name": "临场中锁定本队准备页/辞职；可暂停准备另一队而不影响本场",
+      "pass": true
+    },
+    {
+      "name": "俱乐部临场锁定本队准备，国家队阵型可独立修改",
+      "pass": true
+    },
+    {
+      "name": "准备另一队后按继续返回临场，球队范围重新对准正在踢的球队",
+      "pass": true
+    },
+    {
+      "name": "未结算实例不能被下一场替换；离开比赛页取消自动开场与动画",
+      "pass": true
+    },
+    {
+      "name": "开场350ms内打开换人/临场战术面板取消延迟开场；播放和暂停状态均正确保留",
+      "pass": true
+    },
+    {
+      "name": "取消自动开场、载入和新开游戏清理动画/换人队列；坏档保留当前会话",
+      "pass": true
+    },
+    {
+      "name": "同日同对手不同赛事按绑定身份回写；失效结果不结算不推进",
+      "pass": true
+    },
+    {
+      "name": "双重执教同日防御 club先踢：另一场保留手控，日结只执行一次",
+      "pass": true
+    },
+    {
+      "name": "双重执教同日防御 nation先踢：另一场保留手控，日结只执行一次",
+      "pass": true
+    },
+    {
+      "name": "俱乐部→国家队→俱乐部自动切换范围，换人次数和战术不串队",
+      "pass": true
+    },
+    {
+      "name": "国家队临场中辞去另一支俱乐部后，本场仍可控制结算；原俱乐部恢复AI比赛",
+      "pass": true
+    },
+    {
+      "name": "20261020.2 活动旧档只清理会话，赛程/财政/历史/征召/战术逐字不变",
+      "pass": true
+    }
+  ]
+}

@@ -1,0 +1,989 @@
+{
+  "passed": true,
+  "engineSha256": "2ed3dc97082a4763a4a6f86c3c1deded46247c19be0ae62801d03332bae2d3aa",
+  "browser": "Codex In-app Browser",
+  "manualMatches": 6,
+  "viewports": [
+    "393x852",
+    "320x568"
+  ],
+  "results": [
+    {
+      "code": "CL",
+      "stage": "leg2",
+      "start": {
+        "revision": "20261020.3",
+        "sourceSha256": "2ed3dc97082a4763a4a6f86c3c1deded46247c19be0ae62801d03332bae2d3aa",
+        "code": "CL",
+        "stage": "leg2",
+        "dual": false,
+        "view": "match",
+        "scope": null,
+        "day": 217,
+        "matchDay": 217,
+        "dailyTicks": 0,
+        "club": "曼彻斯特联",
+        "nation": "中国",
+        "clubTactic": {
+          "formation": "4-3-3",
+          "mentality": 2,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": true,
+          "counter": true,
+          "fmtV2": 1
+        },
+        "nationalTactic": {
+          "formation": "4-3-3",
+          "mentality": 2,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": false,
+          "counter": false,
+          "fmtV2": 1
+        },
+        "bannedInOtherCup": null,
+        "nationalLineup": [],
+        "sharedPlayers": 0,
+        "fixtures": [
+          {
+            "comp": "CL",
+            "stage": "K",
+            "round": 1,
+            "leg": 2,
+            "played": false,
+            "stats": false,
+            "hg": 0,
+            "ag": 0
+          }
+        ],
+        "playing": false,
+        "pendingStart": false,
+        "match": {
+          "comp": "CL",
+          "aggBase": [
+            0,
+            1
+          ],
+          "knockout": true,
+          "national": null,
+          "done": false,
+          "minute": 0,
+          "subs": 0,
+          "mentality": 2,
+          "formation": "4-3-3",
+          "owner": 3,
+          "bench": [
+            {
+              "id": 114,
+              "name": "卡尔·达洛"
+            },
+            {
+              "id": 95,
+              "name": "马特乌斯·库尼亚"
+            },
+            {
+              "id": 107,
+              "name": "阿马德"
+            },
+            {
+              "id": 110,
+              "name": "莱尼·约罗"
+            },
+            {
+              "id": 113,
+              "name": "曼努埃尔·乌加特"
+            },
+            {
+              "id": 105,
+              "name": "安德雷·桑托斯"
+            },
+            {
+              "id": 109,
+              "name": "迪奥戈·达洛特"
+            }
+          ]
+        }
+      },
+      "result": {
+        "revision": "20261020.3",
+        "sourceSha256": "2ed3dc97082a4763a4a6f86c3c1deded46247c19be0ae62801d03332bae2d3aa",
+        "code": "CL",
+        "stage": "leg2",
+        "dual": false,
+        "view": "home",
+        "scope": null,
+        "day": 218,
+        "matchDay": 217,
+        "dailyTicks": 1,
+        "club": "曼彻斯特联",
+        "nation": "中国",
+        "clubTactic": {
+          "formation": "4-3-3",
+          "mentality": 4,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": true,
+          "counter": true,
+          "fmtV2": 1
+        },
+        "nationalTactic": {
+          "formation": "4-3-3",
+          "mentality": 2,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": false,
+          "counter": false,
+          "fmtV2": 1
+        },
+        "bannedInOtherCup": null,
+        "nationalLineup": [],
+        "sharedPlayers": 0,
+        "fixtures": [
+          {
+            "comp": "CL",
+            "stage": "K",
+            "round": 1,
+            "leg": 2,
+            "played": true,
+            "stats": true,
+            "hg": 0,
+            "ag": 2
+          }
+        ],
+        "playing": false,
+        "pendingStart": false,
+        "match": null
+      }
+    },
+    {
+      "code": "CWC",
+      "stage": "final",
+      "start": {
+        "revision": "20261020.3",
+        "sourceSha256": "2ed3dc97082a4763a4a6f86c3c1deded46247c19be0ae62801d03332bae2d3aa",
+        "code": "CWC",
+        "stage": "final",
+        "dual": false,
+        "view": "match",
+        "scope": null,
+        "day": 280,
+        "matchDay": 280,
+        "dailyTicks": 0,
+        "club": "曼彻斯特城",
+        "nation": "中国",
+        "clubTactic": {
+          "formation": "4-4-1-1",
+          "mentality": 2,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": true,
+          "counter": true,
+          "fmtV2": 1
+        },
+        "nationalTactic": {
+          "formation": "4-3-3",
+          "mentality": 2,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": false,
+          "counter": false,
+          "fmtV2": 1
+        },
+        "bannedInOtherCup": null,
+        "nationalLineup": [],
+        "sharedPlayers": 0,
+        "fixtures": [
+          {
+            "comp": "CWC",
+            "stage": "K",
+            "round": 2,
+            "played": false,
+            "stats": false,
+            "hg": 0,
+            "ag": 0
+          }
+        ],
+        "playing": false,
+        "pendingStart": false,
+        "match": {
+          "comp": "CWC",
+          "aggBase": null,
+          "knockout": true,
+          "national": null,
+          "done": false,
+          "minute": 0,
+          "subs": 0,
+          "mentality": 2,
+          "formation": "4-4-1-1",
+          "owner": 0,
+          "bench": [
+            {
+              "id": 19,
+              "name": "赫罗尼莫·鲁利"
+            },
+            {
+              "id": 7,
+              "name": "约什科·格瓦迪奥尔"
+            },
+            {
+              "id": 5,
+              "name": "马克·格伊"
+            },
+            {
+              "id": 6,
+              "name": "安托万·塞门约"
+            },
+            {
+              "id": 12,
+              "name": "尼科·奥赖利"
+            },
+            {
+              "id": 18,
+              "name": "尼科·冈萨雷斯"
+            },
+            {
+              "id": 13,
+              "name": "杰克·格拉利什"
+            }
+          ]
+        }
+      },
+      "result": {
+        "revision": "20261020.3",
+        "sourceSha256": "2ed3dc97082a4763a4a6f86c3c1deded46247c19be0ae62801d03332bae2d3aa",
+        "code": "CWC",
+        "stage": "final",
+        "dual": false,
+        "view": "home",
+        "scope": null,
+        "day": 281,
+        "matchDay": 280,
+        "dailyTicks": 1,
+        "club": "曼彻斯特城",
+        "nation": "中国",
+        "clubTactic": {
+          "formation": "4-4-1-1",
+          "mentality": 4,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": true,
+          "counter": true,
+          "fmtV2": 1
+        },
+        "nationalTactic": {
+          "formation": "4-3-3",
+          "mentality": 2,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": false,
+          "counter": false,
+          "fmtV2": 1
+        },
+        "bannedInOtherCup": null,
+        "nationalLineup": [],
+        "sharedPlayers": 0,
+        "fixtures": [
+          {
+            "comp": "CWC",
+            "stage": "K",
+            "round": 2,
+            "played": true,
+            "stats": true,
+            "hg": 2,
+            "ag": 2
+          }
+        ],
+        "playing": false,
+        "pendingStart": false,
+        "match": null
+      }
+    },
+    {
+      "code": "PO",
+      "stage": "group",
+      "start": {
+        "revision": "20261020.3",
+        "sourceSha256": "2ed3dc97082a4763a4a6f86c3c1deded46247c19be0ae62801d03332bae2d3aa",
+        "code": "PO",
+        "stage": "group",
+        "dual": false,
+        "view": "match",
+        "scope": null,
+        "day": 278,
+        "matchDay": 278,
+        "dailyTicks": 0,
+        "club": "布莱克本",
+        "nation": "中国",
+        "clubTactic": {
+          "formation": "3-5-2",
+          "mentality": 2,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": true,
+          "counter": true,
+          "fmtV2": 1
+        },
+        "nationalTactic": {
+          "formation": "4-3-3",
+          "mentality": 2,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": false,
+          "counter": false,
+          "fmtV2": 1
+        },
+        "bannedInOtherCup": null,
+        "nationalLineup": [],
+        "sharedPlayers": 0,
+        "fixtures": [
+          {
+            "comp": "PO",
+            "round": 1,
+            "leg": 1,
+            "played": false,
+            "stats": false,
+            "hg": 0,
+            "ag": 0
+          }
+        ],
+        "playing": false,
+        "pendingStart": false,
+        "match": {
+          "comp": "PO",
+          "aggBase": null,
+          "knockout": false,
+          "national": null,
+          "done": false,
+          "minute": 0,
+          "subs": 0,
+          "mentality": 2,
+          "formation": "3-5-2",
+          "owner": 33,
+          "bench": [
+            {
+              "id": 921,
+              "name": "迭戈·德尔加多"
+            },
+            {
+              "id": 908,
+              "name": "卡勒姆·布里坦"
+            },
+            {
+              "id": 911,
+              "name": "欧文·贝克"
+            },
+            {
+              "id": 918,
+              "name": "大桥祐纪"
+            },
+            {
+              "id": 928,
+              "name": "卢卡·彼得罗维奇"
+            },
+            {
+              "id": 922,
+              "name": "雅各布·贝内特"
+            },
+            {
+              "id": 923,
+              "name": "艾哈迈德·拉马丹"
+            }
+          ]
+        }
+      },
+      "result": {
+        "revision": "20261020.3",
+        "sourceSha256": "2ed3dc97082a4763a4a6f86c3c1deded46247c19be0ae62801d03332bae2d3aa",
+        "code": "PO",
+        "stage": "group",
+        "dual": false,
+        "view": "home",
+        "scope": null,
+        "day": 279,
+        "matchDay": 278,
+        "dailyTicks": 1,
+        "club": "布莱克本",
+        "nation": "中国",
+        "clubTactic": {
+          "formation": "3-5-2",
+          "mentality": 4,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": true,
+          "counter": true,
+          "fmtV2": 1
+        },
+        "nationalTactic": {
+          "formation": "4-3-3",
+          "mentality": 2,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": false,
+          "counter": false,
+          "fmtV2": 1
+        },
+        "bannedInOtherCup": null,
+        "nationalLineup": [],
+        "sharedPlayers": 0,
+        "fixtures": [
+          {
+            "comp": "PO",
+            "round": 1,
+            "leg": 1,
+            "played": true,
+            "stats": true,
+            "hg": 1,
+            "ag": 1
+          }
+        ],
+        "playing": false,
+        "pendingStart": false,
+        "match": null
+      }
+    },
+    {
+      "code": "NWC",
+      "stage": "knockout",
+      "start": {
+        "revision": "20261020.3",
+        "sourceSha256": "2ed3dc97082a4763a4a6f86c3c1deded46247c19be0ae62801d03332bae2d3aa",
+        "code": "NWC",
+        "stage": "knockout",
+        "dual": false,
+        "view": "match",
+        "scope": "nation",
+        "day": 153,
+        "matchDay": 153,
+        "dailyTicks": 0,
+        "club": "上海海港",
+        "nation": "西班牙",
+        "clubTactic": {
+          "formation": "4-4-2",
+          "mentality": 2,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": true,
+          "counter": true,
+          "fmtV2": 1
+        },
+        "nationalTactic": {
+          "formation": "4-3-3",
+          "mentality": 2,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": false,
+          "counter": false,
+          "fmtV2": 1
+        },
+        "bannedInOtherCup": null,
+        "nationalLineup": [
+          65,
+          2658,
+          2688,
+          2633,
+          2598,
+          2625,
+          6277,
+          8239,
+          2663,
+          2721,
+          2627
+        ],
+        "nextNational": "NWC",
+        "sharedPlayers": 0,
+        "fixtures": [
+          {
+            "comp": "NWC",
+            "stage": "K",
+            "round": 1,
+            "played": false,
+            "stats": false,
+            "hg": 0,
+            "ag": 0
+          }
+        ],
+        "playing": false,
+        "pendingStart": false,
+        "match": {
+          "comp": "NWC",
+          "aggBase": null,
+          "knockout": true,
+          "national": "NWC",
+          "done": false,
+          "minute": 0,
+          "subs": 0,
+          "mentality": 2,
+          "formation": "4-3-3",
+          "owner": "西班牙",
+          "bench": [
+            {
+              "id": 2630,
+              "name": "琼·加西亚"
+            },
+            {
+              "id": 2657,
+              "name": "格里马尔多"
+            },
+            {
+              "id": 2634,
+              "name": "费尔明·洛佩斯"
+            },
+            {
+              "id": 8242,
+              "name": "费兰·托雷斯"
+            },
+            {
+              "id": 166,
+              "name": "佩德罗·波罗"
+            },
+            {
+              "id": 2631,
+              "name": "保·库巴西"
+            },
+            {
+              "id": 2744,
+              "name": "奥亚萨瓦尔"
+            }
+          ]
+        }
+      },
+      "result": {
+        "revision": "20261020.3",
+        "sourceSha256": "2ed3dc97082a4763a4a6f86c3c1deded46247c19be0ae62801d03332bae2d3aa",
+        "code": "NWC",
+        "stage": "knockout",
+        "dual": false,
+        "view": "home",
+        "scope": "nation",
+        "day": 154,
+        "matchDay": 153,
+        "dailyTicks": 1,
+        "club": "上海海港",
+        "nation": "西班牙",
+        "clubTactic": {
+          "formation": "4-4-2",
+          "mentality": 2,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": true,
+          "counter": true,
+          "fmtV2": 1
+        },
+        "nationalTactic": {
+          "formation": "4-3-3",
+          "mentality": 4,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": false,
+          "counter": false,
+          "fmtV2": 1
+        },
+        "bannedInOtherCup": null,
+        "nationalLineup": [
+          65,
+          2658,
+          2688,
+          2633,
+          2598,
+          2625,
+          6277,
+          8239,
+          2663,
+          2721,
+          2627
+        ],
+        "nextNational": "NWC",
+        "sharedPlayers": 0,
+        "fixtures": [
+          {
+            "comp": "NWC",
+            "stage": "K",
+            "round": 1,
+            "played": true,
+            "stats": true,
+            "hg": 1,
+            "ag": 0
+          }
+        ],
+        "playing": false,
+        "pendingStart": false,
+        "match": null
+      }
+    },
+    {
+      "code": "NAS+L",
+      "stage": "synthetic-same-day",
+      "scope": {
+        "revision": "20261020.3",
+        "sourceSha256": "2ed3dc97082a4763a4a6f86c3c1deded46247c19be0ae62801d03332bae2d3aa",
+        "code": "NAS",
+        "stage": "group",
+        "dual": true,
+        "view": "match",
+        "scope": "nation",
+        "day": 30,
+        "matchDay": 30,
+        "dailyTicks": 0,
+        "club": "上海海港",
+        "nation": "中国",
+        "clubTactic": {
+          "formation": "4-2-3-1",
+          "mentality": 2,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": true,
+          "counter": true,
+          "fmtV2": 1
+        },
+        "nationalTactic": {
+          "formation": "4-3-3",
+          "mentality": 2,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": false,
+          "counter": false,
+          "fmtV2": 1
+        },
+        "bannedInOtherCup": null,
+        "nationalLineup": [
+          10007,
+          10003,
+          10005,
+          10004,
+          10006,
+          10002,
+          10001,
+          10044,
+          10046,
+          9997,
+          10109
+        ],
+        "nextNational": "NAS",
+        "sharedPlayers": 8,
+        "fixtures": [
+          {
+            "comp": "NAS",
+            "stage": "G",
+            "round": 1,
+            "played": false,
+            "stats": false,
+            "hg": 0,
+            "ag": 0
+          },
+          {
+            "comp": "L",
+            "round": 2,
+            "played": false,
+            "stats": false,
+            "hg": 0,
+            "ag": 0
+          }
+        ],
+        "playing": false,
+        "pendingStart": false,
+        "match": {
+          "comp": "NAS",
+          "aggBase": null,
+          "knockout": false,
+          "national": "NAS",
+          "done": false,
+          "minute": 0,
+          "subs": 0,
+          "mentality": 2,
+          "formation": "4-3-3",
+          "owner": "中国",
+          "bench": [
+            {
+              "id": 10047,
+              "name": "王大雷"
+            },
+            {
+              "id": 10024,
+              "name": "蒋圣龙"
+            },
+            {
+              "id": 10025,
+              "name": "朱辰杰"
+            },
+            {
+              "id": 10049,
+              "name": "石柯"
+            },
+            {
+              "id": 10153,
+              "name": "谢鹏飞"
+            },
+            {
+              "id": 10065,
+              "name": "张稀哲"
+            },
+            {
+              "id": 10045,
+              "name": "廖力生"
+            }
+          ]
+        }
+      },
+      "pending": {
+        "revision": "20261020.3",
+        "sourceSha256": "2ed3dc97082a4763a4a6f86c3c1deded46247c19be0ae62801d03332bae2d3aa",
+        "code": "NAS",
+        "stage": "group",
+        "dual": true,
+        "view": "home",
+        "scope": null,
+        "day": 30,
+        "matchDay": 30,
+        "dailyTicks": 0,
+        "club": "上海海港",
+        "nation": "中国",
+        "clubTactic": {
+          "formation": "4-2-3-1",
+          "mentality": 2,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": true,
+          "counter": true,
+          "fmtV2": 1
+        },
+        "nationalTactic": {
+          "formation": "4-3-3",
+          "mentality": 4,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": false,
+          "counter": false,
+          "fmtV2": 1
+        },
+        "bannedInOtherCup": null,
+        "nationalLineup": [
+          10007,
+          10003,
+          10005,
+          10004,
+          10006,
+          10002,
+          10001,
+          10044,
+          10046,
+          9997,
+          10109
+        ],
+        "nextNational": "NAS",
+        "sharedPlayers": 8,
+        "fixtures": [
+          {
+            "comp": "NAS",
+            "stage": "G",
+            "round": 1,
+            "played": true,
+            "stats": true,
+            "hg": 4,
+            "ag": 0
+          },
+          {
+            "comp": "L",
+            "round": 2,
+            "played": false,
+            "stats": false,
+            "hg": 0,
+            "ag": 0
+          }
+        ],
+        "playing": false,
+        "pendingStart": false,
+        "match": null
+      },
+      "result": {
+        "revision": "20261020.3",
+        "sourceSha256": "2ed3dc97082a4763a4a6f86c3c1deded46247c19be0ae62801d03332bae2d3aa",
+        "code": "NAS",
+        "stage": "group",
+        "dual": true,
+        "view": "home",
+        "scope": null,
+        "day": 31,
+        "matchDay": 30,
+        "dailyTicks": 1,
+        "club": "上海海港",
+        "nation": "中国",
+        "clubTactic": {
+          "formation": "4-2-3-1",
+          "mentality": 4,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": true,
+          "counter": true,
+          "fmtV2": 1
+        },
+        "nationalTactic": {
+          "formation": "4-3-3",
+          "mentality": 4,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": false,
+          "counter": false,
+          "fmtV2": 1
+        },
+        "bannedInOtherCup": null,
+        "nationalLineup": [
+          10007,
+          10003,
+          10005,
+          10004,
+          10006,
+          10002,
+          10001,
+          10044,
+          10046,
+          9997,
+          10109
+        ],
+        "nextNational": "NAS",
+        "sharedPlayers": 8,
+        "fixtures": [
+          {
+            "comp": "NAS",
+            "stage": "G",
+            "round": 1,
+            "played": true,
+            "stats": true,
+            "hg": 4,
+            "ag": 0
+          },
+          {
+            "comp": "L",
+            "round": 2,
+            "played": true,
+            "stats": true,
+            "hg": 5,
+            "ag": 0
+          }
+        ],
+        "playing": false,
+        "pendingStart": false,
+        "match": null
+      }
+    },
+    {
+      "code": "NAS",
+      "stage": "next-fixture-preview",
+      "state": {
+        "revision": "20261020.3",
+        "sourceSha256": "2ed3dc97082a4763a4a6f86c3c1deded46247c19be0ae62801d03332bae2d3aa",
+        "code": "NAS",
+        "stage": "group",
+        "dual": false,
+        "view": "tactics",
+        "scope": "nation",
+        "day": 30,
+        "matchDay": 30,
+        "dailyTicks": 0,
+        "club": "上海海港",
+        "nation": "日本",
+        "clubTactic": {
+          "formation": "4-4-2",
+          "mentality": 2,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": true,
+          "counter": true,
+          "fmtV2": 1
+        },
+        "nationalTactic": {
+          "formation": "4-3-3",
+          "mentality": 2,
+          "tempo": 2,
+          "press": 2,
+          "width": 2,
+          "offside": false,
+          "counter": false,
+          "fmtV2": 1
+        },
+        "bannedInOtherCup": 17926,
+        "nationalLineup": [
+          252,
+          17926,
+          6266,
+          6505,
+          528,
+          6522,
+          330,
+          6402,
+          265,
+          17883,
+          2747
+        ],
+        "nextNational": "NAS",
+        "sharedPlayers": 0,
+        "fixtures": [
+          {
+            "comp": "NAS",
+            "stage": "G",
+            "round": 1,
+            "played": false,
+            "stats": false,
+            "hg": 0,
+            "ag": 0
+          }
+        ],
+        "playing": false,
+        "pendingStart": false,
+        "match": null
+      },
+      "options": {
+        "options": [
+          "",
+          "252",
+          "11719",
+          "22224",
+          "6266",
+          "17882",
+          "6466",
+          "6505",
+          "8606",
+          "17926",
+          "676",
+          "11717",
+          "6522",
+          "265",
+          "2747",
+          "528",
+          "6402",
+          "49",
+          "330",
+          "568",
+          "17883",
+          "6449",
+          "11753",
+          "11687"
+        ],
+        "value": "17926"
+      }
+    }
+  ]
+}

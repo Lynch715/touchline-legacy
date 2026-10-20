@@ -4483,7 +4483,7 @@ function nationalTeamModel(M,nat,side){
   const rest=squad.filter(id=>ok(id)&&!used.has(id)).sort((a,b)=>M.players[b].ca-M.players[a].ca),subs=[];
   const keeper=rest.find(id=>M.players[id].pos==='GK');if(keeper!=null)subs.push(keeper);
   for(const id of rest)if(subs.length<BENCH_MAX&&!subs.includes(id))subs.push(id);
-  T.lineup=[...lineup];T.subs=[...subs];
+  if(!M.preview){T.lineup=[...lineup];T.subs=[...subs];}
   return {id:nat,cn:nat,short:nat,en:WC_CN2EN[nat]||nat,squad,lineup,subs,tactic:T.tactic,coachRating:10,physioRating:10,stadium:'中立场地',c1:side===0?'#2477db':'#df4242',c2:'#fff',rep:70};
 }
 function applyNationalResult(f,M){
@@ -4512,7 +4512,7 @@ function simNationalDay(day,skipUser){
 }
 function migrateNationalCalendars(){buildNationalCalendars();if(WORLD.userNation)ensureNationalTeam(WORLD.userNation);}
 function nationalRosterLocked(nat){return Object.values(WORLD.nationalCups||{}).some(E=>['G','K'].includes(E.stage)&&E.teams.includes(nat)&&E.fixtures.some(f=>f.played&&(f.home===nat||f.away===nat)));}
-function toggleNationalCallup(id){
+function toggleNationalCallup(id){if(liveTeamLocked(true,true))return false;
   const nat=WORLD.userNation,T=nat&&ensureNationalTeam(nat),p=P(id);if(!T||!p||p.nat!==nat)return false;
   if(nationalRosterLocked(nat)){toast('本届大赛已经开赛，征召名单已锁定；仍可调整首发和战术','warn');return false;}
   if(T.players.includes(id)){if(T.players.length<=11){toast('请至少保留11名球员','warn');return false;}T.players=T.players.filter(x=>x!==id);T.lineup=T.lineup.map(x=>x===id?null:x);T.subs=T.subs.filter(x=>x!==id);}
@@ -4521,11 +4521,8 @@ function toggleNationalCallup(id){
   for(const E of Object.values(WORLD.nationalCups||{}))if(E.squads?.[nat]&&E.stage==='G'&&!E.fixtures.some(f=>f.played&&(f.home===nat||f.away===nat)))E.squads[nat]=[...T.players];
   markDirty();return true;
 }
-function setNationalFormation(name){if(!FORMATIONS[name]||!WORLD.userNation)return;const T=ensureNationalTeam(WORLD.userNation);T.tactic.formation=name;T.lineup=[];T.subs=[];markDirty();render();}
-function setNationalStarter(slot,id){
-  const nat=WORLD.userNation,T=nat&&ensureNationalTeam(nat),p=P(+id);if(!T||!p||p.nat!==nat||!T.players.includes(+id)||p.injury>0)return false;
-  const old=T.lineup[slot],other=T.lineup.indexOf(+id);if(other>=0)T.lineup[other]=old??null;T.lineup[slot]=+id;markDirty();return true;
-}
+function setNationalFormation(name){if(liveTeamLocked(true,true))return false;if(!FORMATIONS[name]||!WORLD.userNation)return;const T=ensureNationalTeam(WORLD.userNation);T.tactic.formation=name;T.lineup=[];T.subs=[];markDirty();render();}
+
 function validateNationalCalendars(w,fail){
   const known=n=>typeof n==='string'&&WC_NATIONS.includes(n),codes=Object.keys(NATIONAL_COMPS);
   if(w.userNation!=null&&!known(w.userNation))fail('执教国家队');
@@ -4558,11 +4555,91 @@ function validateNationalCalendars(w,fail){
   }
 }
 
-function nationalPreview(nat){
-  const T=ensureNationalTeam(nat),E=Object.values(WORLD.nationalCups||{}).find(E=>['G','K'].includes(E.stage)&&E.teams.includes(nat)),players={};
-  for(const id of E?.squads[nat]||T.players){const p=P(id);if(p){players[id]=structuredClone(p);players[id].susp=E?.discipline[id]?.susp||0;}}
-  return nationalTeamModel({national:E?.code,players},nat,0);
+// 共用临场会话：绑定具体赛程，隔离动画、换人队列和球队准备页。
+let MATCH_START_TIMER=null;
+function pauseMatchPlayback(){
+  clearTimeout(MATCH_START_TIMER);MATCH_START_TIMER=null;
+  cancelAnimationFrame(ANIM.raf);ANIM.playing=false;
+  const b=$('#btn-play');if(b)b.textContent='▶ 继续';
 }
+function resetMatchSession(clearScope){
+  pauseMatchPlayback();CURMATCH=null;
+  SUBQ=[];SUBOUT=null;SUBRESUME=false;SELSLOT=null;
+  ANIM={raf:0,playing:false,speed:1,acc:0,last:0,prev:null,cur:null,evShown:0,ended:false,trail:[],cap:null};
+  if(clearScope)NAT_SCOPE=null;
+  const modal=$('#modal');if(modal)modal.classList.remove('on');
+}
+function fixtureIdentity(f){
+  return {season:WORLD.season,day:f.day,comp:f.comp,home:f.home,away:f.away,national:!!f.national,
+    stage:f.stage??null,round:f.round??null,leg:f.leg??null,tie:f.tie??null,grp:f.grp??null,po:f.po??null,nation:f.nation??null};
+}
+function currentMatchFixture(M=CURMATCH){
+  if(!M)return null;
+  const all=M.national?nationalFixtures():WORLD.fixtures;
+  if(M.fixtureRef){
+    if(M.fixtureRef.season!==WORLD.season||M.fixtureRef.day!==WORLD.day)return null;
+    const owner=M.national?WORLD.userNation:WORLD.userClub;if(owner!==M.fixtureOwner||!M.national&&WORLD.needJob)return null;
+    return all.find(f=>!f.played&&JSON.stringify(fixtureIdentity(f))===JSON.stringify(M.fixtureRef))||null;
+  }
+  // 兼容仍由旧入口构造的比赛实例；正式临场入口始终绑定完整赛程身份。
+  const candidates=all.filter(f=>!f.played&&f.day===WORLD.day&&f.home===M.h&&f.away===M.a);
+  return candidates.length===1?candidates[0]:null;
+}
+function liveTeamLocked(national,notify){
+  const M=CURMATCH,owned=national?M?.national&&[M.h,M.a].includes(WORLD.userNation):M&&!M.national&&[M.h,M.a].includes(WORLD.userClub);
+  if(!owned)return false;
+  if(notify)toast('当前'+(national?'国家队':'俱乐部')+'比赛尚未结算，请在临场界面换人或调整战术','warn');
+  return true;
+}
+function renderLiveTeamGuard(v,national){
+  if(!liveTeamLocked(national,false))return false;
+  const name=national?WORLD.userNation:UC().cn;
+  v.appendChild(el('div','',`<h1>${esc(name)} · 比赛进行中</h1>`));nationScopeBar(v);
+  const box=el('div','card',`<p>本场比赛尚未结算。请在临场界面换人和调整战术，完成比赛后再设置下一场的阵容与阵型。</p>`);
+  const b=el('button','pri','返回当前比赛');b.onclick=()=>{NAT_SCOPE=CURMATCH.national?'nation':null;VIEW='match';render();};box.appendChild(b);v.appendChild(box);return true;
+}
+function nationalPreparationContext(nat){
+  const fixture=nationalFixtures().filter(f=>!f.played&&f.day>=WORLD.day&&(f.home===nat||f.away===nat)).sort((a,b)=>a.day-b.day||a.comp.localeCompare(b.comp))[0];
+  return {fixture,E:fixture?WORLD.nationalCups[fixture.comp]:null};
+}
+function nationalPreview(nat){
+  const T=ensureNationalTeam(nat),{E,fixture}=nationalPreparationContext(nat),players={};
+  for(const id of E?.squads[nat]||T.players){const p=P(id);if(p){players[id]=structuredClone(p);players[id].susp=E?.discipline[id]?.susp||0;}}
+  const model=nationalTeamModel({national:E?.code,players,preview:true},nat,0);model.players=players;model.fixture=fixture;return model;
+}
+function setNationalStarter(slot,id){
+  if(liveTeamLocked(true,true))return false;
+  const nat=WORLD.userNation,T=nat&&ensureNationalTeam(nat),p=P(+id);
+  if(!T||!Number.isInteger(slot)||slot<0||slot>=FORMATIONS[T.tactic.formation].length||!p||p.nat!==nat)return false;
+  const model=nationalPreview(nat),q=model.players[+id];
+  if(!model.squad.includes(+id)||!q||q.injury>0||q.susp>0){toast('该球员不在下一场可用名单中或因伤停无法出场','warn');return false;}
+  T.lineup=[...model.lineup];const old=T.lineup[slot],other=T.lineup.indexOf(+id);if(other>=0)T.lineup[other]=old??null;T.lineup[slot]=+id;T.subs=[];markDirty();return true;
+}
+function startUserMatch(fx){
+  if(CURMATCH&&currentMatchFixture()){NAT_SCOPE=CURMATCH.national?'nation':null;VIEW='match';render();return false;}
+  if(!fx||fx.played||fx.day!==WORLD.day||!(fx.national?nationalFixtures():WORLD.fixtures).includes(fx)||!(fx.home===(fx.national?WORLD.userNation:WORLD.userClub)||fx.away===(fx.national?WORLD.userNation:WORLD.userClub))||!fx.national&&WORLD.needJob)return false;
+  resetMatchSession(false);NAT_SCOPE=fx.national?'nation':null;
+  const side=fx.home===(fx.national?WORLD.userNation:WORLD.userClub)?0:1;
+  CURMATCH=createMatch(fx.home,fx.away,{comp:fx.comp,round:fx.round,record:true,userSide:side,...knockoutOpts(fx)});
+  CURMATCH.fixtureRef=fixtureIdentity(fx);CURMATCH.fixtureOwner=fx.national?WORLD.userNation:WORLD.userClub;
+  ANIM={raf:0,playing:false,speed:(WORLD.settings&&WORLD.settings.matchSpeed)||1,acc:0,last:0,prev:null,cur:CURMATCH.frames[0]||null,evShown:0,ended:false,trail:[],cap:null};
+  VIEW='match';render();
+  const expected=CURMATCH;MATCH_START_TIMER=setTimeout(()=>{MATCH_START_TIMER=null;if(CURMATCH===expected&&VIEW==='match'&&!expected.done&&!$('#modal')?.classList.contains('on'))toggleplay(true);},350);
+  return true;
+}
+function finishUserMatch(){
+  const M=CURMATCH;if(!M||!M.done)return 'ignored';
+  const fx=currentMatchFixture(M);if(!fx){resetMatchSession(false);return 'ignored';}
+  if(!applyResult(fx,M)){resetMatchSession(false);return 'ignored';}
+  resetMatchSession(false);
+  // 同日其余玩家比赛必须保留临场入口；全部完成后只执行一次日结。
+  simDay(WORLD.day,true);
+  const pending=userFixtureOn(WORLD.day);if(pending){NAT_SCOPE=pending.national?'nation':null;return 'pending';}
+  processDayEnd(WORLD.day);WORLD.day++;
+  if(WORLD.day>=SEASON_DAYS||allFixturesDone()){WORLD.youthDone=false;endSeason();return 'season';}
+  prepareDeadlineMarket();return 'ok';
+}
+
 function nationalFixtureRow(f){
   const d=el('div','national-fixture');d.style.cssText='display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid var(--row-line);font-size:12px';
   d.innerHTML=`<span class="hint">${fmtDateShort(dateOf(f.day))}</span><span class="tag">${esc(NATIONAL_COMPS[f.comp].name)}</span><span style="flex:1;min-width:150px">${esc(f.home)} ${f.played?`<b>${f.hg} - ${f.ag}</b>`:'vs'} ${esc(f.away)}${f.pens?'（点球 '+f.pens.join('-')+'）':''}</span>`;
@@ -4595,21 +4672,24 @@ function showNationalReport(f){
 }
 function vNationSquad(v){
   const nat=WORLD.userNation;if(!nat){NAT_SCOPE=null;vSquad(v);return;}
+  if(renderLiveTeamGuard(v,true))return;
   const T=ensureNationalTeam(nat),locked=nationalRosterLocked(nat);v.appendChild(el('div','',`<h1>🇺🇳 ${esc(nat)} 国家队阵容</h1><div class="sub">征召 ${T.players.length}/23 人 · ${locked?'本届名单已锁定，首发与战术仍可调整':'大赛开赛前可调整征召名单'}</div>`));nationScopeBar(v);
   const card=el('div','card');card.innerHTML='<h3>征召名单</h3><p class="hint">这里的征召不会转移球员俱乐部归属、合同或薪资。俱乐部停赛不影响国家队资格；国家队停赛仅在对应大赛生效。</p>';
   const selected=T.players.map(P).filter(Boolean),pool=natPlayerPool(nat).sort((a,b)=>b.ca-a.ca).slice(0,60),all=[...selected,...pool.filter(p=>!T.players.includes(p.id))];
   for(const p of all){const row=el('div');row.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;border-bottom:1px solid var(--row-line)';row.innerHTML=`<span style="flex:1;min-width:160px">${playerLink(p)} <span class="hint">${POS_CN[p.pos]} · ${p.ca} · ${p.clubId>=0?esc(C(p.clubId)?.short||''):'自由球员'}${p.injury>0?' · 受伤':''}</span></span>`;const b=el('button','sm',T.players.includes(p.id)?'移出名单':'征召');b.disabled=locked;b.onclick=()=>{if(toggleNationalCallup(p.id))render();};row.appendChild(b);card.appendChild(row);}
   v.appendChild(card);
 }
-function setNationalTactic(key,value){const T=WORLD.userNation&&ensureNationalTeam(WORLD.userNation);if(!T||!['mentality','tempo','press','width'].includes(key))return;T.tactic[key]=clamp(Math.round(+value),0,4);markDirty();render();}
+function setNationalTactic(key,value){if(liveTeamLocked(true,true))return false;const T=WORLD.userNation&&ensureNationalTeam(WORLD.userNation);if(!T||!['mentality','tempo','press','width'].includes(key))return;T.tactic[key]=clamp(Math.round(+value),0,4);markDirty();render();}
 function vNationTactics(v){
   const nat=WORLD.userNation;if(!nat){NAT_SCOPE=null;vTactics(v);return;}
+  if(renderLiveTeamGuard(v,true))return;
   const T=ensureNationalTeam(nat),model=nationalPreview(nat);v.appendChild(el('div','',`<h1>🇺🇳 ${esc(nat)} 国家队战术</h1><div class="sub">阵型、首发与临场调整独立于俱乐部保存</div>`));nationScopeBar(v);
+  v.appendChild(el('div','hint',model.fixture?`下一场：${esc(NATIONAL_COMPS[model.fixture.comp].name)} · ${fmtDateShort(dateOf(model.fixture.day))} · ${esc(model.fixture.home)} vs ${esc(model.fixture.away)}（按本场征召与停赛名单排阵）`:'当前没有已排定的国家队比赛；以下为日常阵容。'));
   const box=el('div','card'),form=el('label','', '阵型 '),select=el('select');select.id='national-formation';select.innerHTML=Object.keys(FORMATIONS).map(k=>`<option value="${esc(k)}"${k===T.tactic.formation?' selected':''}>${esc(k)}</option>`).join('');select.onchange=e=>setNationalFormation(e.target.value);form.appendChild(select);box.appendChild(form);
   const best=el('button','sm','自动选择国家队首发');best.onclick=()=>{T.lineup=[];T.subs=[];markDirty();render();};box.appendChild(best);
   for(const [key,label,values]of [['mentality','心态',MENTALITY],['tempo','节奏',TEMPO_N],['press','逼抢',PRESS_N],['width','宽度',WIDTH_N]]){const row=el('label');row.style.cssText='display:block;margin:12px 0';row.innerHTML=`${label}：${esc(values[T.tactic[key]])} <input type="range" min="0" max="4" value="${T.tactic[key]}" style="width:100%" aria-label="国家队${label}">`;row.querySelector('input').onchange=e=>setNationalTactic(key,e.target.value);box.appendChild(row);}
   const table=el('div');table.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;margin-top:16px';
-  FORMATIONS[T.tactic.formation].forEach((s,i)=>{const row=el('label','',`首发${i+1} ${POS_CN[s[0]]} `),sel=el('select');sel.style.maxWidth='100%';sel.setAttribute('aria-label','国家队首发'+(i+1));const eligible=model.squad.filter(id=>P(id)?.injury<=0);sel.innerHTML=`<option value="">空缺</option>`+eligible.map(id=>`<option value="${id}"${T.lineup[i]===id?' selected':''}>${esc(P(id).cn)} · ${POS_CN[P(id).pos]}</option>`).join('');sel.onchange=e=>{setNationalStarter(i,e.target.value);render();};row.appendChild(sel);table.appendChild(row);});box.appendChild(table);v.appendChild(box);
+  FORMATIONS[T.tactic.formation].forEach((s,i)=>{const row=el('label','',`首发${i+1} ${POS_CN[s[0]]} `),sel=el('select');sel.style.maxWidth='100%';sel.setAttribute('aria-label','国家队首发'+(i+1));const eligible=model.squad.filter(id=>model.players[id]?.injury<=0&&model.players[id].susp<=0);sel.innerHTML=`<option value="">空缺</option>`+eligible.map(id=>`<option value="${id}"${model.lineup[i]===id?' selected':''}>${esc(P(id).cn)} · ${POS_CN[P(id).pos]}</option>`).join('');sel.onchange=e=>{setNationalStarter(i,e.target.value);render();};row.appendChild(sel);table.appendChild(row);});box.appendChild(table);v.appendChild(box);
   v.appendChild(el('div','card',`<h3>替补名单</h3><p>${model.subs.map(id=>esc(P(id).cn)).join('、')||'暂无可用替补'}</p><p class="hint">可用替补按当前征召名单与首发自动生成。比赛中可手动换人、调整心态、节奏、逼抢和宽度。</p>`));
 }
 
@@ -6065,6 +6145,7 @@ function setCaptain(c, pid, isVice){
 let WORLD=null;
 
 function newWorld(seed, userClubEn){
+  resetMatchSession(true);
   seedRng(seed); PID=1;
   WORLD={
     ver:2, finV3:1, pid:0, seed, season:2026, day:0, date:null,
@@ -6918,6 +6999,7 @@ function showAutoPickMenu(anchorEl){
 }
 // 三模式选择回调
 function pickLineupMode(mode){
+  if(liveTeamLocked(false,true))return false;
   const c=UC();
   autoPickLineup(c, mode);
   const names={best:"已生成最佳推荐阵容",rotate:"已生成正常轮换阵容",subs:"已生成替补轮换阵容"};
@@ -6987,7 +7069,7 @@ function executionF(m){
 function createMatch(homeId, awayId, opts){
   opts=opts||{};
   const M={
-    h:homeId, a:awayId, comp:opts.comp||"L", round:opts.round||0, neutral:!!opts.neutral,
+    h:homeId, a:awayId, comp:opts.comp||opts.national||"L", round:opts.round||0, neutral:!!opts.neutral,
     knockout:!!opts.knockout, record:!!opts.record, aggBase:opts.aggBase||null,
     t:0, addedTime:0, half:1, done:false,
     score:[0,0], events:[], frames:[], 
@@ -11117,6 +11199,7 @@ function applyNationalJob(natCN){ // 玩家应聘国家队主教练
   }
 }
 function resignNationalJob(){ // 辞职国家队主教练
+  if(liveTeamLocked(true,true))return {ok:false,msg:"请先完成当前国家队比赛。"};
   if(!WORLD.userNation) return {ok:false, msg:"你当前没有执教任何国家队。"};
   const nat = WORLD.userNation;
   WORLD.userNation = null;
@@ -11714,6 +11797,7 @@ function awardManagerHonors(summary){
 
 // ---------- 教练职业系统（辞职 / 开除 / 上任）----------
 function resignClub(){
+  if(liveTeamLocked(false,true))return {ok:false,msg:"请先完成当前俱乐部比赛。"};
   const u=UC(); if(WORLD.needJob||!u||!u.manager) return {ok:false,msg:"当前没有执教俱乐部。"};
   WORLD.userCoach={...u.manager,isUser:true,prevClub:u.cn,since:WORLD.season};
   WORLD.unemployed=(WORLD.unemployed||[]).filter(m=>!m.isUser);
@@ -12225,7 +12309,7 @@ function nextUserFixture(){
 function simDay(day, skipUser){
   const fx=WORLD.fixtures.filter(f=>f.day===day && !f.played);
   fx.forEach(f=>{
-    if(skipUser && (f.home===WORLD.userClub||f.away===WORLD.userClub)) return;
+    if(skipUser && !WORLD.needJob && (f.home===WORLD.userClub||f.away===WORLD.userClub)) return;
     [f.home,f.away].forEach(id=>{ const c=C(id); if(WORLD.needJob||c.id!==WORLD.userClub) autoPickLineup(c); });
     const M=runMatch(createMatch(f.home,f.away,{comp:f.comp, round:f.round, record:false, ...knockoutOpts(f)}));
     applyResult(f,M);
@@ -12292,6 +12376,7 @@ function autoSellRound(){
 
 // 主「继续」入口，返回状态
 function advance(){
+  if(CURMATCH){const fx=currentMatchFixture();if(fx)return {t:"match",fx};resetMatchSession(false);}
   if(WORLD.gameOver) return {t:"over"};
   // 兼容停在截止日的旧档：先让玩家处理新报价，再继续当天。
   if(prepareDeadlineMarket()) return {t:"deadline"};
@@ -12307,19 +12392,7 @@ function advance(){
 function allFixturesDone(){ return !WORLD.fixtures.some(f=>!f.played)&&!nationalFixtures().some(f=>!f.played); }
 
 // 用户比赛结束后收尾
-function finishUserMatch(){
-  const M=CURMATCH;
-  if(!M || !M.done) return "ignored";
-  const fx=(M.national?nationalFixtures():WORLD.fixtures).find(f=>f.day===WORLD.day && !f.played && (f.home===M.h&&f.away===M.a));
-  if(fx) applyResult(fx,M);
-  simDay(WORLD.day,false);
-  processDayEnd(WORLD.day);
-  WORLD.day++;
-  CURMATCH=null;
-  if(WORLD.day>=SEASON_DAYS || allFixturesDone()){ WORLD.youthDone=false; endSeason(); return "season"; }
-  prepareDeadlineMarket();
-  return "ok";
-}
+
 
 // 快速模拟到某天
 
@@ -12343,7 +12416,7 @@ function openModal(title, html, footer){
 }
 function closeModal(){ $("#modal").classList.remove("on");
   if($("#modal-t").textContent==="赛季回顾") setTimeout(processLoanBuyouts,0);
-  // 换人面板若从右上角 × 关闭，也要恢复比赛
+  // 临场换人/战术面板关闭时，按打开前的播放状态恢复比赛
   if(typeof SUBRESUME!=="undefined" && SUBRESUME && CURMATCH && VIEW==="match" && !CURMATCH.done){ SUBRESUME=false; SUBQ=[]; SUBOUT=null; toggleplay(true); }
 }
 
@@ -12403,7 +12476,7 @@ function renderNav(){
     });
   });
 }
-function go(v){ if(WORLD?.needJob&&!(WORLD.userNation&&(v==="nation"||NAT_SCOPE==="nation"&&["squad","tactics"].includes(v)))){render();return;} VIEW=v; SORT={k:null,d:1}; render(); }
+function go(v){ if(WORLD?.needJob&&!(WORLD.userNation&&(v==="nation"||NAT_SCOPE==="nation"&&["squad","tactics"].includes(v)))){render();return;} if(CURMATCH&&v!=="match")pauseMatchPlayback(); VIEW=v; SORT={k:null,d:1}; render(); }
 
 function renderTop(){
   if(WORLD.needJob){
@@ -12613,6 +12686,7 @@ function vInbox(v){
 let SQUADFILTER="all";
 function vSquad(v){
   if(NAT_SCOPE==='nation' && WORLD.userNation){ vNationSquad(v); return; }
+  if(renderLiveTeamGuard(v,false))return;
   const c=UC();
   v.appendChild(el("div","",`<h1>一线队阵容</h1><div class="sub">${c.squad.length} 名球员 · 周薪总额 ${money(weeklyWages(c))} · 阵容总价值 ${money(c.squad.reduce((s,i)=>s+P(i).value,0))}</div>`));
   nationScopeBar(v);
@@ -13106,6 +13180,7 @@ let SELSLOT=null;
 
 function vTactics(v){
   if(NAT_SCOPE==='nation' && WORLD.userNation){ vNationTactics(v); return; }
+  if(renderLiveTeamGuard(v,false))return;
   const c=UC(), t=c.tactic;
   v.appendChild(el("div","",`<h1>战术</h1><div class="sub">点击场上位置，再点击右侧球员完成调整</div>`));
   nationScopeBar(v);
@@ -13225,6 +13300,7 @@ function vTactics(v){
 // 替补和未入选之间没有任何操作入口。
 const BENCH_MAX = 7;
 function benchAdd(pid){
+  if(liveTeamLocked(false,true))return false;
   const c=UC(), p=P(pid); if(!p || p.clubId!==c.id) return;
   if(c.lineup.includes(pid)){ toast("他已经是首发，先从阵型里换下来","bad"); return; }
   if(c.subs.includes(pid)) return;
@@ -13233,6 +13309,7 @@ function benchAdd(pid){
   c.subs.push(pid); toast(`${p.cn} 进入替补席`); render();
 }
 function benchRemove(pid){
+  if(liveTeamLocked(false,true))return false;
   const c=UC(), p=P(pid); if(!p) return;
   if(!c.subs.includes(pid)) return;
   c.subs=c.subs.filter(x=>x!==pid); toast(`${p.cn} 移出大名单`); render();
@@ -14607,15 +14684,7 @@ let ANIM={raf:0, playing:false, speed:1, acc:0, last:0, prev:null, cur:null, evS
 const SPEEDS=[["0.5×",0.5],["1×",1],["2×",2],["4×",4],["8×",8]];
 const PHASE_MS=230;
 
-function startUserMatch(fx){
-  // 防御：同一场比赛已有未结算的实例，不重开（重开会重掷随机结果）
-  if(CURMATCH && CURMATCH.h===fx.home && CURMATCH.a===fx.away){ VIEW="match"; render(); return; }
-  const side = fx.home===(fx.national?WORLD.userNation:WORLD.userClub)?0:1;
-  CURMATCH=createMatch(fx.home,fx.away,{comp:fx.comp,round:fx.round, record:true, userSide:side, ...knockoutOpts(fx)});
-  ANIM={raf:0,playing:false,speed:(WORLD.settings&&WORLD.settings.matchSpeed)||1,acc:0,last:0,prev:null,cur:CURMATCH.frames[0]||null,evShown:0,ended:false,trail:[],cap:null};
-  VIEW="match"; render();
-  setTimeout(()=>toggleplay(true),350);
-}
+
 
 function vMatch(v){
   const M=CURMATCH;
@@ -14673,6 +14742,7 @@ function bindMatchControls(){
 }
 
 function toggleplay(force){
+  clearTimeout(MATCH_START_TIMER);MATCH_START_TIMER=null;
   const b=$("#btn-play"); if(!b) return;
   ANIM.playing = force!=null? force : !ANIM.playing;
   b.textContent=ANIM.playing?"⏸ 暂停":"▶ 继续";
@@ -14724,6 +14794,7 @@ function completeMatch(){
   const M=CURMATCH;
   if(!M || !M.done) return;
   const res=finishUserMatch();
+  if(res==="ignored"){toast("当前比赛已失效，请从赛程重新进入","warn");VIEW="home";render();return;}
   VIEW="home";
    autoSave();      // 每场比赛后落盘，「继续游戏」才有意义
   showPostMatch(M, res==="season");
@@ -14936,7 +15007,7 @@ function drawPitch(alpha){
 let SUBQ=[], SUBOUT=null, SUBRESUME=false;
 function subDialog(preOut){
   const M=CURMATCH; if(!M||M.done) return; const side=M.userSide; if(side<0) return;
-  if(ANIM.playing){ toggleplay(false); SUBRESUME=true; } else SUBRESUME=false;
+  SUBRESUME=ANIM.playing||!!MATCH_START_TIMER;pauseMatchPlayback();
   SUBQ=[]; SUBOUT=(preOut!=null&&preOut>=0)? preOut : null;
   renderSubDialog();
 }
@@ -15014,7 +15085,9 @@ function closeSubDialog(){
   if(SUBRESUME && CURMATCH && !CURMATCH.done){ SUBRESUME=false; toggleplay(true); }
 }
 function tacDialog(){
-  const M=CURMATCH, T=M.teams[M.userSide], t=T.tac;
+  const M=CURMATCH;if(!M||M.done)return;
+  SUBRESUME=ANIM.playing||!!MATCH_START_TIMER;pauseMatchPlayback();
+  const T=M.teams[M.userSide], t=T.tac;
   const opts=[["mentality","心态",MENTALITY],["tempo","节奏",TEMPO_N],["press","逼抢",PRESS_N],["width","宽度",WIDTH_N]];
   openModal("临场调整",
     `<div class="hint" style="margin-bottom:10px">调整立即生效，将影响球队的跑位与决策倾向。</div>
@@ -15264,7 +15337,7 @@ function adoptWorld(obj){
     adoptCandidate(structuredClone(obj));
   }catch(e){ WORLD=saved.world; RNGSTATE=saved.rng; PID=saved.pid; REV_R=saved.revR; REV_S=saved.revS; FIN_CLK=saved.clk; throw e; }
   SAVE_EPOCH++; clearTimeout(SAVE_TIMER); SAVE_TIMER=null; SAVE_DIRTY=false;
-  SAVE_PAUSED=false; CURMATCH=null; VIEW="home"; LGNATION=null;
+  SAVE_PAUSED=false; resetMatchSession(true); VIEW="home"; LGNATION=null;
 }
 // 旧存档迁移：重算工资预算（旧公式对小球会过紧），并把自由球员的旧合同周薪刷新为市场期望
 function migrateWorld(){
@@ -15311,7 +15384,7 @@ async function storageSelfTest(onStep){
   log("环境",true,`${location.protocol}//${location.host||"本地文件"}　${window.isSecureContext===false?"非安全上下文":"安全上下文"}　${mode}`);
   log("浏览器",true,navigator.userAgent);
   log("界面版本",true,"iOS 底栏修复 20261018.4");
-  log("修复同步",true,"足球经理修复迁移 20261020.2");
+  log("修复同步",true,"足球经理修复迁移 20261020.3");
   const layout=layoutSnapshot();
   log("视口",true,`窗口 ${layout.innerWidth}×${layout.innerHeight}，可视 ${layout.visualWidth}×${layout.visualHeight}，偏移 ${layout.visualTop}，屏幕 ${layout.screenWidth}×${layout.screenHeight}`);
   log("缩放",true,`可视倍率 ${layout.visualScale}，像素倍率 ${layout.pixelRatio}，全屏目标高度 ${layout.targetHeight}`);
@@ -15844,6 +15917,7 @@ function onContinue(){
      `<button class="pri" onclick="closeModal();newGameScreen()">重新开始</button>`); return; }
   // 有未结算的用户比赛：未打完 → 回到比赛页；已打完 → 直接结算，否则会卡住
   if(CURMATCH){
+    NAT_SCOPE=CURMATCH.national?"nation":null;
     if(!CURMATCH.done){ VIEW="match"; render(); return; }
     BUSY=true;
     try{ completeMatch(); }

@@ -1,0 +1,46 @@
+{
+  "passed": true,
+  "sha256": "2ed3dc97082a4763a4a6f86c3c1deded46247c19be0ae62801d03332bae2d3aa",
+  "results": [
+    {
+      "suite": "regression",
+      "exit": 0
+    },
+    {
+      "suite": "checksum",
+      "exit": 0
+    },
+    {
+      "suite": "round2",
+      "exit": 0
+    },
+    {
+      "suite": "offer-expiry",
+      "exit": 0
+    },
+    {
+      "suite": "deadline",
+      "exit": 0
+    },
+    {
+      "suite": "deadline-independent",
+      "exit": 0
+    },
+    {
+      "suite": "wcl",
+      "exit": 0
+    },
+    {
+      "suite": "club-cups",
+      "exit": 0
+    },
+    {
+      "suite": "national-cups",
+      "exit": 0
+    },
+    {
+      "suite": "upstream",
+      "exit": 0
+    }
+  ]
+}

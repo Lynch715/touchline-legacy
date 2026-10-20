@@ -1,0 +1,18 @@
+{
+  "sha256": "54c7ee8575a957e58ad4c383cf716156127585ccc223c3d76e2b3158f95a17ba",
+  "preview": {
+    "actualNext": "NAS",
+    "chosenNext": "legacy-first-active",
+    "availableForNext": false,
+    "savedLineupUnchanged": false
+  },
+  "sameDay": {
+    "result": "ok",
+    "otherPlayerFixtureAutoSimulated": true,
+    "daysAdvanced": 1
+  },
+  "kickoffScope": {
+    "expected": null,
+    "actual": "nation"
+  }
+}

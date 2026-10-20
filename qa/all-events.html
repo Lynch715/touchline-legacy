@@ -1,0 +1,39 @@
+<!doctype html><meta charset="utf-8"><title>全赛事与双重执教临场 QA</title>
+<script>
+(async()=>{
+ const params=new URLSearchParams(location.search),source=params.get('live')==='1'?'https://lynch715.github.io/touchline-legacy/index.html?qa=20261020.3':'../index.html';
+ const html=await(await fetch(source,{cache:'no-store'})).text(),digest=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(html)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+ const setup=()=>document.addEventListener('DOMContentLoaded',()=>{
+ const start=startMenu;startMenu=async function(){await start();try{
+  newWorld(4242,'Shanghai Port');SAVE_PAUSED=true;WORLD.season=2028;
+  WORLD.history.push({season:2027,euro:{CL:0,EL:1},leagues:[]});for(const [i,k]of ['libertadores','afc','concacaf'].entries())WORLD.contClubHistory[k]=[{season:2027,champion:i+1}];buildSeason();
+  const params=new URLSearchParams(location.search),code=params.get('comp')||'NAS',stage=params.get('stage')||'group',wantedNat=params.get('nation')||'中国';WORLD.userNation=wantedNat;
+  const play=f=>{if(f.played)return;for(const c of f.national?[]:[f.home,f.away])autoPickLineup(C(c));applyResult(f,runMatch(createMatch(f.home,f.away,{comp:f.comp,record:false,...knockoutOpts(f)})));};
+  let fx;
+  if(code==='PO'){const pi=WORLD.playoffs.findIndex(p=>p.fmt==='ENG');poStart(WORLD.playoffs[pi],pi,240);fx=WORLD.fixtures.find(f=>f.comp==='PO'&&f.po===pi&&!f.played)}else{
+   const E=WORLD.nationalCups[code]||WORLD.clubCups[code]||WORLD.euro[code]||(code==='WCL'?WORLD.wcl:null),getAll=()=>code.startsWith('N')?nationalFixtures():WORLD.fixtures;
+   for(let i=0;i<30;i++){
+    fx=getAll().find(f=>f.comp===code&&!f.played&&(code!=='NAS'||stage!=='group'||f.home===wantedNat||f.away===wantedNat));
+    if(fx&&(stage==='group'||stage==='knockout'&&fx.stage==='K'||stage==='leg2'&&fx.stage==='K'&&fx.leg===2||stage==='final'&&(code in EURO_COMPS?fx.round===4:E.ko?.teams?.length===2||E.ko?.ties?.length===1)))break;
+    const day=Math.min(...getAll().filter(f=>f.comp===code&&!f.played).map(f=>f.day));WORLD.day=day;getAll().filter(f=>f.comp===code&&f.day===day).forEach(play);if(code.startsWith('N'))nationalCupsDayEnd(day);else competitionsDayEnd(day);
+   }
+  }
+  if(!fx)throw Error('没有目标比赛');
+  if(fx.national)WORLD.userNation=fx.home===wantedNat||fx.away===wantedNat?wantedNat:fx.home;else WORLD.userClub=fx.home;
+  WORLD.day=fx.day;
+  const originalClubTactic=structuredClone(UC().tactic),T=ensureNationalTeam(WORLD.userNation),originalNationalTactic=structuredClone(T.tactic);
+  let bannedInOtherCup=null;
+  if(params.get('preview')==='1'){const m=nationalPreview(WORLD.userNation);T.lineup=[...m.lineup];T.subs=[...m.subs];bannedInOtherCup=m.lineup.find(id=>P(id).pos!=='GK');WORLD.nationalCups.NWC.discipline[bannedInOtherCup]={yellow:0,susp:1};}
+  const selected=[fx];
+  if(params.get('dual')==='1'){const club=WORLD.fixtures.find(f=>f.comp==='L'&&f.home===WORLD.userClub&&!f.played);club.day=fx.day;selected.push(club)}
+  for(const f of selected){for(const n of [f.home,f.away]){if(f.national)for(const id of WORLD.nationalCups[f.comp].squads[n]){P(id).injury=0;P(id).condition=100;}else{for(const id of C(n).squad){P(id).injury=0;P(id).susp=0;P(id).condition=100;}autoPickLineup(C(n));}}}
+  let dailyTicks=0;const tick=processDayEnd;processDayEnd=function(d){dailyTicks++;return tick(d)};
+  const report=document.createElement('script');report.type='application/json';report.id='all-events-report';document.body.appendChild(report);
+  function update(){const M=CURMATCH,t=M?.teams[M.userSide];report.textContent=JSON.stringify({revision:'20261020.3',sourceSha256:document.querySelector('meta[name=qa-source-sha]')?.content,code,stage,dual:params.get('dual')==='1',view:VIEW,scope:NAT_SCOPE,day:WORLD.day,matchDay:fx.day,dailyTicks,club:UC().cn,nation:WORLD.userNation,clubTactic:UC().tactic,nationalTactic:T.tactic,bannedInOtherCup,nationalLineup:T.lineup,nextNational:nationalPreparationContext(WORLD.userNation).fixture?.comp,sharedPlayers:T.players.filter(id=>P(id).clubId===WORLD.userClub).length,fixtures:selected.map(f=>({comp:f.comp,stage:f.stage,round:f.round,leg:f.leg,played:f.played,stats:!!f.stats,hg:f.hg,ag:f.ag})),playing:ANIM.playing,pendingStart:!!MATCH_START_TIMER,match:M?{comp:M.comp,aggBase:M.aggBase,knockout:M.knockout,national:M.national,done:M.done,minute:M.t,subs:M.subsMade[M.userSide],mentality:t.tac.mentality,formation:t.form,owner:M.fixtureOwner,bench:t.bench.map(id=>({id,name:P(id).cn}))}:null})}
+  const render0=render;render=function(){render0();update()};const refresh0=refreshMatchUI;refreshMatchUI=function(){refresh0();update()};document.addEventListener('input',()=>setTimeout(update,0));document.addEventListener('click',()=>setTimeout(update,0));
+  NAT_SCOPE=params.get('preview')==='1'?'nation':fx.national?null:'nation';VIEW=params.get('preview')==='1'?'tactics':'schedule';enterGame();fitAppHeight();
+ }catch(e){console.error(e);const x=document.createElement('pre');x.id='all-events-error';x.textContent=e.stack;document.body.appendChild(x)}};
+ });
+ document.open();document.write(html.replace('</head>','<meta name="qa-source-sha" content="'+digest+'"><script>('+setup.toString()+')();<\/script></head>'));document.close();
+})();
+</script>

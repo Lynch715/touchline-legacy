@@ -1,0 +1,52 @@
+{
+  "passed": true,
+  "scenario": "legacy",
+  "season": 2026,
+  "sha256": "2ed3dc97082a4763a4a6f86c3c1deded46247c19be0ae62801d03332bae2d3aa",
+  "counts": {
+    "clubMatches": 20312,
+    "nationalMatches": 15,
+    "userClubMatches": 39,
+    "userNationalMatches": 4,
+    "advances": 289,
+    "byCompetition": {
+      "L": 18280,
+      "WCL": 120,
+      "C": 1169,
+      "NAF": 15,
+      "CON": 31,
+      "LIB": 31,
+      "AFC": 31,
+      "CL": 125,
+      "EL": 125,
+      "ECL": 125,
+      "PO": 275
+    },
+    "dailyTicks": 289
+  },
+  "completed": {
+    "NWC": {
+      "stage": "D",
+      "matches": 0
+    },
+    "NEU": {
+      "stage": "D",
+      "matches": 0
+    },
+    "NAM": {
+      "stage": "D",
+      "matches": 0
+    },
+    "NAS": {
+      "stage": "D",
+      "matches": 0
+    },
+    "NAF": {
+      "stage": "F",
+      "matches": 15,
+      "champion": "塞内加尔",
+      "runnerUp": "加纳"
+    }
+  },
+  "elapsedSeconds": 1242
+}
