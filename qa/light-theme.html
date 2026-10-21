@@ -1,0 +1,36 @@
+<!doctype html><meta charset="utf-8"><title>黑白主题显示验收</title>
+<script>
+(async()=>{
+ const params=new URLSearchParams(location.search),theme=params.get('theme')==='dark'?'dark':'light';
+ if(params.has('mobile')){
+  if(!document.body)await new Promise(resolve=>document.addEventListener('DOMContentLoaded',resolve,{once:true}));
+  const width=params.get('mobile')==='320'?320:393,frame=document.createElement('iframe');frame.title='手机主题显示验收';frame.style.cssText=`width:${width}px;height:852px;border:0`;
+  params.delete('mobile');frame.src='light-theme.html?'+params;document.body.appendChild(frame);return;
+ }
+ const html=await(await fetch('../index.html',{cache:'no-store'})).text();
+ const setup=()=>document.addEventListener('DOMContentLoaded',()=>{
+  startMenu=async function(){try{
+   const params=new URLSearchParams(location.search);SAVE_PAUSED=true;newWorld(4242,'Shanghai Port');document.documentElement.dataset.theme=params.get('theme')==='dark'?'dark':'light';
+   news('普通通知（主题验收样本）','用于检查普通通知和已读消息的文字颜色。','info');
+   WORLD.worldNews=[{season:WORLD.season,cat:'champ',title:'赛季冠军消息（主题验收样本）',body:'用于检查快讯标题与分类的文字颜色。'}];
+   if(params.has('national'))WORLD.userNation='中国';
+   if(FORMATIONS[params.get('formation')])UC().tactic.formation=params.get('formation');
+   VIEW='tactics';enterGame();
+   if(params.get('view')==='match'){const f=WORLD.fixtures.find(f=>!f.played&&(f.home===WORLD.userClub||f.away===WORLD.userClub));WORLD.day=f.day;startUserMatch(f);pauseMatchPlayback();}
+   if(params.has('palette')){
+    const card=el('div','card','<h3>共用颜色分档验收</h3>');
+    for(const ca of [0,84,110,136,160])card.appendChild(el('span','potential-value',`<b style="color:${caColor(ca)};margin-right:10px">能力 ${ca/2}</b>`));
+    for(const value of [0,8,11,14,17])card.appendChild(el('span','',`<b style="color:${attrColor(value)};margin-right:10px">属性 ${value}</b>`));
+    for(const lv of COACH_REP_LEVELS)card.appendChild(el('span','',`<b style="color:${lv.color};margin-right:10px">${lv.name}</b>`));
+    for(const cls of ['t-ok','t-w','t-i','t-b','t-n','t-gk','t-df','t-mf','t-fw'])card.appendChild(el('span','tag '+cls,cls));
+    document.querySelector('#view').appendChild(card);
+   }
+   const before=JSON.stringify(WORLD),originalRender=render;
+   function report(){let out=document.getElementById('theme-audit-report');if(!out){out=document.createElement('script');out.type='application/json';out.id='theme-audit-report';document.body.appendChild(out)}out.textContent=JSON.stringify({view:VIEW,theme:document.documentElement.dataset.theme,savePaused:SAVE_PAUSED,worldUnchanged:JSON.stringify(WORLD)===before,width:innerWidth,overflow:document.documentElement.scrollWidth>innerWidth})}
+   render=function(){originalRender();report()};report();
+   document.addEventListener('click',()=>setTimeout(report,0));document.addEventListener('change',()=>setTimeout(report,0));
+  }catch(e){document.body.appendChild(Object.assign(document.createElement('pre'),{id:'theme-audit-error',textContent:e.stack}));console.error(e)}};
+ });
+ document.open();document.write(html.replace('</head>','<script>('+setup.toString()+')();<\/script></head>'));document.close();
+})();
+</script>
