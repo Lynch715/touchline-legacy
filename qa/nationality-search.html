@@ -1,0 +1,24 @@
+<!doctype html><meta charset="utf-8"><title>球员国籍搜索 QA</title>
+<script>
+(async()=>{
+ if(location.search==='?mobile'){
+  if(!document.body)await new Promise(resolve=>document.addEventListener('DOMContentLoaded',resolve,{once:true}));
+  document.body.innerHTML='<iframe title="手机国籍搜索验收" src="nationality-search.html" style="width:393px;height:852px;border:0"></iframe>';return;
+ }
+ const html=await(await fetch('../index.html',{cache:'no-store'})).text();
+ const setup=()=>document.addEventListener('DOMContentLoaded',()=>{
+  startMenu=async function(){try{
+   SAVE_PAUSED=true;newWorld(4242,'Shanghai Port');VIEW='transfer';enterGame();
+   const before=JSON.stringify(WORLD),originalRender=render;
+   function report(){
+    let out=document.getElementById('nationality-qa');
+    if(!out){out=document.createElement('script');out.type='application/json';out.id='nationality-qa';document.body.appendChild(out)}
+    out.textContent=JSON.stringify({savePaused:SAVE_PAUSED,worldUnchanged:JSON.stringify(WORLD)===before,players:Object.keys(WORLD.players).length,nations:[...new Set(Object.values(WORLD.players).map(p=>p.nat).filter(Boolean))].length,filters:TFILTER,width:innerWidth,overflow:document.documentElement.scrollWidth>innerWidth});
+   }
+   render=function(){originalRender();report()};report();
+   document.addEventListener('input',()=>setTimeout(report,400));document.addEventListener('change',()=>setTimeout(report,0));document.addEventListener('click',()=>setTimeout(report,0));
+  }catch(e){const out=document.createElement('pre');out.id='qa-error';out.textContent=e.stack;document.body.appendChild(out);console.error(e)}};
+ });
+ document.open();document.write(html.replace('</head>','<script>('+setup.toString()+')();<\/script></head>'));document.close();
+})();
+</script>

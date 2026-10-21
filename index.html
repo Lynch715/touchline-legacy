@@ -13389,7 +13389,7 @@ function vYouth(v){
 }
 
 /* ================= 转会 ================= */
-let TFILTER={pos:"", maxFee:0, minCa:0, maxAge:40, tier:"", q:""};
+let TFILTER={pos:"", nat:"", maxFee:0, minCa:0, maxAge:40, tier:"", q:""};
 function vTransfer(v){
   const pending=pendingBuyoutIds();
   if(pending.length){ const box=el("div","card","<h3>待处理买断权</h3>");
@@ -13510,9 +13510,11 @@ function vTransfer(v){
     rc.appendChild(makeTable([{h:"姓名",k:"n",v:p=>p.cn,r:p=>esc(p.cn)},{h:"球队",k:"c",v:p=>C(p.clubId).cn,r:p=>esc(C(p.clubId).short)},{h:"位置",k:"pos",v:p=>p.pos,r:p=>POS_CN[p.pos]},{h:"能力",k:"ca",v:p=>p.ca,r:p=>ovr(p)},{h:"要价",k:"ask",v:p=>askingPrice(p),r:p=>money(askingPrice(p))}],relegated,{onRow:p=>showPlayer(p.id)}));v.appendChild(rc);}
   // 搜索
   const s=el("div","card"); s.innerHTML="<h3>球员搜索</h3>";
+  const nationalities=[...new Set(Object.values(WORLD.players).map(p=>p.nat).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"zh-CN"));
   const f=el("div","filters");
   f.innerHTML=`
     <div><label>位置</label><div class="ctl"><select id="f-pos"><option value="">全部</option>${POSITIONS.map(p=>`<option value="${p}" ${TFILTER.pos===p?"selected":""}>${POS_CN[p]}</option>`).join("")}</select></div></div>
+    <div><label for="f-nat">国籍</label><div class="ctl"><select id="f-nat"><option value="">全部</option>${nationalities.map(n=>`<option value="${esc(n)}" ${TFILTER.nat===n?"selected":""}>${esc(n)}</option>`).join("")}</select></div></div>
     <div><label>联赛</label><div class="ctl"><select id="f-tier"><option value="">全部</option>${WORLD.leagues.map((l,i)=>`<option value="${i}" ${String(TFILTER.tier)===String(i)?"selected":""}>${l.short}</option>`).join("")}<option value="eu" ${TFILTER.tier==="eu"?"selected":""}>欧洲其他</option><option value="fa" ${TFILTER.tier==="fa"?"selected":""}>自由球员</option></select></div></div>
     <div><label>最高要价 <b style="color:var(--txt)">${TFILTER.maxFee?money(TFILTER.maxFee):"不限"}</b></label><div class="ctl"><input id="f-fee" type="range" min="0" max="150" value="${TFILTER.maxFee/1e6}" style="width:140px"></div></div>
     <div><label>最低能力 <b style="color:var(--txt)">${TFILTER.minCa||"不限"}</b></label><div class="ctl"><input id="f-ca" type="range" min="0" max="100" value="${TFILTER.minCa}" style="width:120px"></div></div>
@@ -13527,6 +13529,7 @@ function vTransfer(v){
     sr.innerHTML="";
     let pool=Object.values(WORLD.players).filter(p=>p.clubId!==WORLD.userClub && ownerOf(p)!==WORLD.userClub);
     if(TFILTER.pos) pool=pool.filter(p=>p.pos===TFILTER.pos||p.pos2.includes(TFILTER.pos));
+    if(TFILTER.nat) pool=pool.filter(p=>p.nat===TFILTER.nat);
     if(TFILTER.tier==="fa") pool=pool.filter(p=>p.clubId<0);
     else if(TFILTER.tier==="eu") pool=pool.filter(p=>p.clubId>=0&&C(p.clubId).nation===EURO_NATION);
     else if(TFILTER.tier!=="") pool=pool.filter(p=>p.clubId>=0&&C(p.clubId).lg==TFILTER.tier);
@@ -13538,6 +13541,7 @@ function vTransfer(v){
     if(!SORT.k){SORT.k="ca";SORT.d=-1;}
     const columns=[
       {h:"姓名",k:"n",v:p=>p.cn,r:p=>esc(p.cn)},
+      {h:"国籍",k:"nat",v:p=>p.nat||"",r:p=>esc(p.nat||"—")},
       {h:"俱乐部",k:"c",v:p=>p.clubId>=0?C(p.clubId).cn:"",r:p=>p.clubId>=0?crestHTML(C(p.clubId))+esc(C(p.clubId).short)+(p.loan?` <span class="tag t-i" title="母队：${esc(C(p.loan.owner).cn)}">租借中</span>`:""):'<span class="tag t-n">自由</span>'},
       {h:"位置",k:"pos",v:p=>POSITIONS.indexOf(p.pos),r:p=>`<span class="tag t-${POS_GRP[p.pos]}">${POS_CN[p.pos]}</span>`},
       {h:"年龄",k:"age",cls:"num",v:p=>p.age,r:p=>p.age},
@@ -13594,7 +13598,7 @@ function vTransfer(v){
     v.appendChild(foldCard(log,"tr-log","转会动态",[[`本季 ${thisSeason.length} 笔`], thisSeason.length? [money(seasonFee)] : null],false));
   }
   const bind=(id,fn)=>{const e=$(id); if(e) e.onchange=ev=>{fn(ev.target.value);render();};};
-  bind("#f-pos",x=>TFILTER.pos=x); bind("#f-tier",x=>TFILTER.tier=x);
+  bind("#f-pos",x=>TFILTER.pos=x); bind("#f-tier",x=>TFILTER.tier=x); bind("#f-nat",x=>TFILTER.nat=x);
   bind("#f-fee",x=>TFILTER.maxFee=+x*1e6); bind("#f-ca",x=>TFILTER.minCa=+x);
   bind("#f-age",x=>TFILTER.maxAge=+x);
   // 滑块拖动时标签实时变化，松手才筛选
