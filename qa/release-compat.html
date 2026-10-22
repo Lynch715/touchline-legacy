@@ -9,6 +9,8 @@
    const digest=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(b=>b.toString(16).padStart(2,'0')).join('');
    // 本页始终阻止写入正文与补写存档；只在内存测试，刷新不会保存测试进度。
    storeSave=async()=>{throw Error('只读验收禁止保存');};healSave=async()=>[];
+   // 验收页位于 qa/，缓存副本仍必须从游戏根路径读取。
+   cacheGet=async k=>{if(!cacheOK())throw Error('no-cache');const c=await caches.open(CACHE_NS),r=await c.match(new URL('../__fmsave__/'+k,location.href).href);return r?await r.text():null;};
    const original=await readSave(),originalSha=original?await digest(original):null;
    let input=null,loadPassed=null,originalUnchanged=null,error=null;
    const report=document.createElement('script');report.type='application/json';report.id='compat-report';document.body.appendChild(report);
