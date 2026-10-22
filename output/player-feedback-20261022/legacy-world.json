@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "checks": 9,
+  "sourceSha256": "bdd0ab0982ce0c3a4c5c500d9c51aa5fdb9e9a6e3e2500fcb5a98d69218e1ea2",
+  "results": [
+    {
+      "name": "缺少both时只补身高体重，属性能力和合同不变",
+      "pass": true
+    },
+    {
+      "name": "缺少height时只补身高体重，属性能力和合同不变",
+      "pass": true
+    },
+    {
+      "name": "缺少weight时只补身高体重，属性能力和合同不变",
+      "pass": true
+    },
+    {
+      "name": "旧联赛编号按国家级别迁移，赛程结果积分不变，重读幂等",
+      "pass": true
+    },
+    {
+      "name": "五国旧档的欧洲其他球队迁移国别编号，保留国家及资金阵容",
+      "pass": true
+    },
+    {
+      "name": "缺少新国家联赛时只创建六项实际附加赛，空赛区不能开始",
+      "pass": true
+    },
+    {
+      "name": "旧档缺少欧协联时日结算不崩溃",
+      "pass": true
+    },
+    {
+      "name": "旧档第二赛季保留联赛编号，缺席国家无空杯赛和附加赛",
+      "pass": true
+    },
+    {
+      "name": "五国旧档可连续跨两个赛季，空联赛不参与奖金和升降级",
+      "pass": true
+    }
+  ]
+}

@@ -1,9 +1,9 @@
 {
   "version": "20261022.1",
-  "sourceSha256": "15cbe3321280025a4a8093e24b146632fd8cc591d55c06fcaead4db2fc8efe12",
+  "sourceSha256": "bdd0ab0982ce0c3a4c5c500d9c51aa5fdb9e9a6e3e2500fcb5a98d69218e1ea2",
   "remoteBase": "43a619b7fd07b86b9b3c81e418b1cb31509431ad",
-  "regressionChecks": 146,
-  "oldSaveRoundTripCases": 2,
+  "regressionChecks": 155,
+  "oldSaveRoundTripCases": 3,
   "oldSaveKeyStatePreserved": true,
   "oldSaveSourceUntouched": true,
   "legacyFullSeason": {
@@ -36,5 +36,167 @@
   "inheritedStorageChecks": 7,
   "s1Supported": true,
   "coreFullSeasonSourceSha256": "4e0136a01a150b557af1324903a646e6c3f20761806d363a24ff19e2c33e1878",
-  "note": "Complete seasons precede the storage-only S1 compatibility extension. Final source has 146 passing regression checks plus two old-save progression and reload cases."
+  "note": "155 final-source regression checks and three old-save progression/reload cases passed. Original saves remain local. Full-season records identify the exact tested source.",
+  "legacyWorldChecks": 9,
+  "realLegacyFirstSeason": {
+    "passed": true,
+    "scenario": "legacy",
+    "season": 2026,
+    "sha256": "bdd0ab0982ce0c3a4c5c500d9c51aa5fdb9e9a6e3e2500fcb5a98d69218e1ea2",
+    "counts": {
+      "clubMatches": 4398,
+      "nationalMatches": 15,
+      "userClubMatches": 55,
+      "userNationalMatches": 3,
+      "advances": 289,
+      "byCompetition": {
+        "L": 3884,
+        "WCL": 27,
+        "C": 207,
+        "NAF": 15,
+        "CL": 125,
+        "EL": 125,
+        "PO": 30
+      },
+      "dailyTicks": 289
+    },
+    "completed": {
+      "NWC": {
+        "stage": "D",
+        "matches": 0
+      },
+      "NEU": {
+        "stage": "D",
+        "matches": 0
+      },
+      "NAM": {
+        "stage": "D",
+        "matches": 0
+      },
+      "NAS": {
+        "stage": "D",
+        "matches": 0
+      },
+      "NAF": {
+        "stage": "F",
+        "matches": 15,
+        "champion": "喀麦隆",
+        "runnerUp": "马里"
+      }
+    },
+    "elapsedSeconds": 52
+  },
+  "newFullSeason": {
+    "passed": true,
+    "scenario": "new",
+    "season": 2028,
+    "sha256": "2d9a7025aedbdbbe49b9562fbf99c2f2d0e51711a16c5957c4a26433610b7c42",
+    "counts": {
+      "clubMatches": 20312,
+      "nationalMatches": 139,
+      "userClubMatches": 42,
+      "userNationalMatches": 8,
+      "advances": 293,
+      "byCompetition": {
+        "L": 18280,
+        "C": 1169,
+        "WCL": 120,
+        "NAS": 15,
+        "NEU": 31,
+        "NAM": 15,
+        "NAF": 15,
+        "NWC": 63,
+        "CON": 31,
+        "LIB": 31,
+        "AFC": 31,
+        "CL": 125,
+        "EL": 125,
+        "ECL": 125,
+        "PO": 275
+      },
+      "dailyTicks": 293
+    },
+    "completed": {
+      "NWC": {
+        "stage": "F",
+        "matches": 63,
+        "champion": "德国",
+        "runnerUp": "波兰"
+      },
+      "NEU": {
+        "stage": "F",
+        "matches": 31,
+        "champion": "法国",
+        "runnerUp": "塞尔维亚"
+      },
+      "NAM": {
+        "stage": "F",
+        "matches": 15,
+        "champion": "美国",
+        "runnerUp": "巴西"
+      },
+      "NAS": {
+        "stage": "F",
+        "matches": 15,
+        "champion": "韩国",
+        "runnerUp": "日本"
+      },
+      "NAF": {
+        "stage": "F",
+        "matches": 15,
+        "champion": "塞内加尔",
+        "runnerUp": "尼日利亚"
+      }
+    },
+    "elapsedSeconds": 247
+  },
+  "realLegacySecondSeason": {
+    "passed": true,
+    "scenario": "legacy",
+    "season": 2027,
+    "sha256": "bdd0ab0982ce0c3a4c5c500d9c51aa5fdb9e9a6e3e2500fcb5a98d69218e1ea2",
+    "counts": {
+      "clubMatches": 4516,
+      "nationalMatches": 0,
+      "userClubMatches": 47,
+      "userNationalMatches": 0,
+      "advances": 288,
+      "byCompetition": {
+        "L": 3884,
+        "SUP": 1,
+        "WCL": 27,
+        "C": 207,
+        "CL": 125,
+        "EL": 125,
+        "ECL": 125,
+        "PO": 22
+      },
+      "dailyTicks": 288
+    },
+    "completed": {
+      "NWC": {
+        "stage": "D",
+        "matches": 0
+      },
+      "NEU": {
+        "stage": "D",
+        "matches": 0
+      },
+      "NAM": {
+        "stage": "D",
+        "matches": 0
+      },
+      "NAS": {
+        "stage": "D",
+        "matches": 0
+      },
+      "NAF": {
+        "stage": "D",
+        "matches": 0
+      }
+    },
+    "elapsedSeconds": 39
+  },
+  "realLegacyTwoSeasonTotalMatches": 8929,
+  "realLegacyAdvanceToSeason": 2028
 }

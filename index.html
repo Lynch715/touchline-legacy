@@ -6387,7 +6387,7 @@ function buildSeason(){
   WORLD.leagues=LEAGUE_DEFS.map(d=>({
     lg:d.lg, nation:d.nation, tier:d.tier, name:d.name, short:d.short, price:d.price, prize:d.prize,
     clubIds: WORLD.clubs.filter(c=>c.nation===d.nation && c.tier===d.tier).map(c=>c.id),
-    rounds:0
+    rounds:0, inactive:!WORLD.clubs.some(c=>c.nation===d.nation && c.tier===d.tier)
   }));
   WORLD.clubs.forEach(c=>{ c.lg=lgIndex(c.nation,c.tier); c.seasonStats={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0}; c.form=[]; c.euro=null; });
   Object.values(WORLD.players).forEach(p=>{
@@ -6397,6 +6397,7 @@ function buildSeason(){
 
   // ---- 联赛 ----
   WORLD.leagues.forEach(lg=>{
+    if(lg.clubIds.length<2) return;
     const half=roundRobin(shuffle([...lg.clubIds]));
     const all=[...half, ...half.map(r=>r.map(m=>[m[1],m[0]]))];
     const weeks=[]; for(let w=0;w<38;w++){ if(all.length<38 && WEEKS_18_SKIP.includes(w)) continue; weeks.push(w); }
@@ -6413,10 +6414,10 @@ function buildSeason(){
   // ---- 国内杯赛（每国一项，全体本国球队单场淘汰）----
   WORLD.cups=NATIONS.map((nat,ni)=>{
     const ids=WORLD.clubs.filter(c=>c.nation===ni).map(c=>c.id);
-    const rounds=Math.ceil(Math.log2(Math.max(2,ids.length)));
+    const rounds=ids.length<2?0:Math.ceil(Math.log2(ids.length));
     const dates=[satOf(0)+4,...CUP_WEEKS.map((w,i)=>i<5?satOf(w)+4:satOf(38))];
-    const days=dates.slice(-rounds), roundNames=rounds>6?["资格轮",...CUP_ROUND_NAMES]:CUP_ROUND_NAMES.slice(-rounds);
-    return {nation:ni,name:nat.cup,roundNames,days,cur:0,alive:ids,byes:[],results:[],winner:null,bracketV2:1};
+    const days=rounds?dates.slice(-rounds):[], roundNames=rounds?(rounds>6?["资格轮",...CUP_ROUND_NAMES]:CUP_ROUND_NAMES.slice(-rounds)):[];
+    return {nation:ni,name:nat.cup,roundNames,days,cur:0,alive:ids,byes:[],results:[],winner:ids.length===1?ids[0]:null,inactive:!ids.length,bracketV2:1};
   });
 
 
@@ -6443,6 +6444,7 @@ function makePlayoffs(){
   NATIONS.forEach((nat,ni)=>{
     for(let tier=0;tier<nat.tiers.length-1;tier++){
       const fmt=poFmtOf(ni), up=nat.tiers[tier], lo=nat.tiers[tier+1];
+      if(!poAvailable({nation:ni,tier,fmt})) continue;
       const two=(fmt==="GER"||fmt==="FRA");
       out.push({nation:ni, tier, fmt, name: two? `${up.short}/${lo.short}升降级附加赛` : `${lo.short}升级附加赛`,
         short: two? `${up.short}升降级附加赛` : `${lo.short}附加赛`,
@@ -6456,7 +6458,14 @@ function ensurePlayoffs(){ if(!WORLD.playoffs) WORLD.playoffs=makePlayoffs(); re
 function poSeedsRange(fmt){ return fmt==="ITA"?[3,8] : fmt==="GER"?[3,3] : fmt==="FRA"?[3,5] : [3,6]; }
 function poHasUpper(fmt){ return fmt==="GER"||fmt==="FRA"; }
 
+// 早期五国存档保留原有球队，只为实际存在且人数足够的联赛举办附加赛。
+function poAvailable(po){
+  const upper=WORLD.leagues.find(l=>l.lg===lgIndex(po.nation,po.tier));
+  const lower=WORLD.leagues.find(l=>l.lg===lgIndex(po.nation,po.tier+1));
+  return !!(upper&&lower&&upper.nation===po.nation&&lower.nation===po.nation&&upper.tier===po.tier&&lower.tier===po.tier+1&&upper.clubIds.length>=3&&lower.clubIds.length>=poSeedsRange(po.fmt)[1]);
+}
 function poLeaguesDone(po){
+  if(!poAvailable(po)) return false;
   const lo=lgIndex(po.nation,po.tier+1), up=lgIndex(po.nation,po.tier);
   return !WORLD.fixtures.some(f=>f.comp==="L" && !f.played && (f.lg===lo || (poHasUpper(po.fmt) && f.lg===up)));
 }
@@ -6536,6 +6545,7 @@ function poScore(t,id){
 }
 function poInvolvesUser(po){ const u=WORLD.userClub; return po.seed[u]!=null; }
 function poStart(po, pi, today){
+  if(!poAvailable(po)) return;
   const lo=leagueTable(lgIndex(po.nation,po.tier+1));
   po.byPos={}; lo.forEach(r=>po.byPos[r.rank]=r.id);
   const [s0,s1]=poSeedsRange(po.fmt);
@@ -6727,6 +6737,10 @@ function fillEuroWithOthers(q){
   if(q.ECL) q.ECL.push(...others.slice(Math.max(0,needCL)+Math.max(0,needEL), Math.max(0,needCL)+Math.max(0,needEL)+Math.max(0,needECL)));
   q.CL=q.CL.slice(0,32); q.EL=q.EL.slice(0,32);
   if(q.ECL) q.ECL=q.ECL.slice(0,32);
+  // 五国旧世界的额外欧洲球队不足以填满三项欧战时，从现有欧洲联赛顺延资格。
+  const used=new Set([...q.CL,...q.EL,...(q.ECL||[])]);
+  const fallback=WORLD.clubs.filter(c=>c.nation!==EURO_NATION&&(NATIONS[c.nation]?.cl>0||NATIONS[c.nation]?.el>0)&&!used.has(c.id)).sort((a,b)=>b.rep-a.rep||a.id-b.id);
+  for(const code of ["CL","EL","ECL"])if(q[code])while(q[code].length<32&&fallback.length){const c=fallback.shift();q[code].push(c.id);used.add(c.id);}
 }
 
 // 分组抽签：按声望分 4 档，每组各档 1 队，尽量避免同国同组
@@ -6885,6 +6899,7 @@ function competitionsDayEnd(day){
   if(!WORLD.euro) return;
   ["CL","EL","ECL"].forEach(code=>{
     const E=WORLD.euro[code];
+    if(!E) return;
     const rem=WORLD.fixtures.some(f=>f.comp===code&&f.day===day&&!f.played);
     if(rem) return;
     if(E.stage==="G" && day===E.gdays[5]) euroSeedKnockout(E);
@@ -10342,7 +10357,7 @@ function endSeason(){
   const employedAtStart=!WORLD.needJob;
   processLoanExpiry(true);                     // 外租球员先全部归队，再处理合同到期 / 退役
   const summary={season:WORLD.season, leagues:[], cups:WORLD.cups.map(c=>c.winner),
-                 euro:{CL:WORLD.euro?WORLD.euro.CL.winner:null, EL:WORLD.euro?WORLD.euro.EL.winner:null, ECL:WORLD.euro?WORLD.euro.ECL.winner:null}};
+                 euro:{CL:WORLD.euro?.CL?.winner??null, EL:WORLD.euro?.EL?.winner??null, ECL:WORLD.euro?.ECL?.winner??null}};
   const allP=Object.values(WORLD.players).filter(p=>p.apps>0);
   summary.topScorers=allP.slice().sort((a,b)=>b.goals-a.goals||b.assists-a.assists).slice(0,10)
     .map(p=>({pid:p.id,n:p.cn,c:p.clubId>=0?C(p.clubId).short:"-",g:p.goals,a:p.assists,ap:p.apps}));
@@ -10353,13 +10368,14 @@ function endSeason(){
   const tables={};
   WORLD.leagues.forEach(lg=>{
     const t=leagueTable(lg.lg); tables[lg.lg]=t;
+    if(!t.length) return;
     summary.leagues.push({lg:lg.lg, nation:lg.nation, tier:lg.tier, table:t.map(r=>({id:r.id,pts:r.pts,gd:r.gd,rank:r.rank}))});
     const champ=C(t[0].id); champ.trophies.push(WORLD.season+" "+lg.name);
     const n=t.length;
     t.forEach(r=>{
       const c=C(r.id);
       const [hi,lo]=lg.prize;
-      const money0=Math.round(lo*0.5+(hi-lo)*(n-r.rank)/(n-1));      // 保底部分的另一半已在赛季中按月发放（weeklyTick）
+      const money0=Math.round(lo*0.5+(hi-lo)*(n-r.rank)/Math.max(1,n-1));      // 保底部分的另一半已在赛季中按月发放（weeklyTick）
       addMoney(c, money0, `${lg.short}第${r.rank}名奖金/转播分成`);
       c.lastRank=r.rank; c.lastLg=lg.lg;
     });
@@ -10370,11 +10386,11 @@ function endSeason(){
   const qual={CL:[],EL:[],ECL:[]};
   NATIONS.forEach((nat,ni)=>{
     if(nat.cl===0 && nat.el===0) return;   // 非欧洲联赛不参加欧战
-    const t=tables[lgIndex(ni,0)]; if(!t) return;
+    const t=tables[lgIndex(ni,0)]; if(!t?.length) return;
     const ids=t.map(r=>r.id);
     qual.CL.push(...ids.slice(0,nat.cl));
     const el=ids.slice(nat.cl, nat.cl+nat.el);
-    const cupW=WORLD.cups[ni].winner;
+    const cupW=WORLD.cups[ni]?.winner;
     if(cupW!=null && C(cupW).nation===ni && !qual.CL.includes(cupW) && !el.includes(cupW)) el.push(cupW);
     else el.push(ids[nat.cl+nat.el]);           // 杯赛冠军已获资格 → 名额顺延给联赛下一名
     qual.EL.push(...el.filter(x=>x!=null));
@@ -10388,6 +10404,7 @@ function endSeason(){
   NATIONS.forEach((nat,ni)=>{
     for(let tier=0;tier<nat.tiers.length-1;tier++){
       const upper=tables[lgIndex(ni,tier)], lower=tables[lgIndex(ni,tier+1)];
+      if(!upper?.length || !lower?.length || !poAvailable({nation:ni,tier,fmt:poFmtOf(ni)})) continue;
       const promoted=[lower[0].id, lower[1].id];
       const PO=(WORLD.playoffs||[]).find(p=>p.nation===ni && p.tier===tier);
       let relegated, win;
@@ -10427,6 +10444,7 @@ function endSeason(){
   });
   // 夺冠加成
   WORLD.leagues.forEach(lg=>{ const t=tables[lg.lg];
+    if(!t?.length) return;
     C(t[0].id).board.conf=clamp(C(t[0].id).board.conf+30,0,100); });
   WORLD.history.push(summary);
   genWorldNews(summary);
@@ -15904,7 +15922,7 @@ function validateWorld(w){
   if(w.pid<Object.keys(w.players).reduce((max,id)=>Math.max(max,Number(id)),0)) fail("球员编号计数");
   for(const id of w.freeAgents) if(!w.players[id]||w.players[id].clubId!==-1) fail("自由球员");
   w.leagues.forEach((l,i)=>{
-    if(l.lg!==i||!Array.isArray(l.clubIds)||!l.clubIds.length||!l.clubIds.every(club)||!Array.isArray(l.prize)) fail("联赛");
+    if(l.lg!==i||!Array.isArray(l.clubIds)||(!l.clubIds.length&&(!l.inactive||w.clubs.some(c=>c.nation===l.nation&&c.tier===l.tier)))||!l.clubIds.every(club)||!Array.isArray(l.prize)) fail("联赛");
   });
   w.cups.forEach(c=>{
     if(!Array.isArray(c.alive)||!c.alive.every(club)||!Array.isArray(c.days)||!c.days.every(d=>Number.isInteger(d)&&d>=0&&d<SEASON_DAYS)||
@@ -15980,23 +15998,37 @@ function adoptCandidate(obj){
   if(!obj || !obj.clubs || !obj.leagues) throw new Error("bad");
   if(obj.ver!==2 || !obj.cups) throw new Error("oldver");
   WORLD=obj; delete WORLD._saveStamp; 
+  // 五国旧档的“欧洲其他”曾使用编号 5；按其明确国别和无国内联赛身份迁移，避免被误归入新增国家。
+  WORLD.clubs.forEach(c=>{if(c.lg<0 && c.country && c.nation!==EURO_NATION && !WORLD.leagues.some(l=>l.nation===c.nation)) c.nation=EURO_NATION;});
+  // 扩充联赛级别后编号发生变化，按国家与级别重映射，保留原赛程、积分及历史。
+  if(WORLD.leagues.some(l=>l.lg!==lgIndex(l.nation,l.tier))){
+    const saved=WORLD.leagues, ids=new Map(saved.map(l=>[l.lg,lgIndex(l.nation,l.tier)]));
+    WORLD.leagues=LEAGUE_DEFS.map(d=>{
+      const old=saved.find(l=>l.nation===d.nation&&l.tier===d.tier);
+      return old?{...old,lg:d.lg}:{...d,clubIds:[],rounds:0,inactive:true};
+    });
+    WORLD.clubs.forEach(c=>{if(ids.has(c.lg))c.lg=ids.get(c.lg);if(ids.has(c.lastLg))c.lastLg=ids.get(c.lastLg);});
+    WORLD.fixtures.forEach(f=>{if(f.comp==="L"&&ids.has(f.lg))f.lg=ids.get(f.lg);});
+    (WORLD.history||[]).forEach(h=>(h.leagues||[]).forEach(l=>{if(ids.has(l.lg))l.lg=ids.get(l.lg);}));
+    if(ids.has(WORLD._statLg))WORLD._statLg=ids.get(WORLD._statLg);
+  }
+  if(!WORLD.worldNews)WORLD.worldNews=[];
   Object.values(WORLD.players).forEach(p=>{p.pos2=p.pos2||[];p.honors=p.honors||[];});
   // 老存档没有 ca0（成长曲线基准），按当前能力回填
   Object.values(WORLD.players||{}).forEach(p=>{ if(p && p.ca0==null) p.ca0=p.ca; if(p) profOf(p); });   // 职业素养（2026-09-30 新增）
   ensureAllNumbers();                        // 老存档没有球衣号码
-  // 老存档没有身高体重（V2.0 之前），优先用真实数据，否则按位置估算回填并重新应用身体修正
+  // 旧档仅补缺失的身高体重，保留既有属性与能力，避免读档时再次施加身体修正
   Object.values(WORLD.players||{}).forEach(p=>{
     if(p && (p.height==null || p.weight==null)){
       const real = p.name ? REAL_BODY[p.name] : null;
       let ht, wt;
-      if(real){ ht=real[0]; wt=real[1]; }
+      if(real){ ht=p.height!=null?p.height:real[0]; wt=p.weight!=null?p.weight:real[1]; }
       else {
         const bp = BODY_BY_POS[p.pos] || {mid:[180,75]};
         ht = p.height!=null ? p.height : Math.round(bp.mid[0] + gauss(0, bp.spread?bp.spread[0]:6));
         wt = p.weight!=null ? p.weight : clamp(Math.round(bp.mid[1] + (ht-bp.mid[0])*0.55 + gauss(0,4)), 52, 105);
       }
       p.height=ht; p.weight=wt;
-      if(p.a) applyBody(p.a, ht, wt, p.pos);
     }
   });
   // 老存档没有徽章（V2.2 之前），按当前属性重新评定
