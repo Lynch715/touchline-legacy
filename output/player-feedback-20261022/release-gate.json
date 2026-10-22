@@ -1,0 +1,35 @@
+{
+  "version": "20261022.1",
+  "sourceSha256": "4e0136a01a150b557af1324903a646e6c3f20761806d363a24ff19e2c33e1878",
+  "remoteBase": "43a619b7fd07b86b9b3c81e418b1cb31509431ad",
+  "regressionChecks": 122,
+  "oldSaveRoundTripCases": 2,
+  "oldSaveKeyStatePreserved": true,
+  "oldSaveSourceUntouched": true,
+  "legacyFullSeason": {
+    "season": 2026,
+    "clubMatches": 20312,
+    "nationalMatches": 15,
+    "userClubMatches": 39,
+    "userNationalMatches": 3,
+    "advances": 289,
+    "byCompetition": {
+      "L": 18280,
+      "WCL": 120,
+      "C": 1169,
+      "NAF": 15,
+      "CON": 31,
+      "LIB": 31,
+      "AFC": 31,
+      "CL": 125,
+      "EL": 125,
+      "ECL": 125,
+      "PO": 275
+    },
+    "dailyTicks": 289
+  },
+  "newAndLegacyTotalMatches": 40778,
+  "localBrowserOldSaveLoadAndAdvance": true,
+  "testAutoSaveDisabled": true,
+  "physicalDeviceAcceptance": false
+}

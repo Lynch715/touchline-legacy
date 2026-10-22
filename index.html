@@ -4497,7 +4497,8 @@ function nationalTeamModel(M,nat,side){
   const rest=squad.filter(id=>ok(id)&&!used.has(id)).sort((a,b)=>M.players[b].ca-M.players[a].ca),subs=[];
   const keeper=rest.find(id=>M.players[id].pos==='GK');if(keeper!=null)subs.push(keeper);
   for(const id of rest)if(subs.length<BENCH_MAX&&!subs.includes(id))subs.push(id);
-  if(!M.preview){T.lineup=[...lineup];T.subs=[...subs];}
+  // 比赛临时补位不覆盖国家队常用首发；伤愈或解禁后自动恢复。
+  if(!M.preview&&nat===WORLD.userNation&&!T.lineup.length)T.lineup=[...lineup];
   return {id:nat,cn:nat,short:nat,en:WC_CN2EN[nat]||nat,squad,lineup,subs,tactic:T.tactic,coachRating:10,physioRating:10,stadium:'中立场地',c1:side===0?'#2477db':'#df4242',c2:'#fff',rep:70};
 }
 function applyNationalResult(f,M){
@@ -4509,7 +4510,7 @@ function applyNationalResult(f,M){
       const p=P(m.id);if(!p||m.mins<=0)continue;
       p.intlStats=p.intlStats||{apps:0,goals:0,assists:0,cleanSheet:0,ratingSum:0,motm:0};const s=p.intlStats;s.apps++;s.goals+=m.goals;s.assists+=m.assists;s.ratingSum+=m.rating;s.motm+=M.motm?.id===m.id?1:0;if(m.pos==='GK'&&m.mins>=60&&M.score[1-side]===0)s.cleanSheet++;
       p.condition=Math.min(p.condition,m.cond);
-      if(m.injured){p.injury=Math.max(p.injury,ri(4,35));p.injRecovery=0;p.injType='国家队比赛伤病';}
+      if(m.injured){p.injury=Math.max(p.injury,rollInjuryDays());p.injRecovery=0;p.injType='国家队比赛伤病';}
       const d=E.discipline[p.id]||(E.discipline[p.id]={yellow:0,susp:0});d.yellow+=m.yellow;if(m.red)d.susp=Math.max(d.susp,1);if(d.yellow>=2){d.yellow=0;d.susp=Math.max(d.susp,1);}
       f.ratings.push({id:p.id,nat:T.cid,mins:m.mins,rating:m.rating,goals:m.goals,assists:m.assists});
     }
@@ -4627,7 +4628,7 @@ function setNationalStarter(slot,id){
   if(!T||!Number.isInteger(slot)||slot<0||slot>=FORMATIONS[T.tactic.formation].length||!p||p.nat!==nat)return false;
   const model=nationalPreview(nat),q=model.players[+id];
   if(!model.squad.includes(+id)||!q||q.injury>0||q.susp>0){toast('该球员不在下一场可用名单中或因伤停无法出场','warn');return false;}
-  T.lineup=[...model.lineup];const old=T.lineup[slot],other=T.lineup.indexOf(+id);if(other>=0)T.lineup[other]=old??null;T.lineup[slot]=+id;T.subs=[];markDirty();return true;
+  T.lineup=T.lineup.length===FORMATIONS[T.tactic.formation].length?[...T.lineup]:[...model.lineup];const old=T.lineup[slot],other=T.lineup.indexOf(+id);if(other>=0)T.lineup[other]=old??null;T.lineup[slot]=+id;T.subs=[];markDirty();return true;
 }
 function startUserMatch(fx){
   if(CURMATCH&&currentMatchFixture()){NAT_SCOPE=CURMATCH.national?'nation':null;VIEW='match';render();return false;}
@@ -4641,18 +4642,20 @@ function startUserMatch(fx){
   const expected=CURMATCH;MATCH_START_TIMER=setTimeout(()=>{MATCH_START_TIMER=null;if(CURMATCH===expected&&VIEW==='match'&&!expected.done&&!$('#modal')?.classList.contains('on'))toggleplay(true);},350);
   return true;
 }
-function finishUserMatch(){
+function* finishUserMatchSteps(){
   const M=CURMATCH;if(!M||!M.done)return 'ignored';
   const fx=currentMatchFixture(M);if(!fx){resetMatchSession(false);return 'ignored';}
   if(!applyResult(fx,M)){resetMatchSession(false);return 'ignored';}
   resetMatchSession(false);
   // 同日其余玩家比赛必须保留临场入口；全部完成后只执行一次日结。
-  simDay(WORLD.day,true);
+  yield* simDaySteps(WORLD.day,true);
   const pending=userFixtureOn(WORLD.day);if(pending){NAT_SCOPE=pending.national?'nation':null;return 'pending';}
   processDayEnd(WORLD.day);WORLD.day++;
   if(WORLD.day>=SEASON_DAYS||allFixturesDone()){WORLD.youthDone=false;endSeason();return 'season';}
   prepareDeadlineMarket();return 'ok';
 }
+
+function finishUserMatch(){return drainSimulation(finishUserMatchSteps());}
 
 function nationalFixtureRow(f){
   const d=el('div','national-fixture');d.style.cssText='display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid var(--row-line);font-size:12px';
@@ -4684,13 +4687,17 @@ function showNationalReport(f){
   const score=f.home+' '+f.hg+'-'+f.ag+' '+f.away+(f.pens?'（点球 '+f.pens.join('-')+'）':''),s=f.stats||[blankStats(),blankStats()];
   openModal(esc(score),`<p>${fmtDate(dateOf(f.day))} · ${esc(compLabel(f))}</p><div class="tw"><table><thead><tr><th>国家队</th><th>控球</th><th>射门</th><th>射正</th><th>xG</th></tr></thead><tbody>${[f.home,f.away].map((n,i)=>`<tr><td>${esc(n)}</td><td>${s[i].poss}%</td><td>${s[i].shots}</td><td>${s[i].sot}</td><td>${s[i].xg.toFixed(2)}</td></tr>`).join('')}</tbody></table></div><div>${(f.events||[]).map(e=>`<div class="hint">${e.t}' ${esc(e.x)}</div>`).join('')}</div>`);
 }
+function nationalPlayerSummary(p){
+  const keys=Object.keys(POS_WEIGHTS[p.pos]).filter(k=>ALL_ATTRS[k]).sort((a,b)=>POS_WEIGHTS[p.pos][b]-POS_WEIGHTS[p.pos][a]).slice(0,3);
+  return `能力 ${ovr(p)} · ${p.age}岁 · 体能 ${Math.round(p.condition)}% · ${keys.map(k=>`${ALL_ATTRS[k]} ${p.a[k]}`).join(' / ')}`;
+}
 function vNationSquad(v){
   const nat=WORLD.userNation;if(!nat){NAT_SCOPE=null;vSquad(v);return;}
   if(renderLiveTeamGuard(v,true))return;
   const T=ensureNationalTeam(nat),locked=nationalRosterLocked(nat);v.appendChild(el('div','',`<h1>🇺🇳 ${esc(nat)} 国家队阵容</h1><div class="sub">征召 ${T.players.length}/23 人 · ${locked?'本届名单已锁定，首发与战术仍可调整':'大赛开赛前可调整征召名单'}</div>`));nationScopeBar(v);
   const card=el('div','card');card.innerHTML='<h3>征召名单</h3><p class="hint">这里的征召不会转移球员俱乐部归属、合同或薪资。俱乐部停赛不影响国家队资格；国家队停赛仅在对应大赛生效。</p>';
   const selected=T.players.map(P).filter(Boolean),pool=natPlayerPool(nat).sort((a,b)=>b.ca-a.ca).slice(0,60),all=[...selected,...pool.filter(p=>!T.players.includes(p.id))];
-  for(const p of all){const row=el('div');row.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;border-bottom:1px solid var(--row-line)';row.innerHTML=`<span style="flex:1;min-width:160px">${playerLink(p)} <span class="hint">${POS_CN[p.pos]} · ${p.ca} · ${p.clubId>=0?esc(C(p.clubId)?.short||''):'自由球员'}${p.injury>0?' · 受伤':''}</span></span>`;const b=el('button','sm',T.players.includes(p.id)?'移出名单':'征召');b.disabled=locked;b.onclick=()=>{if(toggleNationalCallup(p.id))render();};row.appendChild(b);card.appendChild(row);}
+  for(const p of all){const row=el('div');row.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;border-bottom:1px solid var(--row-line)';row.innerHTML=`<span style="flex:1;min-width:160px">${playerLink(p)} <span class="hint">${POS_CN[p.pos]} · ${nationalPlayerSummary(p)} · ${p.clubId>=0?esc(C(p.clubId)?.short||''):'自由球员'}${p.injury>0?' · 受伤':''}</span></span>`;const b=el('button','sm',T.players.includes(p.id)?'移出名单':'征召');b.disabled=locked;b.onclick=()=>{if(toggleNationalCallup(p.id))render();};row.appendChild(b);card.appendChild(row);}
   v.appendChild(card);
 }
 function setNationalTactic(key,value){if(liveTeamLocked(true,true))return false;const T=WORLD.userNation&&ensureNationalTeam(WORLD.userNation);if(!T||!['mentality','tempo','press','width'].includes(key))return;T.tactic[key]=clamp(Math.round(+value),0,4);markDirty();render();}
@@ -4702,17 +4709,25 @@ function vNationTactics(v){
   const box=el('div','card'),form=el('label','', '阵型 '),select=el('select');select.id='national-formation';select.innerHTML=Object.keys(FORMATIONS).map(k=>`<option value="${esc(k)}"${k===T.tactic.formation?' selected':''}>${esc(k)}</option>`).join('');select.onchange=e=>setNationalFormation(e.target.value);form.appendChild(select);box.appendChild(form);
   const best=el('button','sm','自动选择国家队首发');best.onclick=()=>{T.lineup=[];T.subs=[];markDirty();render();};box.appendChild(best);
   for(const [key,label,values]of [['mentality','心态',MENTALITY],['tempo','节奏',TEMPO_N],['press','逼抢',PRESS_N],['width','宽度',WIDTH_N]]){const row=el('label');row.style.cssText='display:block;margin:12px 0';row.innerHTML=`${label}：${esc(values[T.tactic[key]])} <input type="range" min="0" max="4" value="${T.tactic[key]}" style="width:100%" aria-label="国家队${label}">`;row.querySelector('input').onchange=e=>setNationalTactic(key,e.target.value);box.appendChild(row);}
+  const pitch=el('div','national-pitch');pitch.style.cssText='position:relative;width:100%;max-width:420px;min-height:520px;aspect-ratio:3/4;margin:16px auto;border-radius:8px;background:repeating-linear-gradient(0deg,#12331f 0,#12331f 12.5%,#164026 12.5%,#164026 25%);border:2px solid #2c5e3c';
+  pitch.innerHTML='<div style="position:absolute;left:0;right:0;top:50%;border-top:1px solid #ffffff55"></div>';
+  FORMATIONS[T.tactic.formation].forEach((slot,i)=>{const p=P(model.lineup[i]),d=el('button','fmt-slot'),slots=FORMATIONS[T.tactic.formation];const gap=Math.min(2*Math.min(slot[2],100-slot[2]),...slots.filter((q,j)=>j!==i&&Math.abs(q[1]-slot[1])<=6).map(q=>Math.abs(q[2]-slot[2])));d.style.cssText=`left:${slot[2]}%;top:${100-slot[1]}%;bottom:auto;width:min(68px,calc(${Math.max(12,gap)}% - 4px));padding:0;border:0;background:transparent;line-height:1;cursor:pointer`;d.innerHTML=`<div class="p">${POS_CN[slot[0]]}</div><div class="n">${p?esc(p.cn.split('·').pop()):'空缺'}</div><div class="fs" style="white-space:nowrap;font-size:10px">${p?ovr(p)+' · '+Math.round(p.condition)+'%':''}</div>`;d.setAttribute('aria-label','调整国家队首发'+(i+1));d.onclick=()=>{const sel=document.getElementById('national-slot-'+i);sel?.focus();sel?.scrollIntoView({block:'center',behavior:'smooth'});};pitch.appendChild(d);});box.appendChild(pitch);
+  box.appendChild(el('p','hint','点击球场位置后，在下方选择首发；点击球员姓名查看完整属性。能力为 100 分制，单项属性为 20 分制。'));
   const table=el('div');table.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;margin-top:16px';
-  FORMATIONS[T.tactic.formation].forEach((s,i)=>{const row=el('label','',`首发${i+1} ${POS_CN[s[0]]} `),sel=el('select');sel.style.maxWidth='100%';sel.setAttribute('aria-label','国家队首发'+(i+1));const eligible=model.squad.filter(id=>model.players[id]?.injury<=0&&model.players[id].susp<=0);sel.innerHTML=`<option value="">空缺</option>`+eligible.map(id=>`<option value="${id}"${model.lineup[i]===id?' selected':''}>${esc(P(id).cn)} · ${POS_CN[P(id).pos]}</option>`).join('');sel.onchange=e=>{setNationalStarter(i,e.target.value);render();};row.appendChild(sel);table.appendChild(row);});box.appendChild(table);v.appendChild(box);
-  v.appendChild(el('div','card',`<h3>替补名单</h3><p>${model.subs.map(id=>esc(P(id).cn)).join('、')||'暂无可用替补'}</p><p class="hint">可用替补按当前征召名单与首发自动生成。比赛中可手动换人、调整心态、节奏、逼抢和宽度。</p>`));
+  FORMATIONS[T.tactic.formation].forEach((s,i)=>{const row=el('label','',`首发${i+1} ${POS_CN[s[0]]} `),sel=el('select');sel.id='national-slot-'+i;sel.style.maxWidth='100%';sel.setAttribute('aria-label','国家队首发'+(i+1));const eligible=model.squad.filter(id=>model.players[id]?.injury<=0&&model.players[id].susp<=0);sel.innerHTML=`<option value="">空缺</option>`+eligible.map(id=>`<option value="${id}"${model.lineup[i]===id?' selected':''}>${esc(P(id).cn)} · ${POS_CN[P(id).pos]} · 能力 ${ovr(P(id))} · 适配 ${Math.round(posFit(P(id),s[0])*100)}%</option>`).join('');sel.onchange=e=>{setNationalStarter(i,e.target.value);render();};row.appendChild(sel);const p=P(model.lineup[i]);if(p)row.appendChild(el('div','hint',`${playerLink(p)} · ${nationalPlayerSummary(p)}`));table.appendChild(row);});box.appendChild(table);v.appendChild(box);
+  v.appendChild(el('div','card',`<h3>替补名单</h3><p>${model.subs.map(id=>`${playerLink(P(id))}（${POS_CN[P(id).pos]} · 能力 ${ovr(P(id))}）`).join('、')||'暂无可用替补'}</p><p class="hint">可用替补按当前征召名单与首发自动生成。比赛中可手动换人、调整心态、节奏、逼抢和宽度。</p>`));
 }
 
-function checkIntlCallups(){ // 国际比赛日：通知玩家球员入选国家队
-  const userPlayers = Object.values(WORLD.players).filter(p=>p.clubId===WORLD.userClub);
-  const called = userPlayers.filter(p=>p.nat && WC_NATIONS.includes(p.nat) && p.ca>=78);
-  if(!called.length) return;
-  const top = called.slice(0,5);
-  news("🌍 国家队征召", `你的球员 ${top.map(p=>p.cn).join("、")}${called.length>5?" 等"+called.length+"人":""} 入选各自国家队，将参加国际比赛日。`, "info");
+function checkIntlCallups(){
+  const calls=new Map();
+  for(const E of Object.values(WORLD.nationalCups||{})){
+    if(!['G','K'].includes(E.stage))continue;
+    for(const [nat,ids]of Object.entries(E.squads||{})){
+      if(!E.fixtures.some(f=>!f.played&&f.day>=WORLD.day&&f.day<=WORLD.day+14&&(f.home===nat||f.away===nat)))continue;
+      for(const id of ids){const p=P(id);if(p&&ownerOf(p)===WORLD.userClub)calls.set(id,`${p.cn}（${nat} · ${NATIONAL_COMPS[E.code].name}）`);}
+    }
+  }
+  if(calls.size)news('🌍 国家队征召',`以下球员已进入近期大赛的正式征召名单：${[...calls.values()].join('、')}。`,'info');
 }
 function vIntl(v){ // 世界杯/国家队视图
   const wc=WORLD.wcHistory && WORLD.wcHistory.length? WORLD.wcHistory[WORLD.wcHistory.length-1] : null;
@@ -4824,7 +4839,7 @@ function vNation(v){ // 国家队视图：执教状态 + 阵容 + 赛事
       if(!players.length) return;
       const c=el("div","card"); c.innerHTML=`<h4>${posName[pg]}（${players.length}）</h4>`;
       players.sort((a,b)=>b.ca-a.ca).slice(0,12).forEach(p=>{
-        c.appendChild(el("div","",`<div style="font-size:12px;padding:3px 0;display:flex;justify-content:space-between"><span>${playerLink(p)}</span><span class="hint">${p.ca} · ${esc(p.clubId!=null?(C(p.clubId)?C(p.clubId).short:""):"自由")}</span></div>`));
+        c.appendChild(el("div","",`<div style="font-size:12px;padding:3px 0;display:flex;justify-content:space-between"><span>${playerLink(p)}</span><span class="hint">能力 ${ovr(p)} · ${esc(p.clubId!=null?(C(p.clubId)?C(p.clubId).short:""):"自由")}</span></div>`));
       });
       g.appendChild(c);
     });
@@ -5494,6 +5509,7 @@ function gauss(mu,sd){ let u=0,v=0; while(!u)u=rnd(); while(!v)v=rnd();
   return mu + sd*Math.sqrt(-2*Math.log(u))*Math.cos(6.283185307*v); }
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 const R1=v=>Math.round(v*10)/10;
+const distance2D=(x,y)=>Math.sqrt(x*x+y*y);
 
 // ---------- 中文译名 ----------
 function hashStr(s){ let h=2166136261; for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);} return h>>>0; }
@@ -5817,7 +5833,7 @@ function genAttrs(lvl,pos){
 // 没有这条，17 岁的青训产物一个赛季能涨 30 点，20 岁就顶满潜力。
 function devCap(p){
   const base = (p.ca0!=null? p.ca0 : p.ca);
-  const f = clamp(((p.age!=null?p.age:24)-15.5)/10.5, 0.05, 1);
+  const f = clamp(((p.age!=null?p.age:24)-15.5)/(p.legend?6.5:10.5), 0.05, 1);
   return base + (p.pa-base)*f + p.pa*0.03;      // 末尾 3% 是余量，免得曲线太规整
 }
 // 职业素养（隐藏，1~20）：同样的潜力，能兑现多少看它。大多数人 8~14。
@@ -6921,7 +6937,7 @@ function playerScore(p,pos){
 function repairLineup(club,strict){
   // 注意用 squad 判在队与否：transferPlayer 里 clubId 是后设置的，只查 clubId 会漏掉刚卖掉的人
   const inSquad=new Set(club.squad);
-  const ok=id=>{ const p=P(id); return p && inSquad.has(id) && (!strict||p.clubId===club.id) && p.injury<=0 && p.susp<=0; };
+  const ok=id=>{ const p=P(id); return p && inSquad.has(id) && (!strict||p.clubId===club.id) && (!strict || p.injury<=0 && p.susp<=0); };
   const slots=FORMATIONS[club.tactic.formation];
   if(!club.lineup || club.lineup.length!==slots.length){ autoPickLineup(club); return; }
   const used=new Set();
@@ -7096,7 +7112,8 @@ function createMatch(homeId, awayId, opts){
 
   };
   [homeId,awayId].forEach((cid,side)=>{
-    const club=M.national?nationalTeamModel(M,cid,side):C(cid);
+    const savedClub=M.national?null:C(cid);
+    const club=M.national?nationalTeamModel(M,cid,side):{...savedClub,lineup:[...savedClub.lineup],subs:[...savedClub.subs]};
     const oppId = side===0 ? awayId : homeId;
     if(!M.national)repairLineup(club,true);
     // 不能对阵母队条款：租借球员对阵母队时不能上场，用替补顶替（局部数组，不改持久阵容）
@@ -7215,7 +7232,7 @@ function updatePositions(M){
       if(m.pos!=="GK" && axp>96) tx = side===0? 96 : PW-96;
       tx = clamp(tx, 3, PW-3); ty = clamp(ty, 2, PH-2);
       // 靠近球时被吸引
-      const d=Math.hypot(bx-tx, by-ty);
+      const d=distance2D(bx-tx, by-ty);
       if(d<20 && m.pos!=="GK"){ const k=(att?0.16:0.30)*(1-d/20)*pressF; tx+=(bx-tx)*k; ty+=(by-ty)*k; }
       m.x = tx + gauss(0,0.9); m.y = clamp(ty + gauss(0,0.9),1,PH-1);
     });
@@ -7226,16 +7243,16 @@ function updatePositions(M){
 function pressureOn(M, side, x, y){
   const opp=M.teams[1-side]; let pr=0;
   opp.men.forEach(m=>{ if(m.off||m.pos==="GK")return;
-    const d=Math.hypot(m.x-x,m.y-y);
-    if(d<14) pr += (1-d/14)*(0.55+ (m.p.a.tackling+m.p.a.aggression+m.p.a.workrate)/120);
+    const dx=m.x-x,dy=m.y-y,d2=dx*dx+dy*dy;
+    if(d2<196){const d=Math.sqrt(d2);pr += (1-d/14)*(0.55+ (m.p.a.tackling+m.p.a.aggression+m.p.a.workrate)/120);}
   });
   return pr;
 }
 function nearestOpp(M, side, x, y){
   const opp=M.teams[1-side]; let best=null,bd=1e9;
   opp.men.forEach(m=>{ if(m.off||m.pos==="GK")return;
-    const d=Math.hypot(m.x-x,m.y-y); if(d<bd){bd=d;best=m;} });
-  return {m:best,d:bd};
+    const dx=m.x-x,dy=m.y-y,d2=dx*dx+dy*dy; if(d2<bd){bd=d2;best=m;} });
+  return {m:best,d:Math.sqrt(bd)};
 }
 const att=(m,k)=>{
   let v = m.p.a[k];
@@ -7290,7 +7307,7 @@ function stepMatch(M){
   const dy = Math.abs(o.y-PH/2);
   const pr = pressureOn(M, side, o.x, o.y);
   const goalX = side===0?PW:0;
-  const distGoal = Math.hypot(goalX-o.x, PH/2-o.y);
+  const distGoal = distance2D(goalX-o.x, PH/2-o.y);
 
   // --- 决策权重 ---
   const A=o.p.a;
@@ -7388,7 +7405,7 @@ function doPass(M,side,o,pr,dir){
   // 选择接球人：偏向前场、距离适中
   let best=null,bw=-1;
   mates.forEach(m=>{
-    const fwd=(m.x-o.x)*dir, d=Math.hypot(m.x-o.x,m.y-o.y);
+    const fwd=(m.x-o.x)*dir, d=distance2D(m.x-o.x,m.y-o.y);
     if(d<2) return;
     const oppPr=pressureOn(M,side,m.x,m.y);
     let w=(1+Math.max(0,fwd)*0.075) / (1+Math.abs(d-16)*0.055) / (1+oppPr*0.7);
@@ -7400,7 +7417,7 @@ function doPass(M,side,o,pr,dir){
     best=(w>bw)?(bw=w,m):best;
   });
   if(!best){ return; }
-  const d=Math.hypot(best.x-o.x,best.y-o.y);
+  const d=distance2D(best.x-o.x,best.y-o.y);
   o.passes++; M.stats[side].pass++;
   const skill=att(o,'passing')*0.5+att(o,'vision')*0.25+att(o,'technique')*0.25;
   let p = 0.965 - d*0.0125 - pr*0.055 + (skill-10)*0.021;
@@ -7452,7 +7469,7 @@ function doCross(M,side,o){
     const dv=(def.m?(att(def.m,'heading')*0.5+att(def.m,'jumping')*0.3+att(def.m,'marking')*0.2+hgtB(def.m.p)):6)+2.6+gauss(0,3);
     tgt.x = side===0? PW-10-rnd()*6 : 10+rnd()*6; tgt.y=PH/2+gauss(0,7);
     M.ball={x:tgt.x,y:tgt.y};
-    if(av>dv){ M.ballOwner=tgt; M.lastTouch=o; doShot(M,side,tgt,Math.hypot((side===0?PW:0)-tgt.x,PH/2-tgt.y),Math.abs(tgt.y-PH/2),0.6,true); }
+    if(av>dv){ M.ballOwner=tgt; M.lastTouch=o; doShot(M,side,tgt,distance2D((side===0?PW:0)-tgt.x,PH/2-tgt.y),Math.abs(tgt.y-PH/2),0.6,true); }
     else { if(rnd()<0.34){ corner(M,side); } else turnover(M, def.m||gk); }
   } else {
     if(rnd()<0.26) corner(M,side); else turnover(M, matchKeeper(M,1-side));
@@ -7473,7 +7490,7 @@ function corner(M,side){
     const av=att(tgt,'heading')*0.6+att(tgt,'jumping')*0.4+hgtB(tgt.p)+gauss(0,3.4);
     const dv=att(gk,'aerial')*0.4+ 12 + hgtB(gk.p)*0.6 + gauss(0,3.4);
     tgt.x=M.ball.x; tgt.y=M.ball.y; M.ballOwner=tgt; M.lastTouch=taker;
-    if(av>dv){ doShot(M,side,tgt,Math.hypot((side===0?PW:0)-tgt.x,PH/2-tgt.y),Math.abs(tgt.y-PH/2),0.7,true); return; }
+    if(av>dv){ doShot(M,side,tgt,distance2D((side===0?PW:0)-tgt.x,PH/2-tgt.y),Math.abs(tgt.y-PH/2),0.7,true); return; }
   }
   turnover(M,gk);
 }
@@ -7572,7 +7589,7 @@ function cardCheck(M,side,D,inBox){
     }
   }
   // 受伤
-  if(rnd()<0.0035*clamp(1+(12-(M.teams[1-side].club.physioRating||10))*0.035,0.6,1.3)){
+  if(rnd()<0.0018*clamp(1+(12-(M.teams[1-side].club.physioRating||10))*0.035,0.6,1.3)){
     const T=M.teams[1-side];
     const on=T.men.filter(m=>!m.off); const v=on[Math.floor(rnd()*on.length)];
     if(v && !v.off){ v.off=true; v.injured=true;
@@ -7742,363 +7759,13 @@ function fillNews(s, x){
   return s.replace(/\{[a-zA-Z0-9]+\}/g, m=>map[m]!==undefined?map[m]:m);
 }
 function processNewsEvents(){
-  const c=UC(); if(!c||WORLD.gameOver) return;
-  const cnt = rnd()<0.62 ? (rnd()<0.28?2:1) : 0;
-  for(let k=0;k<cnt;k++){
-    const x=buildNewsCtx(); if(!x) return;
-    const pool=NEWS_EVENT_POOL.filter(e=>!e.c||e.c(x));
-    if(!pool.length) continue;
-    let total=0; pool.forEach(e=>total+=(e.w||1));
-    let r=rnd()*total, pick=pool[0];
-    for(const e of pool){ r-=(e.w||1); if(r<=0){ pick=e; break; } }
-    news(fillNews(pick.t,x), fillNews(pick.b,x), pick.cat||"info");
-  }
+  const c=UC(); if(!c||WORLD.gameOver||WORLD.needJob) return;
+  const squad=c.squad.map(P).filter(Boolean), injured=squad.filter(p=>p.injury>0), suspended=squad.filter(p=>p.susp>0);
+  const games=WORLD.fixtures.filter(f=>f.played&&f.day<=WORLD.day&&f.day>WORLD.day-7&&(f.home===c.id||f.away===c.id));
+  if(!games.length&&!injured.length&&!suspended.length)return;
+  const results=games.map(f=>`${compLabel(f)}：${C(f.home).cn} ${f.hg}-${f.ag} ${C(f.away).cn}`).join('；');
+  news('每周球队报告',`${results?`近七日赛果：${results}。\n`:''}当前伤员：${injured.map(p=>`${p.cn}（约 ${injuryDays(p)} 天）`).join('、')||'无'}。当前俱乐部停赛：${suspended.map(p=>`${p.cn}（${p.susp} 场）`).join('、')||'无'}。`,injured.length||suspended.length?'warn':'info');
 }
-
-const NEWS_EVENT_POOL = [
-/* ===== 比赛 / 战绩 ===== */
-{t:"连胜势头正盛", b:"{club} 已经连续 {n} 场不败，更衣室里信心爆棚，球员们开始相信这个赛季会有所不同。", cat:"good", w:8, c:x=>x.winStreak>=3},
-{t:"连胜被终结", b:"{club} 的连胜纪录在 {opp} 面前戛然而止，球迷们既遗憾又期待球队能重新振作。", cat:"bad", w:6, c:x=>x.winStreak>=2},
-{t:"连败警报", b:"{club} 已经连续 {n} 场失利，董事会开始坐不住了，媒体也在质疑 {manager} 的排兵布阵。", cat:"bad", w:8, c:x=>x.loseStreak>=3},
-{t:"止住颓势", b:"{club} 终于止住了连败颓势，{manager} 在赛后长舒一口气，表示球队会重新出发。", cat:"good", w:6, c:x=>x.loseStreak>=2},
-{t:"主场堡垒", b:"{stadium} 已经成为客队的噩梦，{club} 本赛季主场战绩出色，球迷们把这里称作「堡垒」。", cat:"good", w:6, c:x=>x.row&&x.row.pts>0},
-{t:"客场疲软", b:"{club} 的客场表现令人担忧，{manager} 承认球队在客场缺乏必胜的信念。", cat:"warn", w:5, c:x=>x.losses>=2},
-{t:"进球如麻", b:"{club} 本赛季已经打进 {gf} 球，进攻火力冠绝 {league}，{topScorer} 是当之无愧的锋线尖刀。", cat:"good", w:5, c:x=>x.gf>=40},
-{t:"锋线哑火", b:"{club} 最近几场进攻乏力，{topScorer} 已经连续多场没有进球，球迷们开始着急了。", cat:"warn", w:5, c:x=>x.wins<=1&&x.topScorer},
-{t:"防线稳固", b:"{club} 的防守固若金汤，本赛季仅失 {ga} 球，门将和后卫线配合默契。", cat:"good", w:5, c:x=>x.ga<=18},
-{t:"后防漏勺", b:"{club} 的防线漏洞百出，本赛季已经丢了 {ga} 球，{manager} 需要在转会窗补强后防。", cat:"bad", w:5, c:x=>x.ga>=45},
-{t:"帽子戏法之夜", b:"{player} 在比赛中上演帽子戏法，赛后他抱着比赛用球离场，全场球迷起立鼓掌。", cat:"good", w:4, c:x=>x.player},
-{t:"梅开二度", b:"{player} 梅开二度，帮助 {club} 拿下关键三分，他的状态火热。", cat:"good", w:5, c:x=>x.player},
-{t:"绝杀时刻", b:"补时阶段 {player} 的绝杀球让 {stadium} 彻底沸腾，这是属于 {club} 的胜利。", cat:"good", w:4, c:x=>x.player},
-{t:"被绝杀", b:"{club} 在补时阶段惨遭 {opp} 绝杀，{manager} 赛后直言「难以接受这样的结果」。", cat:"bad", w:4, c:x=>x.losses>=1},
-{t:"逆转之王", b:"{club} 在落后情况下完成逆转，{manager} 称赞球队「永不放弃的精神」。", cat:"good", w:4, c:x=>x.wins>=1},
-{t:"被逆转", b:"{club} 在领先的情况下被 {opp} 逆转，{manager} 对球队的松懈感到愤怒。", cat:"bad", w:4, c:x=>x.losses>=1},
-{t:"零封对手", b:"{club} 零封 {opp}，门将的表现堪称完美，这是团队防守的胜利。", cat:"good", w:4, c:x=>x.wins>=1},
-{t:"点球大战", b:"{club} 在点球大战中惊险过关，球员们相拥庆祝，{manager} 的心脏病都快犯了。", cat:"good", w:3, c:x=>x.wins>=1},
-{t:"红牌风波", b:"{player} 在比赛中吃到红牌，{manager} 赛后表示会内部处理，这名球员将缺席接下来的比赛。", cat:"bad", w:3, c:x=>x.player},
-{t:"乌龙球尴尬", b:"{player} 不慎自摆乌龙，赛后他情绪低落，队友们纷纷上前安慰。", cat:"bad", w:3, c:x=>x.player},
-{t:"裁判争议", b:"{club} 对裁判的判罚非常不满，{manager} 在赛后发布会上直言「我们被裁判偷走了胜利」。", cat:"warn", w:3, c:x=>x.losses>=1},
-{t:"VAR 改判", b:"VAR 介入改变了比赛走向，{club} 在最后时刻获得/被取消了一个关键判罚，引发热议。", cat:"info", w:3, c:x=>x.wins>=0},
-{t:"大胜对手", b:"{club} 大比分击败 {opp}，{topScorer} 贡献了 {goals} 个进球，这场胜利极大地提振了士气。", cat:"good", w:4, c:x=>x.wins>=1},
-{t:"惨败", b:"{club} 惨败给 {opp}，{manager} 赛后向球迷道歉，表示球队需要深刻反省。", cat:"bad", w:4, c:x=>x.losses>=1},
-{t:"德比前瞻", b:"本周末 {club} 将迎战死敌 {rival}，德比战的气氛已经点燃，全城都在关注这场对决。", cat:"info", w:4, c:x=>x.rival},
-{t:"德比火药味", b:"{club} 与 {rival} 的德比战火药味十足，媒体预测这将是一场恶战。", cat:"info", w:3, c:x=>x.rival},
-{t:"月度最佳球员", b:"{player} 凭借近期的出色表现当选 {league} 月度最佳球员，这是他应得的荣誉。", cat:"good", w:4, c:x=>x.player},
-{t:"月度最佳教练", b:"{manager} 当选 {league} 月度最佳教练，董事会对他的工作表示满意。", cat:"good", w:3, c:x=>x.wins>=2},
-{t:"周最佳阵容", b:"{player} 和 {player2} 双双入选 {league} 周最佳阵容，{club} 的球员状态正佳。", cat:"good", w:3, c:x=>x.player&&x.player2},
-{t:"赛季最佳开局", b:"{club} 取得了近年来最好的开局，球迷们开始憧憬更高的排名。", cat:"good", w:4, c:x=>x.row&&x.row.rank<=3&&x.pts>=20},
-{t:"慢热开局", b:"{club} 的开局并不理想，{manager} 呼吁球迷保持耐心，球队还在磨合。", cat:"warn", w:4, c:x=>x.row&&x.row.rank>=x.n-4},
-{t:"圣诞冠军", b:"{club} 在圣诞节前登顶 {league} 积分榜，球迷们已经开始憧憬冠军奖杯。", cat:"good", w:3, c:x=>x.row&&x.row.rank===1&&x.month===12},
-{t:"新年首战", b:"新年首战 {club} 取得开门红，{manager} 希望这股势头能延续到赛季结束。", cat:"good", w:3, c:x=>x.month===1&&x.wins>=1},
-{t:"收官冲刺", b:"赛季进入收官阶段，{club} 目前排名第 {rank}，每一分都至关重要。", cat:"info", w:3, c:x=>x.month===5&&x.row},
-{t:"保级大战", b:"{club} 深陷保级泥潭，接下来几场比赛将决定球队的命运。", cat:"bad", w:4, c:x=>x.row&&x.row.rank>=x.n-3},
-{t:"争冠白热化", b:"{club} 与榜首的差距仅有几分，争冠形势进入白热化阶段。", cat:"good", w:4, c:x=>x.row&&x.row.rank<=3},
-{t:"欧战资格争夺", b:"{club} 正在为下赛季的欧战资格而战，每一场胜利都价值连城。", cat:"info", w:3, c:x=>x.row&&x.row.rank<=6},
-
-/* ===== 球员个人 ===== */
-{t:"处子秀", b:"{youngest} 迎来了职业生涯的处子秀，他在场上的表现可圈可点，未来可期。", cat:"good", w:3, c:x=>x.youngest&&x.youngest.age<=19},
-{t:"处子球", b:"{player} 打进了职业生涯的首粒进球，赛后他激动得说不出话来。", cat:"good", w:3, c:x=>x.player},
-{t:"百场里程碑", b:"{player} 迎来了代表 {club} 的第 100 次出场，俱乐部为他准备了纪念仪式。", cat:"good", w:3, c:x=>x.player},
-{t:"进球里程碑", b:"{player} 打进了代表 {club} 的第 50 粒进球，他的名字将被载入队史。", cat:"good", w:3, c:x=>x.player&&x.player.goals>=50},
-{t:"状态火热", b:"{player} 近期状态火热，连续多场贡献进球或助攻，是球队最锋利的武器。", cat:"good", w:4, c:x=>x.player},
-{t:"状态低迷", b:"{player} 近期状态低迷，{manager} 考虑让他轮休调整状态。", cat:"warn", w:3, c:x=>x.player},
-{t:"训练态度端正", b:"教练组反映 {player} 在训练中非常刻苦，是队内的榜样。", cat:"good", w:3, c:x=>x.player},
-{t:"训练迟到", b:"{player} 多次训练迟到，{manager} 对他提出了警告。", cat:"bad", w:3, c:x=>x.player},
-{t:"加练", b:"{player} 主动在训练结束后加练，教练组对他的态度赞不绝口。", cat:"good", w:3, c:x=>x.player},
-{t:"要求加薪", b:"{player} 的经纪人提出加薪要求，认为他目前的合同与表现不匹配。", cat:"warn", w:3, c:x=>x.player},
-{t:"续约谈判", b:"{club} 与 {player} 就续约展开谈判，双方都希望尽快达成一致。", cat:"info", w:3, c:x=>x.player},
-{t:"续约成功", b:"{player} 与 {club} 完成续约，他将继续为球队效力，球迷们松了一口气。", cat:"good", w:3, c:x=>x.player},
-{t:"合同即将到期", b:"{player} 的合同即将到期，多家俱乐部已经表达了兴趣。", cat:"warn", w:3, c:x=>x.player&&x.player.contract<=x.season+1},
-{t:"经纪人放风", b:"{player} 的经纪人向媒体放风，称球员对现状不满，可能寻求转会。", cat:"warn", w:3, c:x=>x.player},
-{t:"国家队征召", b:"{player} 入选了国家队大名单，这是他应得的荣誉。", cat:"good", w:3, c:x=>x.player},
-{t:"国家队首秀", b:"{player} 完成了国家队首秀，{club} 为拥有这样的球员感到骄傲。", cat:"good", w:3, c:x=>x.player},
-{t:"金靴竞争", b:"{topScorer} 以 {goals} 球领跑 {league} 射手榜，金靴奖触手可及。", cat:"good", w:4, c:x=>x.topScorer&&x.topScorer.goals>=15},
-{t:"助攻王", b:"{player} 的助攻数领跑全队，他是球队进攻的发动机。", cat:"good", w:3, c:x=>x.player},
-{t:"潜力新星", b:"{youngest} 被媒体评为 {league} 最值得关注的年轻球员之一。", cat:"good", w:3, c:x=>x.youngest&&x.youngest.age<=21},
-{t:"老将余热", b:"{oldest} 虽然年事已高，但依然在场上发挥着重要作用，是年轻球员的榜样。", cat:"good", w:3, c:x=>x.oldest&&x.oldest.age>=33},
-{t:"队长领袖", b:"{captain} 作为队长在更衣室里发表了鼓舞人心的讲话，全队士气大振。", cat:"good", w:3, c:x=>x.captain},
-{t:"生日祝福", b:"今天是 {player} 的生日，俱乐部和队友们为他送上了祝福。", cat:"info", w:2, c:x=>x.player},
-{t:"球迷最喜爱球员", b:"{player} 当选 {club} 球迷票选的最喜爱球员，他在球迷中人气极高。", cat:"good", w:3, c:x=>x.player},
-{t:"转会传闻缠身", b:"多家豪门对 {player} 虎视眈眈，转会传闻甚嚣尘上。", cat:"info", w:3, c:x=>x.player},
-{t:"表忠心", b:"{player} 公开表示希望长期留在 {club}，球迷们对此非常感动。", cat:"good", w:3, c:x=>x.player},
-{t:"想走", b:"{player} 向俱乐部表达了离队意愿，希望寻求新的挑战。", cat:"bad", w:3, c:x=>x.player},
-{t:"位置适应", b:"{player} 在新位置上逐渐适应，表现越来越好。", cat:"good", w:2, c:x=>x.player},
-{t:"语言障碍", b:"新援 {player} 还在适应新的语言和环境，俱乐部安排了专人帮助他。", cat:"info", w:2, c:x=>x.player},
-{t:"最佳新人", b:"{youngest} 当选 {league} 最佳新人，他的成长速度令人惊叹。", cat:"good", w:3, c:x=>x.youngest&&x.youngest.age<=22},
-{t:"赛季最佳阵容", b:"{player} 入选了 {league} 赛季最佳阵容，这是对他整个赛季表现的肯定。", cat:"good", w:2, c:x=>x.player&&x.month===5},
-{t:"训练受伤", b:"{player} 在训练中受伤，将缺席一段时间，{manager} 对此感到遗憾。", cat:"bad", w:3, c:x=>x.player},
-{t:"康复顺利", b:"{player} 的伤情恢复顺利，有望提前复出。", cat:"good", w:3, c:x=>x.player},
-{t:"赛季报销", b:"不幸的消息，{player} 因重伤将缺席本赛季剩余比赛。", cat:"bad", w:2, c:x=>x.player},
-{t:"复出之战", b:"{player} 伤愈复出，球迷们用掌声欢迎他的回归。", cat:"good", w:3, c:x=>x.player},
-{t:"队医报告", b:"队医组提交了伤情报告，{player} 的恢复情况良好。", cat:"info", w:2, c:x=>x.player},
-{t:"体能下降", b:"{player} 的体能状况令人担忧，教练组正在调整他的训练计划。", cat:"warn", w:2, c:x=>x.player},
-
-/* ===== 更衣室 / 士气 ===== */
-{t:"更衣室团结", b:"{club} 的更衣室气氛融洽，球员们关系和睦，这是球队的宝贵财富。", cat:"good", w:3, c:x=>x.wins>=2},
-{t:"更衣室矛盾", b:"更衣室里传出不和谐的声音，{manager} 需要尽快处理球员之间的矛盾。", cat:"bad", w:3, c:x=>x.losses>=2},
-{t:"团队聚餐", b:"{captain} 组织了全队聚餐，增进了球员之间的感情。", cat:"good", w:2, c:x=>x.captain},
-{t:"胜利庆祝", b:"{club} 在更衣室里庆祝胜利，球员们载歌载舞，气氛热烈。", cat:"good", w:2, c:x=>x.wins>=1},
-{t:"更衣室会议", b:"{manager} 召集全队开了一次紧急会议，希望扭转球队的颓势。", cat:"info", w:2, c:x=>x.losses>=2},
-{t:"士气高涨", b:"连续的好成绩让 {club} 士气高涨，球员们信心十足。", cat:"good", w:3, c:x=>x.winStreak>=2},
-{t:"士气低落", b:"糟糕的战绩让 {club} 士气低落，{manager} 需要想办法提振球队。", cat:"bad", w:3, c:x=>x.loseStreak>=2},
-{t:"老将安抚", b:"{oldest} 在更衣室里安抚年轻球员，展现了老将的担当。", cat:"good", w:2, c:x=>x.oldest&&x.oldest.age>=32},
-{t:"新援融入", b:"新援正在逐渐融入球队，队友们对他都很照顾。", cat:"good", w:2, c:x=>x.player},
-{t:"青训小将受宠", b:"{youngest} 在更衣室里很受欢迎，老队员们都很照顾这位小将。", cat:"good", w:2, c:x=>x.youngest&&x.youngest.age<=20},
-{t:"更衣室领袖", b:"{captain} 是更衣室里当之无愧的领袖，他的话语很有分量。", cat:"good", w:2, c:x=>x.captain},
-{t:"队内竞争", b:"{player} 和 {player2} 正在激烈竞争首发位置，这种良性竞争对球队有利。", cat:"info", w:3, c:x=>x.player&&x.player2},
-{t:"球员闹情绪", b:"{player} 因为出场时间不足而闹情绪，{manager} 需要安抚他。", cat:"warn", w:3, c:x=>x.player},
-{t:"团结一心", b:"{club} 上下团结一心，共同为赛季目标而战。", cat:"good", w:2, c:x=>x.wins>=1},
-{t:"更衣室风波", b:"有媒体报道 {club} 更衣室内出现分歧，俱乐部官方予以否认。", cat:"warn", w:2, c:x=>x.losses>=1},
-
-/* ===== 董事会 / 财政 ===== */
-{t:"董事会会议", b:"董事会召开会议，对 {manager} 的工作进行了评估，目前对他的表现基本满意。", cat:"info", w:3, c:x=>x.wins>=1},
-{t:"董事会信任", b:"董事会公开表达了对 {manager} 的信任，表示会给他充足的时间。", cat:"good", w:3, c:x=>x.wins>=2},
-{t:"董事会施压", b:"董事会向 {manager} 施加压力，要求球队尽快改善战绩。", cat:"bad", w:3, c:x=>x.loseStreak>=2},
-{t:"财政健康", b:"{club} 的财政状况健康，董事会表示可以在转会窗适当投入。", cat:"good", w:3, c:x=>x.balance>0},
-{t:"财政紧张", b:"{club} 的财政状况紧张，董事会提醒 {manager} 控制开支。", cat:"warn", w:3, c:x=>x.balance<0},
-{t:"扭亏为盈", b:"经过努力，{club} 的财政状况明显改善，董事会对此表示满意。", cat:"good", w:2, c:x=>x.balance>0},
-{t:"财政审计", b:"{club} 完成了年度财政审计，各项指标基本正常。", cat:"info", w:2, c:x=>x.month===6||x.month===7},
-{t:"转会预算追加", b:"董事会批准了额外的转会预算，{manager} 可以在转会窗大展拳脚。", cat:"good", w:3, c:x=>x.inWindow&&x.balance>0},
-{t:"削减预算", b:"由于财政压力，董事会削减了 {club} 的转会预算。", cat:"bad", w:2, c:x=>x.balance<0},
-{t:"收购传闻", b:"有财团对收购 {club} 表达了兴趣，俱乐部官方暂未回应。", cat:"info", w:2, c:x=>x.rep>=60},
-{t:"股东注资", b:"俱乐部股东向 {club} 注资，缓解了财政压力。", cat:"good", w:2, c:x=>x.balance<0},
-{t:"债务重组", b:"{club} 完成了债务重组，财政状况得到改善。", cat:"good", w:2, c:x=>x.balance<0},
-{t:"工资结构优化", b:"{club} 优化了工资结构，为未来的引援留出了空间。", cat:"good", w:2, c:x=>x.balance>=0},
-{t:"财政公平审查", b:"{club} 接受了财政公平法案的审查，结果符合规定。", cat:"info", w:2, c:x=>x.rep>=50},
-{t:"商业收入增长", b:"{club} 的商业收入持续增长，赞助商和合作伙伴不断增加。", cat:"good", w:3, c:x=>x.rep>=50},
-{t:"新赞助商", b:"{club} 吸引了新的赞助商，商业价值进一步提升。", cat:"good", w:3, c:x=>x.rep>=40},
-{t:"球衣销量", b:"{club} 的新赛季球衣销量火爆，特别是 {topScorer} 的号码一衣难求。", cat:"good", w:3, c:x=>x.topScorer},
-{t:"门票收入", b:"{stadium} 的上座率持续走高，门票收入为 {club} 带来了可观的现金流。", cat:"good", w:3, c:x=>x.wins>=1},
-{t:"季票售罄", b:"{club} 的新赛季季票全部售罄，球迷的热情可见一斑。", cat:"good", w:2, c:x=>x.month===8},
-{t:"会员增长", b:"{club} 的官方会员数量创新高，球迷基础不断扩大。", cat:"good", w:2, c:x=>x.wins>=2},
-
-/* ===== 媒体 / 球迷 ===== */
-{t:"赛前发布会", b:"{manager} 出席赛前发布会，表示球队已经做好了充分准备。", cat:"info", w:3, c:x=>x.wins>=0},
-{t:"赛后采访", b:"{manager} 在赛后采访中点评了球队的表现，态度坦诚。", cat:"info", w:3, c:x=>x.wins>=0},
-{t:"媒体好评", b:"媒体对 {club} 近期的表现给予高度评价，认为球队走在正确的道路上。", cat:"good", w:3, c:x=>x.winStreak>=2},
-{t:"媒体批评", b:"媒体对 {club} 的表现提出批评，认为球队需要尽快做出改变。", cat:"bad", w:3, c:x=>x.loseStreak>=2},
-{t:"球迷抗议", b:"部分球迷对球队的表现不满，在训练场外举行了抗议活动。", cat:"bad", w:3, c:x=>x.loseStreak>=3},
-{t:"球迷支持", b:"即使在困难时期，{club} 的球迷依然不离不弃，用歌声支持球队。", cat:"good", w:3, c:x=>x.losses>=1},
-{t:"球迷满意度", b:"调查显示 {club} 的球迷满意度处于高位，这离不开球队的出色表现。", cat:"good", w:2, c:x=>x.winStreak>=2},
-{t:"球迷见面会", b:"{club} 举办了球迷见面会，{player} 的到场引发了球迷的欢呼。", cat:"good", w:2, c:x=>x.player},
-{t:"客队球迷远征", b:"{club} 的球迷远征客场，用呐喊声为球队助威。", cat:"info", w:2, c:x=>x.wins>=0},
-{t:"球场氛围", b:"{stadium} 的现场氛围火爆，球迷们营造出了魔鬼主场的声势。", cat:"good", w:2, c:x=>x.wins>=1},
-{t:"队歌传唱", b:"比赛结束后，{stadium} 响起了队歌，球迷们久久不愿离去。", cat:"good", w:2, c:x=>x.wins>=1},
-{t:"名宿发声", b:"俱乐部名宿在接受采访时对 {club} 的表现发表了看法。", cat:"info", w:2, c:x=>x.rep>=50},
-{t:"专题报道", b:"媒体对 {club} 做了专题报道，深入分析了球队的战术体系。", cat:"info", w:2, c:x=>x.wins>=1},
-{t:"纪录片拍摄", b:"有摄制组正在为 {club} 拍摄纪录片，记录球队的点点滴滴。", cat:"info", w:2, c:x=>x.rep>=60},
-{t:"社交媒体热议", b:"{club} 的精彩表现成为社交媒体上的热议话题。", cat:"good", w:2, c:x=>x.winStreak>=2},
-{t:"谣言辟谣", b:"针对近期的转会谣言，{club} 官方发布了辟谣声明。", cat:"info", w:2, c:x=>x.inWindow},
-{t:"球迷论坛", b:"球迷论坛上关于 {club} 的讨论异常热烈，大家各抒己见。", cat:"info", w:2, c:x=>x.wins>=0},
-{t:"名记爆料", b:"知名记者爆料 {club} 内部的一些消息，引发外界关注。", cat:"info", w:2, c:x=>x.rep>=40},
-{t:"赛前预热", b:"{league} 的焦点战即将打响，{club} 与 {opp} 的对决备受瞩目。", cat:"info", w:2, c:x=>x.opp},
-{t:"舆论压力", b:"舆论对 {manager} 的质疑声越来越大，他需要在球场上证明自己。", cat:"bad", w:3, c:x=>x.loseStreak>=2},
-
-/* ===== 青训 ===== */
-{t:"青训新星", b:"青训营又涌现出一位潜力新星，教练组对他的未来充满期待。", cat:"good", w:3, c:x=>x.c.youthRating>=10},
-{t:"青训试训", b:"{club} 的青训营正在举行试训，吸引了众多怀揣梦想的少年。", cat:"info", w:2, c:x=>x.c.youthRating>=8},
-{t:"青训合同", b:"{youngest} 与 {club} 签下了第一份职业合同，这是青训营的骄傲。", cat:"good", w:3, c:x=>x.youngest&&x.youngest.age<=18},
-{t:"青训营开放日", b:"{club} 举办了青训营开放日，向公众展示青训成果。", cat:"info", w:2, c:x=>x.month===8},
-{t:"梯队夺冠", b:"{club} 的青年队夺得了青年联赛冠军，青训体系结出硕果。", cat:"good", w:3, c:x=>x.c.youthRating>=10},
-{t:"青训投资", b:"{club} 加大了对青训体系的投入，希望培养出更多本土人才。", cat:"good", w:2, c:x=>x.balance>0},
-{t:"外租锻炼", b:"{youngest} 被外租到其他球队锻炼，希望他能获得更多出场机会。", cat:"info", w:2, c:x=>x.youngest&&x.youngest.age<=21},
-{t:"租借召回", b:"{club} 召回了外租的小将，他在外租期间表现出色。", cat:"good", w:2, c:x=>x.player},
-{t:"潜力评估", b:"球探组完成了对青训球员的潜力评估，几名小将值得重点培养。", cat:"info", w:2, c:x=>x.c.scoutRating>=10},
-{t:"青训教练", b:"{club} 聘请了新的青训教练，希望能提升青训质量。", cat:"info", w:2, c:x=>x.c.youthRating>=5},
-{t:"天才少年", b:"媒体盛赞 {youngest} 是「下一个巨星」，但他还需要时间成长。", cat:"good", w:2, c:x=>x.youngest&&x.youngest.age<=19},
-{t:"青训成果", b:"本赛季已有多名青训球员进入一线队，{club} 的青训体系初见成效。", cat:"good", w:2, c:x=>x.c.youthRating>=12},
-{t:"青年队友谊赛", b:"{club} 的青年队与 {opp} 的青年队进行了一场友谊赛。", cat:"info", w:2, c:x=>x.opp},
-{t:"青训奖学金", b:"{club} 为青训营的优秀学员设立了奖学金，鼓励他们努力训练。", cat:"good", w:2, c:x=>x.c.youthRating>=8},
-{t:"球探报告", b:"球探组提交了一份关于潜在引援对象的详细报告。", cat:"info", w:2, c:x=>x.c.scoutRating>=8},
-{t:"青训设施升级", b:"{club} 的青训设施完成了升级，训练条件大为改善。", cat:"good", w:2, c:x=>x.c.youthRating>=10},
-{t:"本地人才", b:"{club} 从本地社区发掘了一名有天赋的少年，签入了青训营。", cat:"good", w:2, c:x=>x.c.youthRating>=6},
-{t:"青训球员首秀", b:"又一名青训球员完成了一线队首秀，这是青训体系的胜利。", cat:"good", w:2, c:x=>x.youngest&&x.youngest.age<=19},
-{t:"青训营参观", b:"多家俱乐部派人参观了 {club} 的青训营，交流青训经验。", cat:"info", w:1, c:x=>x.c.youthRating>=12},
-{t:"青训教练进修", b:"{club} 的青训教练参加了进修培训，提升执教能力。", cat:"info", w:1, c:x=>x.c.youthRating>=5},
-
-/* ===== 转会市场 ===== */
-{t:"转会窗开启", b:"{window} 正式开启，{club} 可以在转会市场上寻找目标。", cat:"info", w:4, c:x=>x.inWindow},
-{t:"转会窗关闭", b:"{window} 已经关闭，{club} 的阵容基本确定。", cat:"info", w:3, c:x=>!x.inWindow},
-{t:"截止日冲刺", b:"{window} 截止日临近，{club} 正在做最后的引援冲刺。", cat:"info", w:3, c:x=>x.deadline},
-{t:"引援目标", b:"{club} 锁定了引援目标 {player}，双方正在接触。", cat:"info", w:3, c:x=>x.inWindow&&x.player},
-{t:"报价被拒", b:"{club} 对 {opp} 球员的报价被拒绝，对方要价过高。", cat:"warn", w:3, c:x=>x.inWindow&&x.opp},
-{t:"截胡成功", b:"{club} 成功截胡，抢在竞争对手之前签下了心仪的球员。", cat:"good", w:3, c:x=>x.inWindow},
-{t:"被截胡", b:"{club} 心仪的球员被其他球队截胡，{manager} 对此感到遗憾。", cat:"bad", w:2, c:x=>x.inWindow},
-{t:"免签机会", b:"一名自由球员进入了 {club} 的视野，免签是一个不错的选择。", cat:"info", w:2, c:x=>x.balance<0},
-{t:"高价出售", b:"{club} 以高价出售了一名球员，获得了可观的转会收入。", cat:"good", w:3, c:x=>x.inWindow&&x.balance>=0},
-{t:"青训出售", b:"{club} 出售了一名青训球员，并保留了未来转会分成条款。", cat:"good", w:2, c:x=>x.inWindow},
-{t:"解约金触发", b:"有球队触发了 {player} 的解约金条款，{club} 无力阻止。", cat:"bad", w:2, c:x=>x.inWindow&&x.player},
-{t:"转会传闻", b:"转会市场上关于 {club} 的传闻不断，{player} 成为焦点。", cat:"info", w:3, c:x=>x.inWindow&&x.player},
-{t:"经纪人谈判", b:"{club} 正在与 {player} 的经纪人进行谈判，进展顺利。", cat:"info", w:2, c:x=>x.inWindow&&x.player},
-{t:"合同年球员", b:"{player} 进入合同年，他的未来成为外界关注的焦点。", cat:"warn", w:2, c:x=>x.player&&x.player.contract<=x.season+1},
-{t:"博斯曼机会", b:"{player} 的合同即将到期，其他球队可以在赛季末免费签下他。", cat:"warn", w:2, c:x=>x.player&&x.player.contract<=x.season},
-{t:"报价大战", b:"多家俱乐部对 {player} 展开竞价，转会费水涨船高。", cat:"info", w:2, c:x=>x.inWindow&&x.player},
-{t:"球员交换", b:"{club} 考虑用球员交换的方式完成引援，以降低现金支出。", cat:"info", w:2, c:x=>x.inWindow&&x.balance<0},
-{t:"租借引援", b:"{club} 通过租借方式引进球员，以较低成本补强阵容。", cat:"info", w:2, c:x=>x.inWindow&&x.balance<0},
-{t:"外租球员", b:"{club} 将一名年轻球员外租，希望他能获得更多比赛机会。", cat:"info", w:2, c:x=>x.inWindow&&x.youngest},
-{t:"冬窗补强", b:"冬窗开启，{club} 计划针对性补强薄弱位置。", cat:"info", w:3, c:x=>x.window==="冬窗"},
-{t:"夏窗大清洗", b:"夏窗开启，{club} 计划对阵容进行大清洗。", cat:"info", w:2, c:x=>x.window==="夏窗"},
-{t:"转会收益", b:"{club} 本赛季的转会净收益为正，财政状况良好。", cat:"good", w:2, c:x=>x.balance>0},
-{t:"标王诞生", b:"{league} 诞生了新的转会标王，转会市场依旧火爆。", cat:"info", w:2, c:x=>x.inWindow},
-{t:"压哨转会", b:"{club} 在截止日最后时刻完成了一笔转会，堪称压哨绝杀。", cat:"good", w:2, c:x=>x.deadline},
-{t:"体检未通过", b:"{club} 心仪的球员因体检未通过而转会失败，令人遗憾。", cat:"bad", w:2, c:x=>x.inWindow},
-{t:"劳工证问题", b:"{player} 的劳工证申请遇到问题，转会可能受阻。", cat:"warn", w:2, c:x=>x.inWindow&&x.player},
-
-/* ===== 赛程 / 联赛 ===== */
-{t:"赛程密集", b:"{club} 即将迎来一段密集赛程，{manager} 需要合理轮换阵容。", cat:"warn", w:3, c:x=>x.month===12},
-{t:"国家队比赛日", b:"国家队比赛日来临，多名 {club} 球员被征召，球队需要应对人员不整。", cat:"info", w:2, c:x=>x.month===9||x.month===10||x.month===3},
-{t:"国际比赛日归来", b:"国际比赛日结束，{club} 的国脚们陆续归队。", cat:"info", w:2, c:x=>x.month===10||x.month===11||x.month===4},
-{t:"圣诞赛程", b:"圣诞期间的密集赛程对 {club} 的体能是巨大考验。", cat:"warn", w:2, c:x=>x.month===12},
-{t:"冬歇期", b:"{club} 迎来了短暂的冬歇期，球员们得以休整。", cat:"info", w:2, c:x=>x.month===1},
-{t:"联赛冠军在望", b:"{club} 距离 {league} 冠军越来越近，球迷们已经开始庆祝。", cat:"good", w:4, c:x=>x.row&&x.row.rank===1&&x.pts>0},
-{t:"保级形势严峻", b:"{club} 的保级形势严峻，接下来的每场比赛都是生死战。", cat:"bad", w:3, c:x=>x.row&&x.row.rank>=x.n-3},
-{t:"冲击欧战", b:"{club} 有望获得下赛季的欧战资格，球员们斗志昂扬。", cat:"good", w:3, c:x=>x.row&&x.row.rank<=6&&x.row.rank>0},
-{t:"升级希望", b:"{club} 看到了升级的希望，全队上下齐心协力。", cat:"good", w:3, c:x=>x.row&&x.row.rank<=2},
-{t:"降级风险", b:"{club} 面临降级风险，球迷们忧心忡忡。", cat:"bad", w:3, c:x=>x.row&&x.row.rank>=x.n-3},
-{t:"德比胜利", b:"{club} 在德比战中击败了 {rival}，这是球迷最想要的胜利。", cat:"good", w:3, c:x=>x.rival&&x.wins>=1},
-{t:"德比失利", b:"{club} 在德比战中输给了 {rival}，球迷们难以接受。", cat:"bad", w:3, c:x=>x.rival&&x.losses>=1},
-{t:"杯赛晋级", b:"{club} 在杯赛中顺利晋级，球队在多项赛事中齐头并进。", cat:"good", w:3, c:x=>x.wins>=1},
-{t:"杯赛出局", b:"{club} 在杯赛中遗憾出局，{manager} 表示会把重心放在联赛上。", cat:"bad", w:2, c:x=>x.losses>=1},
-{t:"欧战征程", b:"{club} 在欧战中表现出色，为 {league} 争得了荣誉。", cat:"good", w:3, c:x=>x.euro},
-{t:"欧冠之夜", b:"欧冠比赛日的夜晚，{stadium} 灯火通明，这是 {club} 的荣耀时刻。", cat:"good", w:2, c:x=>x.euro},
-{t:"世俱杯", b:"{club} 将代表 {league} 出征世俱杯，这是球队的荣耀。", cat:"good", w:2, c:x=>x.rep>=80},
-{t:"赛季目标", b:"董事会为本赛季设定了明确的目标，{manager} 正在全力以赴。", cat:"info", w:2, c:x=>x.month===8},
-{t:"半程总结", b:"赛季过半，{club} 目前排名第 {rank}，{manager} 对球队的表现进行了总结。", cat:"info", w:2, c:x=>x.month===1&&x.row},
-{t:"收官战", b:"{club} 迎来了本赛季的收官战，这是决定最终排名的关键一战。", cat:"info", w:2, c:x=>x.month===5},
-{t:"升降级", b:"{league} 的升降级形势逐渐明朗，几家欢喜几家愁。", cat:"info", w:2, c:x=>x.month===5},
-{t:"同城死敌", b:"{club} 与同城死敌 {rival} 的对决即将上演，整座城市都为之沸腾。", cat:"info", w:2, c:x=>x.rival},
-{t:"客队挑战", b:"{club} 将客场挑战 {opp}，这不会是一场轻松的比赛。", cat:"info", w:2, c:x=>x.opp},
-{t:"榜首大战", b:"{club} 与 {opp} 的榜首大战一触即发，这场比赛的胜者将占据主动。", cat:"info", w:2, c:x=>x.row&&x.row.rank<=2&&x.opp},
-{t:"保级六分战", b:"{club} 与 {opp} 的保级六分战至关重要，输球的一方将陷入被动。", cat:"warn", w:2, c:x=>x.row&&x.row.rank>=x.n-4&&x.opp},
-
-/* ===== 杂项 / 彩蛋 ===== */
-{t:"天气影响", b:"天气预报显示比赛日将有暴雨，{club} 需要做好应对恶劣天气的准备。", cat:"info", w:2, c:x=>x.wins>=0},
-{t:"球场维护", b:"{stadium} 正在进行草皮维护，以确保比赛场地质量。", cat:"info", w:2, c:x=>x.wins>=0},
-{t:"新球衣发布", b:"{club} 发布了新赛季球衣，设计获得了球迷的好评。", cat:"good", w:2, c:x=>x.month===7||x.month===8},
-{t:"队徽纪念", b:"{club} 推出了一款队徽纪念周边，球迷们争相购买。", cat:"good", w:2, c:x=>x.rep>=40},
-{t:"俱乐部周年", b:"{club} 迎来了建队周年纪念，俱乐部举办了庆祝活动。", cat:"good", w:2, c:x=>x.rep>=50},
-{t:"球员公益活动", b:"{player} 参加了社区公益活动，展现了球员的社会责任感。", cat:"good", w:2, c:x=>x.player},
-{t:"慈善赛", b:"{club} 举办了一场慈善赛，为公益事业筹集善款。", cat:"good", w:2, c:x=>x.wins>=0},
-{t:"球场翻新", b:"{stadium} 的部分设施进行了翻新，观赛体验得到提升。", cat:"good", w:2, c:x=>x.balance>0},
-{t:"队医团队扩容", b:"{club} 扩充了队医团队，为球员提供更好的医疗保障。", cat:"good", w:2, c:x=>x.balance>0},
-{t:"数据分析", b:"{club} 引进了先进的数据分析系统，辅助教练组决策。", cat:"info", w:2, c:x=>x.rep>=50},
-{t:"营养师", b:"{club} 聘请了新的营养师，为球员制定科学的饮食计划。", cat:"info", w:2, c:x=>x.rep>=40},
-{t:"心理辅导", b:"{club} 为球员安排了心理辅导，帮助他们应对压力。", cat:"info", w:2, c:x=>x.losses>=2},
-{t:"体能教练", b:"新的体能教练上任，球员们的体能状况有望改善。", cat:"good", w:2, c:x=>x.losses>=1},
-{t:"球探网络", b:"{club} 的球探网络发现了多名有潜力的球员。", cat:"info", w:2, c:x=>x.c.scoutRating>=10},
-{t:"青训教练", b:"{club} 的青训教练团队迎来新成员。", cat:"info", w:1, c:x=>x.c.youthRating>=5},
-{t:"历史纪录", b:"{player} 打破了 {club} 的一项队史纪录，载入史册。", cat:"good", w:2, c:x=>x.player},
-{t:"连胜纪录", b:"{club} 追平了队史连胜纪录，全队士气高涨。", cat:"good", w:2, c:x=>x.winStreak>=4},
-{t:"进球纪录", b:"{topScorer} 打破了 {club} 的单赛季进球纪录。", cat:"good", w:2, c:x=>x.topScorer&&x.topScorer.goals>=30},
-{t:"零封纪录", b:"{club} 的门将创造了新的连续零封纪录。", cat:"good", w:2, c:x=>x.ga<=10},
-{t:"不败纪录", b:"{club} 的不败纪录还在延续，球队状态火热。", cat:"good", w:2, c:x=>x.unbeaten>=6},
-{t:"球迷远征", b:"{club} 的球迷远征客场，用呐喊声为球队助威。", cat:"info", w:1, c:x=>x.wins>=0},
-{t:"赛季票务", b:"{club} 开始发售下半赛季的球票，销售情况良好。", cat:"info", w:1, c:x=>x.month===1},
-{t:"转会预算公示", b:"{club} 公布了本赛季的转会预算，球迷们对此议论纷纷。", cat:"info", w:1, c:x=>x.month===8},
-{t:"教练团队", b:"{manager} 调整了教练团队，希望带来新的气象。", cat:"info", w:1, c:x=>x.losses>=1},
-{t:"战术分析", b:"教练组对 {opp} 进行了详细的战术分析，为比赛做准备。", cat:"info", w:1, c:x=>x.opp},
-{t:"伤兵满营", b:"{club} 目前有 {injured} 名球员伤停，{manager} 的用人捉襟见肘。", cat:"bad", w:2, c:x=>x.injured>=4},
-{t:"全员健康", b:"{club} 目前阵容齐整，没有伤病困扰，{manager} 可以排出最强阵容。", cat:"good", w:2, c:x=>x.injured===0},
-{t:"门将神勇", b:"{club} 的门将近期表现神勇，多次上演精彩扑救。", cat:"good", w:2, c:x=>x.ga<=15},
-{t:"中场大脑", b:"{player} 在中场的组织调度堪称大师级，是球队的节拍器。", cat:"good", w:2, c:x=>x.player},
-{t:"锋线尖刀", b:"{topScorer} 是 {club} 的锋线尖刀，他的进球是球队取胜的保障。", cat:"good", w:2, c:x=>x.topScorer},
-{t:"后防中坚", b:"{player} 在后防线上稳如磐石，是球队最可靠的后盾。", cat:"good", w:2, c:x=>x.player},
-{t:"万金油", b:"{player} 能胜任多个位置，是 {manager} 手下的万金油。", cat:"good", w:2, c:x=>x.player},
-{t:"任意球大师", b:"{player} 的任意球功夫了得，对手都忌惮他的定位球。", cat:"good", w:2, c:x=>x.player},
-{t:"点球专家", b:"{player} 是球队的点球专家，他的点球命中率极高。", cat:"good", w:2, c:x=>x.player},
-{t:"速度型球员", b:"{player} 的速度是球队反击的利器，对手防不胜防。", cat:"good", w:2, c:x=>x.player},
-{t:"头球能力", b:"{player} 的头球能力出色，定位球进攻中屡屡建功。", cat:"good", w:2, c:x=>x.player},
-{t:"传球大师", b:"{player} 的传球视野开阔，总能送出致命一传。", cat:"good", w:2, c:x=>x.player},
-{t:"拦截能力", b:"{player} 的拦截能力出众，是球队中场的一道屏障。", cat:"good", w:2, c:x=>x.player},
-{t:"扑救能力", b:"{player} 的扑救能力令人印象深刻，多次挽救球队。", cat:"good", w:2, c:x=>x.player},
-{t:"年轻化", b:"{club} 的阵容正朝着年轻化方向发展，未来值得期待。", cat:"good", w:2, c:x=>x.youngest&&x.youngest.age<=20},
-{t:"经验丰富", b:"{club} 阵中老将经验丰富，在关键时刻总能稳住局面。", cat:"good", w:2, c:x=>x.oldest&&x.oldest.age>=33},
-{t:"阵容深度", b:"{club} 的阵容深度充足，多线作战也有底气。", cat:"good", w:2, c:x=>x.squad.length>=25},
-{t:"阵容单薄", b:"{club} 的阵容略显单薄，密集赛程下可能会捉襟见肘。", cat:"warn", w:2, c:x=>x.squad.length<=20},
-
-/* ===== 补充：比赛细节 / 心理 / 国家队 / 欧战 / 教练 / 文化 ===== */
-{t:"梦幻开局", b:"{club} 在开场不久就取得进球，梦幻开局为胜利奠定了基础。", cat:"good", w:3, c:x=>x.wins>=1},
-{t:"扳平比分", b:"{club} 在落后的情况下顽强扳平，展现了球队的韧性。", cat:"good", w:3, c:x=>x.draws>=1},
-{t:"闷平", b:"{club} 与 {opp} 互交白卷，一场沉闷的平局让球迷有些失望。", cat:"info", w:2, c:x=>x.draws>=1},
-{t:"进球大战", b:"{club} 与 {opp} 上演了一场进球大战，球迷们大饱眼福。", cat:"good", w:2, c:x=>x.wins>=1},
-{t:"闪电进球", b:"{player} 在比赛开始仅几十秒就取得进球，创造了球队纪录。", cat:"good", w:2, c:x=>x.player},
-{t:"伤停补时", b:"比赛进入伤停补时，{club} 和 {opp} 都拼尽了全力。", cat:"info", w:2, c:x=>x.wins>=0},
-{t:"加时赛", b:"{club} 与 {opp} 战成平局，比赛进入加时赛。", cat:"info", w:2, c:x=>x.draws>=1},
-{t:"黄牌满天飞", b:"这场比赛中裁判出示了多张黄牌，比赛节奏被频繁打断。", cat:"warn", w:2, c:x=>x.wins>=0},
-{t:"球场冲突", b:"比赛中双方球员发生冲突，裁判及时介入平息了事态。", cat:"bad", w:2, c:x=>x.losses>=1},
-{t:"球迷骚乱", b:"看台上发生小规模骚乱，安保人员迅速控制了局面。", cat:"bad", w:1, c:x=>x.losses>=1},
-{t:"门线悬案", b:"{club} 的一次射门疑似越过门线，但裁判未予判罚，引发争议。", cat:"warn", w:2, c:x=>x.draws>=1},
-{t:"越位争议", b:"{player} 的进球因越位被判无效，慢镜头显示判罚存在争议。", cat:"warn", w:2, c:x=>x.player},
-{t:"精彩扑救", b:"{club} 的门将做出了一次世界级扑救，力保球门不失。", cat:"good", w:2, c:x=>x.ga<=15},
-{t:"单刀不进", b:"{player} 错失了一次绝佳的单刀机会，赛后他懊恼不已。", cat:"warn", w:2, c:x=>x.player},
-{t:"立柱救险", b:"{opp} 的射门击中门柱弹出，{club} 逃过一劫。", cat:"info", w:2, c:x=>x.wins>=1},
-{t:"横梁挡出", b:"{player} 的射门被横梁挡出，与进球失之交臂。", cat:"info", w:2, c:x=>x.player},
-{t:"角球战术", b:"{club} 的角球战术奏效，{player} 头球破门。", cat:"good", w:2, c:x=>x.player},
-{t:"任意球破门", b:"{player} 主罚任意球直接破门，皮球划出一道美妙的弧线。", cat:"good", w:2, c:x=>x.player},
-{t:"反击得手", b:"{club} 打出快速反击，{player} 冷静推射破门。", cat:"good", w:2, c:x=>x.player},
-{t:"控球压制", b:"{club} 全场控球率占优，牢牢掌控了比赛节奏。", cat:"good", w:2, c:x=>x.wins>=1},
-{t:"摆大巴", b:"{club} 采取防守反击战术，成功限制了 {opp} 的进攻。", cat:"info", w:2, c:x=>x.draws>=1},
-{t:"高位逼抢", b:"{club} 的高位逼抢战术奏效，多次在前场断球。", cat:"good", w:2, c:x=>x.wins>=1},
-{t:"换人奇效", b:"{manager} 的换人调整立竿见影，替补登场的球员改变了比赛。", cat:"good", w:2, c:x=>x.wins>=1},
-{t:"战术失误", b:"{manager} 的战术布置受到质疑，球队在场面上处于被动。", cat:"bad", w:2, c:x=>x.losses>=1},
-{t:"球员信心", b:"{player} 在接受采访时表示对球队充满信心。", cat:"good", w:2, c:x=>x.player},
-{t:"球员压力", b:"{player} 坦言自己感受到了巨大的压力，希望球迷能多些耐心。", cat:"info", w:2, c:x=>x.player},
-{t:"球员梦想", b:"{player} 表示代表 {club} 踢球是他的梦想，他会为之全力以赴。", cat:"good", w:2, c:x=>x.player},
-{t:"球员感恩", b:"{player} 感谢了教练和队友的帮助，表示会继续努力。", cat:"good", w:2, c:x=>x.player},
-{t:"球员反思", b:"{player} 在社交媒体上反思了自己的表现，表示会尽快找回状态。", cat:"info", w:2, c:x=>x.player},
-{t:"球员家庭", b:"{player} 的孩子出生了，他带着喜悦的心情回到训练场。", cat:"good", w:2, c:x=>x.player},
-{t:"球员伤病困扰", b:"{player} 长期受到伤病困扰，职业生涯面临考验。", cat:"bad", w:2, c:x=>x.player},
-{t:"球员康复", b:"{player} 的康复训练进展顺利，预计很快就能复出。", cat:"good", w:2, c:x=>x.player},
-{t:"球员转会意愿", b:"{player} 表示如果有合适的机会，他愿意考虑转会。", cat:"warn", w:2, c:x=>x.player},
-{t:"球员忠诚", b:"{player} 表示对 {club} 忠心耿耿，不会轻易离开。", cat:"good", w:2, c:x=>x.player},
-{t:"球员野心", b:"{player} 表达了想要赢得冠军的强烈愿望。", cat:"good", w:2, c:x=>x.player},
-{t:"球员职业素养", b:"教练组称赞 {player} 的职业素养，他是年轻球员的榜样。", cat:"good", w:2, c:x=>x.player},
-{t:"球员大赛发挥", b:"{player} 在关键比赛中总能挺身而出，是球队的大场面先生。", cat:"good", w:2, c:x=>x.player},
-{t:"球员抗压", b:"{player} 在压力下依然保持冷静，展现了强大的心理素质。", cat:"good", w:2, c:x=>x.player},
-{t:"球员体能", b:"{player} 的体能储备充足，可以应对高强度的比赛。", cat:"good", w:2, c:x=>x.player},
-{t:"球员技术", b:"{player} 的技术细腻，脚下功夫令人赏心悦目。", cat:"good", w:2, c:x=>x.player},
-{t:"球员身体对抗", b:"{player} 的身体对抗能力强，在拼抢中占据优势。", cat:"good", w:2, c:x=>x.player},
-{t:"球员视野", b:"{player} 的视野开阔，总能发现队友的跑位。", cat:"good", w:2, c:x=>x.player},
-{t:"球员射术", b:"{player} 的射术精湛，是球队最可靠的得分点之一。", cat:"good", w:2, c:x=>x.player},
-{t:"球员防守", b:"{player} 的防守意识出色，多次化解对手的进攻。", cat:"good", w:2, c:x=>x.player},
-{t:"球员跑动", b:"{player} 的跑动积极，覆盖了球场的每一寸草皮。", cat:"good", w:2, c:x=>x.player},
-{t:"球员创造力", b:"{player} 的创造力十足，总能送出意想不到的传球。", cat:"good", w:2, c:x=>x.player},
-{t:"球员定位球", b:"{player} 是球队的定位球主罚手，他的脚法值得信赖。", cat:"good", w:2, c:x=>x.player},
-{t:"球员领导力", b:"{player} 的领导力出众，是球队的精神支柱。", cat:"good", w:2, c:x=>x.player},
-{t:"球员纪律", b:"{player} 因违反队规被罚款，{manager} 强调纪律的重要性。", cat:"bad", w:2, c:x=>x.player},
-{t:"球员迟到", b:"{player} 因迟到被教练组批评，他保证不会再犯。", cat:"warn", w:2, c:x=>x.player},
-{t:"球员训练出色", b:"{player} 在训练中表现出色，赢得了教练组的认可。", cat:"good", w:2, c:x=>x.player},
-{t:"球员状态恢复", b:"{player} 的状态逐渐恢复，重新找回了比赛感觉。", cat:"good", w:2, c:x=>x.player},
-{t:"球员状态下滑", b:"{player} 的状态有所下滑，需要时间调整。", cat:"warn", w:2, c:x=>x.player},
-{t:"球员年龄", b:"{oldest} 已经 {n} 岁了，但他依然宝刀不老。", cat:"good", w:2, c:x=>x.oldest&&x.oldest.age>=34},
-{t:"球员年轻", b:"{youngest} 才 {n} 岁就崭露头角，前途不可限量。", cat:"good", w:2, c:x=>x.youngest&&x.youngest.age<=19},
-{t:"球员身价", b:"{player} 的身价持续上涨，成为转会市场上的香饽饽。", cat:"good", w:2, c:x=>x.player},
-{t:"球员合同", b:"{club} 正在与 {player} 商谈新合同，双方分歧不大。", cat:"info", w:2, c:x=>x.player},
-{t:"球员经纪人", b:"{player} 的经纪人来到俱乐部，与高层进行了会谈。", cat:"info", w:2, c:x=>x.player},
-{t:"球员转会传闻", b:"{player} 与多家俱乐部传出绯闻，他的未来扑朔迷离。", cat:"info", w:2, c:x=>x.player},
-{t:"球员留队", b:"{player} 决定留队，{club} 的球迷们松了一口气。", cat:"good", w:2, c:x=>x.player},
-{t:"球员离队", b:"{player} 表达了离队意愿，{club} 将尊重他的选择。", cat:"bad", w:2, c:x=>x.player},
-{t:"球员回归", b:"{player} 结束外租回归 {club}，他将重新竞争主力位置。", cat:"good", w:2, c:x=>x.player},
-{t:"球员首球", b:"{player} 打进了加盟 {club} 后的首粒进球。", cat:"good", w:2, c:x=>x.player},
-{t:"球员助攻", b:"{player} 送出了精妙助攻，帮助队友破门得分。", cat:"good", w:2, c:x=>x.player},
-{t:"球员帽子戏法", b:"{player} 上演帽子戏法，成为全场的焦点。", cat:"good", w:2, c:x=>x.player},
-{t:"球员大四喜", b:"{player} 独中四元，创造了个人单场进球纪录。", cat:"good", w:2, c:x=>x.player},
-{t:"球员乌龙", b:"{player} 不慎打进乌龙球，他赛后非常自责。", cat:"bad", w:2, c:x=>x.player},
-{t:"球员红牌", b:"{player} 被红牌罚下，{club} 将面临少一人作战的困境。", cat:"bad", w:2, c:x=>x.player},
-{t:"球员停赛", b:"{player} 因累计黄牌停赛，将缺席下一场比赛。", cat:"warn", w:2, c:x=>x.player},
-{t:"球员复出", b:"{player} 解禁复出，{manager} 对他的回归表示欢迎。", cat:"good", w:2, c:x=>x.player},
-{t:"球员伤愈", b:"{player} 伤愈复出，在训练中表现出良好状态。", cat:"good", w:2, c:x=>x.player},
-{t:"球员重伤", b:"{player} 在比赛中重伤离场，{club} 将评估他的伤情。", cat:"bad", w:2, c:x=>x.player},
-{t:"球员轻伤", b:"{player} 受了轻伤，预计很快就能恢复。", cat:"info", w:2, c:x=>x.player},
-{t:"球员疲劳", b:"{player} 出现疲劳迹象，{manager} 考虑让他轮休。", cat:"warn", w:2, c:x=>x.player},
-{t:"球员轮换", b:"{manager} 对阵容进行了轮换，多名球员获得出场机会。", cat:"info", w:2, c:x=>x.wins>=1},
-{t:"球员竞争", b:"{player} 和 {player2} 的竞争让球队的该位置实力大增。", cat:"good", w:2, c:x=>x.player&&x.player2},
-{t:"球员默契", b:"{player} 和 {player2} 的默契配合成为球队的进攻利器。", cat:"good", w:2, c:x=>x.player&&x.player2},
-{t:"球员化学反应", b:"{club} 的进攻组合产生了良好的化学反应。", cat:"good", w:2, c:x=>x.wins>=2},
-{t:"球员个人荣誉", b:"{player} 获得了个人荣誉，这是对他努力的肯定。", cat:"good", w:2, c:x=>x.player},
-{t:"球员金球奖", b:"{player} 入围了金球奖候选名单，{club} 为他感到骄傲。", cat:"good", w:2, c:x=>x.player&&x.rep>=70},
-{t:"球员国家队", b:"{player} 在国家队表现出色，为 {club} 增光添彩。", cat:"good", w:2, c:x=>x.player},
-];
 
 // ---------- 结果落地 ----------
 function applyResult(fx, M){
@@ -8163,8 +7830,7 @@ function applyResult(fx, M){
       if(M.derby){ dm += res>0?ri(2,5): res<0?ri(-5,-2): 0; }   // 德比战情绪波动更大
       p.morale=clamp(p.morale+dm,5,100);
       if(m.injured){
-        const sev=rnd();
-        p.injRecovery=0; p.injury = sev<0.55? ri(3,10) : sev<0.85? ri(11,30) : ri(31,120);
+        p.injRecovery=0; p.injury=rollInjuryDays();
         p.injType = p.injury<11?"轻伤":p.injury<31?"肌肉拉伤":"重伤";
         injuryHitsPotential(p,p.injury);
         if(T.cid===WORLD.userClub) news(`${p.cn} 受伤`,`${p.cn} 在对阵${C(side===0?fx.away:fx.home).cn}的比赛中受伤，预计缺阵约 ${injuryDays(p)} 天（${p.injType}）。`,"bad");
@@ -8273,6 +7939,10 @@ function aiInvest(c){
 }
 
 // ---------- 每日 ----------
+function rollInjuryDays(training=false){
+  const r=rnd();
+  return r<0.78?ri(2,7):r<0.97?ri(8,21):ri(22,training?35:60);
+}
 function recoveryRate(p){ const phys=p.clubId>=0?(C(p.clubId).physioRating||10):10; return clamp(1+(phys-10)*0.025,0.8,1.25); }
 function injuryDays(p){ return Math.ceil(Math.max(0,p.injury-(p.injRecovery||0))/recoveryRate(p)); }
 function dailyTick(){
@@ -8295,10 +7965,10 @@ function dailyTick(){
   });
   // 训练伤病
   WORLD.clubs.forEach(c=>{
-    const risk=0.00055*(1+c.trainIntensity*0.55)*(1+(12-c.physioRating)*0.03);
+    const risk=0.00028*(1+c.trainIntensity*0.55)*(1+(12-c.physioRating)*0.03);
     c.squad.forEach(id=>{ const p=P(id);
       if(p.injury<=0 && rnd()<risk){
-        p.injRecovery=0; p.injury=ri(4,45); p.injType=p.injury<12?"训练轻伤":p.injury<30?"拉伤":"韧带伤";
+        p.injRecovery=0; p.injury=rollInjuryDays(true); p.injType=p.injury<12?"训练轻伤":p.injury<30?"拉伤":"韧带伤";
         if(c.id===WORLD.userClub) news(`${p.cn} 训练中受伤`,`${p.cn} 在训练中受伤，预计缺阵 ${injuryDays(p)} 天。`,"bad");
       }});
   });
@@ -8386,7 +8056,7 @@ function randomEvents(){
     news(`${p.cn} 心情低落`,`${p.cn} 最近${evt}，情绪受到一些影响。`,"warn");
   }
   else if(roll < 0.30){ // 场外风波
-    if(p.prof < 50 && rnd()<0.6){
+    if(profOf(p) < 8 && rnd()<0.6){
       const evt = pick(["深夜出入夜店被拍到","训练迟到","与队友发生口角"]);
       p.morale=clamp(p.morale-5,0,100); p.unrest=(p.unrest||0)+1;
       news(`纪律问题：${p.cn}`,`${p.cn} ${evt}，教练组已找他谈话。他的职业态度一直是隐患。`,"bad");
@@ -8405,7 +8075,7 @@ function randomEvents(){
   else if(roll < 0.46){ // 训练小插曲
     const k = pick(Object.keys(p.a));
     const d = ri(1,2)*(rnd()<0.5?1:-1);
-    p.a[k]=clamp(p.a[k]+d,1,20);
+    p.a[k]=clamp(p.a[k]+d,1,20); p.ca=calcCA(p.a,p.pos);p.pa=Math.max(p.pa,p.ca);p.value=calcValue(p);
     if(d>0) news(`训练提升`,`${p.cn} 在最近训练中「${ALL_ATTRS[k]}」有所提升。`,"good");
     else news(`状态波动`,`${p.cn} 最近训练中「${ALL_ATTRS[k]}」稍有下滑，需要调整。`,"warn");
   }
@@ -8456,12 +8126,12 @@ function randomEvents(){
     const others = WORLD.clubs.filter(c=>c.id!==WORLD.userClub && c.rep>=80);
     if(others.length){
       const oc = pick(others);
-      const evt = pick(["解雇主帅","签下重磅新援","陷入财政危机","球场扩建完工","出售核心球员"]);
-      news(`足坛动态：${oc.cn}`,`${oc.cn} 近日${evt}，引发媒体热议。`,"info");
+      const f=WORLD.fixtures.filter(f=>f.played&&f.day<=WORLD.day&&f.day>WORLD.day-7&&(f.home===oc.id||f.away===oc.id)).at(-1);
+      if(f)news(`足坛赛果：${oc.cn}`,`${compLabel(f)}：${C(f.home).cn} ${f.hg}-${f.ag} ${C(f.away).cn}。`,"info");
     }
   }
   else { // 金球奖/世界足球先生（赛季中段提示）
-    news(`个人荣誉前瞻`,`媒体开始讨论本赛季金球奖候选，${p.cn} 位列其中。`,"info");
+    if(p.apps>=5)news(`球员近况：${p.cn}`,`${p.cn} 本赛季出场 ${p.apps} 次，进球 ${p.goals} 个、助攻 ${p.assists} 次。`,"info");
   }
 }
 
@@ -8544,12 +8214,13 @@ function trainClub(c){
       const d = o.nation===c.nation ? (c.tier-o.tier) : (o.rep-c.rep>12 ? 1 : 0);
       gain *= d>=2? 0.7 : d===1? 0.85 : d<0? 1.1 : 1;
     }
+    if(p.legend&&p.age<=24) gain*=1.8;
     if(p.ca>=devCap(p)) gain *= 0.15;                  // 已经吃满这个年龄该有的水平
     // 老化衰退
     if(p.age>=30) gain -= (p.age-29)*0.055*(1.15-p.a.stamina*0.012);
     if(p.injury>0) gain*=0.25;
     p.dev=(p.dev||0)+gain;
-    while(p.dev>=1){ p.dev-=1; bumpAttr(p,planAttrs,+1,c); }
+    while(p.dev>=1){ const cost=bumpAttr(p,planAttrs,+1,c); if(cost<0)break;if(!cost){p.dev=Math.min(p.dev,1);break;} p.dev-=cost; }
     while(p.dev<=-1){ p.dev+=1; bumpAttr(p,null,-1,c); }
     p.value=calcValue(p);
     assignPlaystyles(p);   // 属性成长后重新评定徽章
@@ -8558,6 +8229,17 @@ function trainClub(c){
     p.morale = clamp(p.morale + (p.morale<55?1.5:-0.4) + (p.injury>0?-1.2:0), 5,100);
   });
 }
+const TRAINING_COSTS={};
+function trainingAttrCost(pos,key){
+  if(!TRAINING_COSTS[pos]){
+    const w=POS_WEIGHTS[pos],sum=Object.values(w).reduce((a,b)=>a+b,0),rest=ATTR_KEYS.filter(k=>!(k in w)&&!(k in ATTRS_GK)).length;
+    const weights=Object.fromEntries(ATTR_KEYS.map(k=>[k,k in w?0.85*w[k]/sum:k in ATTRS_GK?0:0.15/rest]));
+    let total=0,count=0;for(const k in w){total+=weights[k]*w[k];count+=w[k];}
+    if(pos==='GK')for(const k in ATTRS_GK){total+=weights[k]*3;count+=3;}
+    const mean=total/count;TRAINING_COSTS[pos]=Object.fromEntries(ATTR_KEYS.map(k=>[k,Math.max(0.05,weights[k]/mean)]));
+  }
+  return TRAINING_COSTS[pos][key]||1;
+}
 function bumpAttr(p,focusList,dir,club){
   const w=POS_WEIGHTS[p.pos];
   let pool=[];
@@ -8565,21 +8247,25 @@ function bumpAttr(p,focusList,dir,club){
     for(const k in w) for(let i=0;i<w[k];i++) pool.push(k);
     if(focusList) focusList.forEach(k=>{ for(let i=0;i<7;i++) pool.push(k); });
     if(p.pos==="GK") for(const k in ATTRS_GK) for(let i=0;i<3;i++) pool.push(k);
-    pool=pool.filter(k=>p.a[k]<20);
+    const cap=Math.min(p.pa,devCap(p)),eligible=new Set([...new Set(pool)].filter(k=>ALL_ATTRS[k]&&p.a[k]<20&&calcCA({...p.a,[k]:p.a[k]+1},p.pos)<=cap));
+    pool=pool.filter(k=>eligible.has(k));
   } else {
     // 衰退优先身体属性
     ["pace","accel","agility","stamina","jumping","strength"].forEach(k=>{ for(let i=0;i<4;i++) pool.push(k); });
     for(const k in w) pool.push(k);
     pool=pool.filter(k=>p.a[k]>1);
   }
-  if(!pool.length) return;
+  if(!pool.length) return 0;
   const k=pick(pool);
+  const cost=dir>0?trainingAttrCost(p.pos,k):1;
+  if(dir>0&&(p.dev||0)<cost)return -1;
   p.a[k]=clamp(p.a[k]+dir,1,20);
   const nc=calcCA(p.a,p.pos);
-  if(dir>0 && (nc>p.pa || nc>devCap(p))) { p.a[k]-=dir; return; }
+  if(dir>0 && (nc>p.pa || nc>devCap(p))) { p.a[k]-=dir; return 0; }
   p.ca=nc;
   if(dir>0 && club && club.id===WORLD.userClub && rnd()<0.06)
     news(`${p.cn} 状态提升`,`训练报告：${p.cn} 的「${ALL_ATTRS[k]}」提升到 ${p.a[k]}。`,"good");
+  return cost;
 }
 
 // ---------- 董事会 ----------
@@ -8612,7 +8298,7 @@ function windowName(){ const m=dateOf(WORLD.day).getMonth()+1; return m===8?"夏
 /* ================= 财政 v37：转会预算 + 工资预算合并为一笔「可用资金」 =================
    规范见项目目录《财政系统合并规范.md》。核心是 avail(c) 无状态：转会费、工资、卖人
    都通过 balance / weeklyWages 自动反映，不需要任何地方手工加减存量字段。 */
-const BAL_RELEASE = 0.35;                       // 赛季初余额释放比例。校准项 C3：管豪门，0.42 时曼城 8 季后 avail 顶到 £220M
+const BAL_RELEASE = 0.80;                       // 董事会最多留存正余额的 20%，积累现金可支持工资预算
 const OPEX_RATE   = 0.20;                       // 营收中视为运营留存、不可用于阵容的比例（不真扣现金）
 const WAGE_CAP    = {0:0.75, 1:0.85, 2:0.90};   // 下季承诺工资 / 预计营收 上限，按 tier；欧战散队 tier 0
 const CAP_RATCHET = 0.94;                       // 过渡棘轮：已超 k×rev0 的队，上限按赛季初现有工资的 94% 核定（每季至少压 6%）
@@ -8692,7 +8378,7 @@ function fin3(c){
 /* 可用资金。可以为负（那就是资金缺口）。玩家看到的主数字。*/
 function avail(c){
   const f=c.finance;
-  const locked = f.locked!=null? f.locked : Math.round((1-BAL_RELEASE)*Math.max(0,f.balance));
+  const locked = boardReserve(c);
   return Math.round(f.balance + revRemain(c)*(1-OPEX_RATE) - wageRemain(c) - locked - transferDebt(c) + (f.grant||0));
 }
 /* 下赛季仍在合同期的自有球员（含外租，不含租入）年薪合计 */
@@ -8712,7 +8398,7 @@ function ownWages(c){
   (c.loanedOut||[]).forEach(id=>{ const p=P(id); if(p) w+=p.wage*52; });
   return Math.round(w);
 }
-/* 本季工资上限。赛季初核定一次存进 cap0，赛季中不变。
+/* cap0 是赛季初基础上限；实际工资上限再按当前现金储备即时提高。
    已经超出 k×rev0 的队走过渡棘轮：上限 = 现有工资 × 0.94，每季至少压 6%。
    基数用 ownWages 而不是 committedNext——否则一支现有工资 £25M、其中 £5M 本季到期的队，
    上限会被压到 £20M×0.94，连到期的人都替换不了，整队冻住。用 £25M×0.94 = £23.5M，
@@ -8726,9 +8412,15 @@ function capBase(c){
   if(CAP_MODE && f.cap0>0) return Math.min(f.cap0, Math.max(ownWages(c), wageCapK(c)*f.rev0));
   return ownWages(c);
 }
-function capTarget(c){ return Math.round(wageCapK(c)*fin3(c).rev0); }   // 董事会的最终目标
-function wageCap(c){ return fin3(c).cap0; }
-function inCapTransition(c){ return fin3(c).cap0 > capTarget(c)+1; }    // 是否还在过渡期
+function boardReserve(c){return Math.min(Math.max(0,c.finance.locked||0),Math.round((1-BAL_RELEASE)*Math.max(0,c.finance.balance)));}
+function cashWageSupport(c){
+  const f=c.finance;
+  // 留足分期应付款和一整年现有工资，其余现金按三年摊入年薪空间。
+  return Math.round(Math.max(0,f.balance-boardReserve(c)-transferDebt(c)-weeklyWages(c)*52)/3);
+}
+function capTarget(c){ return Math.round(wageCapK(c)*fin3(c).rev0+cashWageSupport(c)); }
+function wageCap(c){ return Math.max(fin3(c).cap0,capTarget(c)); }
+function inCapTransition(c){ return wageCap(c) > capTarget(c)+1; }    // 是否还在过渡期
 /* 本季到期的合同年薪合计——给玩家的出路提示 */
 function expiringWages(c){
   let w=0;
@@ -8738,7 +8430,7 @@ function expiringWages(c){
 }
 /* 唯一的准入函数。两条规则都要过：
    1 现金——这季付得起（转会费 + 本季要付的工资）；
-   2 结构——下季承诺工资不超过预计营收的 k，防止把全部可用资金签成多年工资。
+   2 结构——下季承诺工资不超过营收基础加现金支持，保留多年履约资金。
    fee 转会费(£)，annual 该合同年薪(£/年，租借传己方承担部分)，
    opt.weeks 本季实际要付的周数（默认 remWeeks），opt.nextYear=false 表示下季不在（租借），
    opt.capAnnual 单独给规则 2 用的年薪——续约一个本季到期的球员时，
@@ -8764,8 +8456,8 @@ function affordMsg(c, r, fee, annual){
   const tr = inCapTransition(c);
   return (over? "俱乐部工资承诺已超出本季上限，只能原薪续约或等合同到期。" : "")
     + `下季工资承诺将达 ${money(r.next)}，`
-    + (tr? `超过本季上限 ${money(r.cap)}（过渡期，目标 预计营收 ${money(fin3(c).rev0)} 的 ${Math.round(wageCapK(c)*100)}%）。`
-         : `超过董事会上限 ${money(r.cap)}（预计营收 ${money(fin3(c).rev0)} 的 ${Math.round(wageCapK(c)*100)}%）。`)
+    + (tr? `超过本季上限 ${money(r.cap)}（过渡期，目标按预计营收与现金支持计算）。`
+         : `超过董事会上限 ${money(r.cap)}（预计营收基础加现金储备支持）。`)
     + `差 ${money(r.gap)}/年。本季到期合同可释放 ${money(expiringWages(c))}/年。`;
 }
 /* 每季初重新核定。调用点：newWorld（buildSeason 之后）、endSeason（buildSeason 之后）、migrateWorld */
@@ -10884,7 +10576,7 @@ function endSeason(){
   WORLD.clubs.forEach(c=>{
     c.finance.income=0; c.finance.expense=0;
     c.board.conf=clamp(c.board.conf*0.5+45,20,95);
-    autoPickLineup(c);
+    if(c.id===WORLD.userClub&&!WORLD.needJob)repairLineup(c);else autoPickLineup(c);
   });
   bridgeTiers(moves);                       // 升班马补强 / 降班马卖核心，别让新赛季出现 6 分队和 84 球射手
   buildSeason();
@@ -12320,18 +12012,21 @@ function nextUserFixture(){
 }
 
 // 模拟当天所有（非用户）比赛
-function simDay(day, skipUser){
+function* simDaySteps(day, skipUser){
   const fx=WORLD.fixtures.filter(f=>f.day===day && !f.played);
-  fx.forEach(f=>{
-    if(skipUser && !WORLD.needJob && (f.home===WORLD.userClub||f.away===WORLD.userClub)) return;
+  for(const f of fx){
+    if(skipUser && !WORLD.needJob && (f.home===WORLD.userClub||f.away===WORLD.userClub)) continue;
     [f.home,f.away].forEach(id=>{ const c=C(id); if(WORLD.needJob||c.id!==WORLD.userClub) autoPickLineup(c); });
     const M=runMatch(createMatch(f.home,f.away,{comp:f.comp, round:f.round, record:false, ...knockoutOpts(f)}));
     applyResult(f,M);
-  });
+    yield;
+  }
   // 杯赛 / 欧战轮次推进
   competitionsDayEnd(day);
   simNationalDay(day,skipUser);
 }
+function drainSimulation(steps){let r;do{r=steps.next();}while(!r.done);return r.value;}
+function simDay(day,skipUser){return drainSimulation(simDaySteps(day,skipUser));}
 
 function contractReminder(stage){
   const u=UC(); if(!u||WORLD.needJob) return;
@@ -12389,20 +12084,21 @@ function autoSellRound(){
 }
 
 // 主「继续」入口，返回状态
-function advance(){
+function* advanceSteps(){
   if(CURMATCH){const fx=currentMatchFixture();if(fx)return {t:"match",fx};resetMatchSession(false);}
   if(WORLD.gameOver) return {t:"over"};
   // 兼容停在截止日的旧档：先让玩家处理新报价，再继续当天。
   if(prepareDeadlineMarket()) return {t:"deadline"};
   const uf=userFixtureOn(WORLD.day);
   if(uf) return {t:"match", fx:uf};
-  simDay(WORLD.day,false);
+  yield* simDaySteps(WORLD.day,false);
   processDayEnd(WORLD.day);
   WORLD.day++;
   if(WORLD.day>=SEASON_DAYS || allFixturesDone()){ WORLD.youthDone=false; endSeason(); return {t:"season"}; }
   prepareDeadlineMarket();
   return {t:"day"};
 }
+function advance(){return drainSimulation(advanceSteps());}
 function allFixturesDone(){ return !WORLD.fixtures.some(f=>!f.played)&&!nationalFixtures().some(f=>!f.played); }
 
 // 用户比赛结束后收尾
@@ -12534,6 +12230,20 @@ function render(){
   LAST_VIEW=VIEW;
   v.scrollTop=keepY;
   if(keepY) requestAnimationFrame(()=>{ if(LAST_VIEW===VIEW && Math.abs(v.scrollTop-keepY)>1) v.scrollTop=keepY; });
+}
+
+async function runSimulationUI(steps){
+  const app=$('#app'),wasInert=app?.inert;
+  const overlay=el('div');overlay.id='simulation-progress';overlay.setAttribute('role','status');overlay.setAttribute('aria-live','polite');
+  overlay.style.cssText='position:fixed;inset:0;z-index:100000;display:grid;place-items:center;background:rgba(0,0,0,.65);color:#fff;padding:24px;text-align:center';
+  overlay.innerHTML='<div>正在结算比赛日…<br><span class="simulation-count">0 场已完成</span></div>';document.body.appendChild(overlay);if(app)app.inert=true;
+  let count=0,last=performance.now();
+  try{
+    await new Promise(resolve=>setTimeout(resolve,0));
+    for(;;){const r=steps.next();if(r.done)return r.value;count++;
+      if(performance.now()-last>=12){const counter=overlay.querySelector('.simulation-count');if(counter)counter.textContent=count+' 场已完成';await new Promise(resolve=>setTimeout(resolve,0));last=performance.now();}
+    }
+  }finally{overlay.remove();if(app)app.inert=wasInert;}
 }
 
 // ---------- 折叠栏目 ----------
@@ -12785,7 +12495,8 @@ function showPlayer(pid){
   const inSquad = p.clubId===WORLD.userClub, isOwner = ownerOf(p)===WORLD.userClub;
   const own = inSquad || isOwner;               // 租入、租出的都算自己人：看得到全部属性
   const sl = WORLD.shortlist.find(s=>s.id===pid);
-  const know = own? 100 : (sl? sl.know||0 : 0);
+  const nationalKnown=!!WORLD.userNation&&p.nat===WORLD.userNation;
+  const know = own||nationalKnown? 100 : (sl? sl.know||0 : 0);
   const hideAttr = know<45;
   const hidePA = know<95;
   const club=p.clubId>=0?C(p.clubId):null;
@@ -12888,7 +12599,7 @@ function openTrainPlan(pid){
   let h='<div style="max-width:520px">';
   h+='<h3>🎯 '+esc(p.cn)+' 个人训练计划</h3>';
   // 训练重点（属性）
-  h+='<p class="hint">选择重点提升的属性（可多选，留空则跟随全队训练）：</p>';
+  h+='<p class="hint">选择重点提升的属性（可多选，留空则跟随全队训练）。各属性按能力贡献折算训练消耗；同等条件下不因自定义方向而降低训练效率。传奇在 24 岁前获得 1.8 倍成长，年龄成长上限在 22 岁释放：</p>';
   h+='<div class="chipgrid">';
   const cur = p.trainPlan || [];
   ATTR_KEYS.forEach(k=>{
@@ -13196,7 +12907,7 @@ function vTactics(v){
   if(NAT_SCOPE==='nation' && WORLD.userNation){ vNationTactics(v); return; }
   if(renderLiveTeamGuard(v,false))return;
   const c=UC(), t=c.tactic;
-  v.appendChild(el("div","",`<h1>战术</h1><div class="sub">点击场上位置，再点击右侧球员完成调整</div>`));
+  v.appendChild(el("div","",`<h1>战术</h1><div class="sub">点击场上位置，再点击右侧球员完成调整。常用首发自动保存；伤停仅在比赛中临时补位，恢复后回到原位置。</div>`));
   nationScopeBar(v);
   const wrap=el("div","row");
 
@@ -13219,7 +12930,7 @@ function vTactics(v){
     d.style.width=`min(80px,calc(${Math.max(12,gap)}% - 4px))`;
     if(p) d.title=p.cn;
     d.innerHTML=`<div class="p">${POS_CN[s[0]]}</div><div class="n">${p?esc(p.cn.split("·").pop()):"—"}</div>
-      <div class="fs">${p?ovr(p)+"·"+Math.round(p.condition)+"%":""}</div>`;
+      <div class="fs">${p?(p.injury>0?"伤停 · 临时补位":p.susp>0?"停赛 · 临时补位":ovr(p)+"·"+Math.round(p.condition)+"% "):""}</div>`;
     d.onclick=()=>{
       if(SELSLOT!=null && SELSLOT!==i){
         // 两个槽位互点 = 对调位置（可用球员列表里已经没有首发了，得走这条路）
@@ -13524,7 +13235,7 @@ function vTransfer(v){
 
   const relegated=Object.values(WORLD.players).filter(p=>isRelegationSale(p)&&ownerOf(p)!==c.id);
   if(relegated.length){const rc=el("div","card");rc.innerHTML="<h3>降级挂牌</h3><div class='hint'>夏窗前 7 天供你优先考察；8 月 8 日起其他球队参与竞争。</div>";
-    rc.appendChild(makeTable([{h:"姓名",k:"n",v:p=>p.cn,r:p=>esc(p.cn)},{h:"球队",k:"c",v:p=>C(p.clubId).cn,r:p=>esc(C(p.clubId).short)},{h:"位置",k:"pos",v:p=>p.pos,r:p=>POS_CN[p.pos]},{h:"能力",k:"ca",v:p=>p.ca,r:p=>ovr(p)},{h:"要价",k:"ask",v:p=>askingPrice(p),r:p=>money(askingPrice(p))}],relegated,{onRow:p=>showPlayer(p.id)}));v.appendChild(rc);}
+    rc.appendChild(makeTable([{h:"姓名",k:"n",v:p=>p.cn,r:p=>esc(p.cn)},{h:"球队",k:"c",v:p=>C(p.clubId).cn,r:p=>esc(C(p.clubId).short)},{h:"位置",k:"pos",v:p=>p.pos,r:p=>POS_CN[p.pos]},{h:"能力",k:"ca",v:p=>p.ca,r:p=>ovr(p)},{h:"要价",k:"ask",v:p=>askingPrice(p),r:p=>money(askingPrice(p))}],relegated,{onRow:p=>showPlayer(p.id)}));foldCard(rc,"relegation-sales","降级挂牌",[[relegated.length+" 人"]],false);v.appendChild(rc);}
   // 搜索
   const s=el("div","card"); s.innerHTML="<h3>球员搜索</h3>";
   const nationalities=[...new Set(Object.values(WORLD.players).map(p=>p.nat).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"zh-CN"));
@@ -13918,8 +13629,8 @@ function vFinance(v){
    ["周薪支出",money(wk),"年化 "+money(wk*52),""],
    ["下季工资承诺", money(cn),
     (inCapTransition(c)
-      ? `过渡期上限 ${money(cap)}，董事会要求逐季压缩至预计营收的 ${Math.round(wageCapK(c)*100)}%（${money(capTarget(c))}）`
-      : `上限 ${money(cap)}（预计营收 ${money(f.rev0)} 的 ${Math.round(wageCapK(c)*100)}%）`)
+      ? `过渡期上限 ${money(cap)}，董事会要求逐季压缩至营收基础与现金支持合计 ${money(capTarget(c))}`
+      : `上限 ${money(cap)}（营收基础 + 现金支持 ${money(cashWageSupport(c))}/年）`)
     + `· 已占 ${(cn/Math.max(1,cap)*100).toFixed(0)}%`,
     overCap?"var(--bad)":""]
   ].forEach(([t,b,sub,col])=>g.appendChild(el("div","card",
@@ -13928,11 +13639,11 @@ function vFinance(v){
   const bc=el("div","card");
   bc.innerHTML=`<h3>预算是怎么算的</h3>
     <div class="hint" style="line-height:1.9">
-    <b>可用资金</b> = 余额 ${money(f.balance)} + 本季剩余预计营收 ${money(revRemain(c))} × ${Math.round((1-OPEX_RATE)*100)}% − 本季剩余工资 ${money(wageRemain(c))}（${remWeeks(c)} 周） − 董事会锁定 ${money(f.locked)} − 已承诺分期尾款 ${money(transferDebt(c))}${f.grant?` + 追加 ${money(f.grant)}`:""}<br>
-    剩余营收预测包含赞助、转播、联赛主场门票和保底名次奖金；杯赛与欧战奖金实际到账后增加可用资金。赛季初核定工资上限时，已获欧战资格另计保守估算的欧战收入。<br>
+    <b>可用资金</b> = 余额 ${money(f.balance)} + 本季剩余预计营收 ${money(revRemain(c))} × ${Math.round((1-OPEX_RATE)*100)}% − 本季剩余工资 ${money(wageRemain(c))}（${remWeeks(c)} 周） − 董事会留存 ${money(boardReserve(c))} − 已承诺分期尾款 ${money(transferDebt(c))}${f.grant?` + 追加 ${money(f.grant)}`:""}<br>
+    剩余营收预测包含赞助、转播、联赛主场门票和保底名次奖金；杯赛与欧战奖金实际到账后增加可用资金。赛季初核定工资上限时，已获欧战资格另计保守估算的欧战收入。<br><b>现金支持工资</b>：余额扣除董事会留存、分期尾款和一整年现有工资后，剩余现金的三分之一（当前 ${money(cashWageSupport(c))}/年）加入薪资上限，到账后即时生效，不受联赛级别限制。董事会最多留存正余额的 20%，实际余额不会被扣走。<br>
     转会费和工资都从这一个数里扣——工资明年还要付，明年这个数就自动少了，所以两者之间不需要汇率。<br>
     <b>下季工资承诺</b>是下赛季仍在合同期的自有球员及已预签加盟球员年薪合计（外租按归队后全薪）。它超过上限时签不了抬高承诺的新约，只能原薪续约、等合同到期或卖人。
-    ${inCapTransition(c)?`<br>你现在的工资高于董事会的目标线（预计营收的 ${Math.round(wageCapK(c)*100)}%），处在<b>过渡期</b>：本季上限按赛季初现有工资的 ${Math.round(CAP_RATCHET*100)}% 核定，每季收紧一次，直到落回目标线。`:""}
+    ${inCapTransition(c)?`<br>本季基础上限高于营收与现金支持合计的目标线，处在<b>过渡期</b>：本季上限按赛季初现有工资的 ${Math.round(CAP_RATCHET*100)}% 核定，每季收紧一次，直到落回目标线。`:""}
     ${overCap?`<br><span style="color:var(--bad)">目前已超出上限 ${money(cn-cap)}/年。本季到期合同可释放 ${money(expiringWages(c))}/年。</span>`:""}</div>`;
   v.appendChild(bc);
   if(f.payables?.length)v.appendChild(el("div","card",`<h3>转会分期应付款</h3>${f.payables.map(p=>`<div>${esc(p.name)} · ${money(p.amt)} · ${p.to==null?"旧档收款方无法唯一确认，保留占款，暂停自动支付":esc(C(p.to).cn)+" · "+p.due+" 赛季到期"}</div>`).join("")}`));
@@ -14811,10 +14522,13 @@ function onMatchEnd(){
   const p=$("#btn-play"); if(p) p.disabled=true;
   const s=$("#btn-skip"); if(s) s.disabled=true;
 }
-function completeMatch(){
+async function completeMatch(){
   const M=CURMATCH;
-  if(!M || !M.done) return;
-  const res=finishUserMatch();
+  if(!M || !M.done||BUSY) return;
+  BUSY=true;let res;
+  try{res=await runSimulationUI(finishUserMatchSteps());}
+  catch(err){console.error(err);toast("结算比赛出错："+(err?.message||err),"bad");return;}
+  finally{BUSY=false;}
   if(res==="ignored"){toast("当前比赛已失效，请从赛程重新进入","warn");VIEW="home";render();return;}
   VIEW="home";
    autoSave();      // 每场比赛后落盘，「继续游戏」才有意义
@@ -14935,7 +14649,7 @@ function drawPitch(alpha){
   if(B&&A&&A.p.length===B.p.length){
     const ea=ease(a), ba=flight? Math.min(1,a*1.15) : ea;   // 传射直线匀速略快，带球随人缓动
     ball={x:A.b.x+(B.b.x-A.b.x)*ba, y:A.b.y+(B.b.y-A.b.y)*ba};
-    dist=Math.hypot(B.b.x-A.b.x,B.b.y-A.b.y);
+    dist=distance2D(B.b.x-A.b.x,B.b.y-A.b.y);
     pts=B.p.map((q,i)=>[A.p[i][0]+(q[0]-A.p[i][0])*ea, A.p[i][1]+(q[1]-A.p[i][1])*ea]);
   } else if(B){ ball=B.b; pts=B.p; }
   else { ball=M.ball; pts=M.teams.flatMap(T=>T.men.filter(m=>!m.off).map(m=>[m.x,m.y])); }
@@ -14959,7 +14673,7 @@ function drawPitch(alpha){
   // 球的拖尾
   const tr=ANIM.trail||(ANIM.trail=[]);
   const lt=tr[tr.length-1];
-  if(!lt||Math.hypot(lt[0]-ball.x,lt[1]-ball.y)>0.35) tr.push([ball.x,ball.y]);
+  if(!lt||distance2D(lt[0]-ball.x,lt[1]-ball.y)>0.35) tr.push([ball.x,ball.y]);
   if(tr.length>16) tr.splice(0,tr.length-16);
   tr.forEach((q,i)=>{ const f=(i+1)/tr.length; ctx.fillStyle=`rgba(255,255,255,${(0.06+f*0.22).toFixed(2)})`;
     ctx.beginPath(); ctx.arc(X(q[0]),Y(q[1]),1.2+f*2.4,0,6.2832); ctx.fill(); });
@@ -15654,7 +15368,7 @@ function markDirty(){
 function flushAutosave(force){
   if(SAVE_PAUSED||!SAVE_DIRTY||!WORLD?.clubs) return;
   clearTimeout(SAVE_TIMER); SAVE_TIMER=null;
-  if((CURMATCH&&!CURMATCH.done&&!force)||SAVE_INFLIGHT){ SAVE_TIMER=setTimeout(flushAutosave,1000); return; }
+  if(BUSY||(CURMATCH&&!CURMATCH.done&&!force)||SAVE_INFLIGHT){ SAVE_TIMER=setTimeout(flushAutosave,1000); return; }
   const epoch=SAVE_EPOCH, seq=SAVE_CHANGE_SEQ;
   SAVE_DIRTY=false; SAVE_INFLIGHT=true;
   Promise.resolve().then(()=>storeSave(JSON.stringify(WORLD),{club:UC().cn,season:WORLD.season,day:WORLD.day,auto:1}))
@@ -15932,7 +15646,7 @@ function showSeasonEnd(){
 
 /* ---------- 继续按钮 ---------- */
 let BUSY=false;
-function onContinue(){
+async function onContinue(){
   if(BUSY||!WORLD || $("#app")?.style.display==="none" || $("#loadscr")?.style.display!=="none" && $("#loadscr")!=null) return;
   if(WORLD.gameOver){ openModal("下课",`<div>${esc(WORLD.gameOver)}</div>`,
      `<button class="pri" onclick="closeModal();newGameScreen()">重新开始</button>`); return; }
@@ -15940,15 +15654,12 @@ function onContinue(){
   if(CURMATCH){
     NAT_SCOPE=CURMATCH.national?"nation":null;
     if(!CURMATCH.done){ VIEW="match"; render(); return; }
-    BUSY=true;
-    try{ completeMatch(); }
-    catch(err){ console.error(err); toast("结算比赛出错："+(err&&err.message||err),"bad"); }
-    finally{ BUSY=false; }
+    await completeMatch();
     return;
   }
   BUSY=true;
   let r;
-  try{ r=advance(); }
+  try{ r=await runSimulationUI(advanceSteps()); }
   catch(err){ console.error(err); toast("推进失败："+(err&&err.message||err),"bad"); return; }
   finally{ BUSY=false; }   // 出错也要解锁，否则「继续」会永久失效
   if(r.t==="match"){ startUserMatch(r.fx); return; }

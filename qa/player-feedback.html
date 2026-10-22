@@ -1,0 +1,30 @@
+<!doctype html><meta charset="utf-8"><title>玩家反馈修复 QA</title>
+<script>
+(async()=>{
+ const html=await(await fetch('../index.html',{cache:'no-store'})).text();
+ const digest=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(html)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+ const setup=()=>document.addEventListener('DOMContentLoaded',()=>{
+  const start=startMenu;startMenu=async function(){await start();try{
+   newWorld(4242,'Manchester City');SAVE_PAUSED=true;clearTimeout(SAVE_TIMER);WORLD.userClub=WORLD.clubs.find(c=>c.nation===0&&c.tier===2).id;WORLD.userNation='中国';
+   const c=UC(),T=ensureNationalTeam('中国'),n=nationalPreview('中国');T.lineup=[...n.lineup];T.subs=[...n.subs];
+   c.finance.balance=600e6;c.finance.locked=390e6;c.finance.cap0=2e6;c.finance.rev0=3e6;
+   const star=WORLD.clubs.find(x=>x.id!==c.id).squad.map(P).find(p=>p.pos!=='GK');star.listed=true;star.relegationSale={club:star.clubId,season:WORLD.season,aiFromDay:7};
+   const savedLineup=JSON.stringify(c.lineup),savedSubs=JSON.stringify(c.subs);let heartbeat=0,maxGap=0,last=performance.now();
+   setInterval(()=>{const now=performance.now();maxGap=Math.max(maxGap,now-last);last=now;heartbeat++;},16);
+   const tools=document.createElement('div');tools.id='feedback-qa';tools.style.cssText='position:fixed;right:10px;top:5px;z-index:9999;background:var(--bg2);padding:5px;display:flex;flex-wrap:wrap;gap:5px;max-width:70vw';
+   function button(name,fn){const b=document.createElement('button');b.textContent=name;b.onclick=()=>{fn();update();};tools.appendChild(b);}
+   button('QA 国家队布阵',()=>{NAT_SCOPE='nation';go('tactics');});
+   button('QA 俱乐部阵容',()=>{NAT_SCOPE=null;go('tactics');});
+   button('QA 转会折叠',()=>go('transfer'));
+   button('QA 财政600M',()=>go('finance'));
+   button('QA 伤停补位',()=>{const p=P(c.lineup[1]);p.injury=7;const f=WORLD.fixtures.find(f=>[f.home,f.away].includes(c.id));WORLD.day=f.day;startUserMatch(f);pauseMatchPlayback();update();});
+   button('QA 高峰比赛日',()=>{resetMatchSession(false);NAT_SCOPE=null;WORLD.day=105;for(const f of WORLD.fixtures)if(f.day===105&&[f.home,f.away].includes(c.id))f.day=106;VIEW='home';render();maxGap=0;last=performance.now();});
+   if(!new URLSearchParams(location.search).has('clean'))document.body.appendChild(tools);
+   const report=document.createElement('script');report.type='application/json';report.id='feedback-report';document.body.appendChild(report);
+   function update(){report.textContent=JSON.stringify({sha:document.querySelector('meta[name=qa-source-sha]').content,view:VIEW,day:WORLD.day,busy:BUSY,savePaused:SAVE_PAUSED,heartbeat,maxGap,clubLineupUnchanged:JSON.stringify(c.lineup)===savedLineup,clubSubsUnchanged:JSON.stringify(c.subs)===savedSubs,cap:wageCap(c),support:cashWageSupport(c),reserve:boardReserve(c),nationalLineup:T.lineup,match:CURMATCH?{done:CURMATCH.done,injuredNotSelected:!CURMATCH.teams[CURMATCH.userSide].men.some(m=>P(m.id).injury>0)}:null,overflow:document.documentElement.scrollWidth>innerWidth});}
+   setInterval(update,100);NAT_SCOPE='nation';VIEW='tactics';enterGame();fitAppHeight();update();
+  }catch(e){console.error(e);const x=document.createElement('pre');x.id='feedback-error';x.textContent=e.stack;document.body.appendChild(x);}};
+ });
+ document.open();document.write(html.replace('</head>','<meta name="qa-source-sha" content="'+digest+'"><script>('+setup.toString()+')();<\/script></head>'));document.close();
+})();
+</script>

@@ -1,0 +1,11 @@
+const fs=require('node:fs'),crypto=require('node:crypto'),assert=require('node:assert/strict'),path=require('node:path');require('./shim.cjs');
+newWorld(4242,'Manchester City');SAVE_PAUSED=true;
+const files=process.env.COMPAT_SAVE_FILES?process.env.COMPAT_SAVE_FILES.split('|'):['/private/tmp/active-oldloader.json','output/light-theme-fix-20261021/qa-save-before.json'];const results=[];
+function protectedState(w){return {season:w.season,day:w.day,userClub:w.userClub,clubs:w.clubs.map(c=>({id:c.id,balance:c.finance.balance,squad:c.squad,lineup:c.lineup,subs:c.subs})),players:Object.values(w.players).map(p=>({id:p.id,clubId:p.clubId,loan:p.loan,contract:p.contract,wage:p.wage,injury:p.injury,ca:p.ca,pa:p.pa,a:p.a}))};}
+for(const file of files){const raw=fs.readFileSync(file,'utf8'),obj=JSON.parse(raw),protectedBefore=protectedState(obj);adoptWorld(obj);SAVE_PAUSED=true;assert.equal(JSON.stringify(obj),raw,'原对象被改动');assert.deepEqual(protectedState(WORLD),protectedBefore,'关键进度未保留');validateWorld(WORLD);
+ const normalized=JSON.stringify(WORLD);adoptWorld(JSON.parse(normalized));SAVE_PAUSED=true;assert.equal(JSON.stringify(WORLD),normalized,'反复读档不幂等');
+ let r=advance();if(r.t==='deadline')r=advance();if(r.t==='match'){assert(startUserMatch(r.fx));pauseMatchPlayback();runMatch(CURMATCH);const done=finishUserMatch();assert(['ok','pending','season'].includes(done));}else assert(['day','season'].includes(r.t));
+ validateWorld(WORLD);assert.equal(fs.readFileSync(file,'utf8'),raw);const progressed=JSON.stringify(WORLD);adoptWorld(JSON.parse(progressed));SAVE_PAUSED=true;assert.equal(JSON.stringify(WORLD),progressed);
+ results.push({file:path.basename(file),inputSha256:crypto.createHash('sha256').update(raw).digest('hex'),inputBytes:Buffer.byteLength(raw),keyStatePreserved:true,sourceUntouched:true,idempotent:true,progressAndReload:true,originalDay:obj.day,resultDay:WORLD.day});clearTimeout(SAVE_TIMER);
+}
+const report={passed:true,sourceSha256:crypto.createHash('sha256').update(fs.readFileSync(process.env.FMFILE||'index.html')).digest('hex'),results};const out=process.env.COMPAT_REPORT||'output/player-feedback-20261022/release/save-compat.json';fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,JSON.stringify(report,null,2));console.log(JSON.stringify(report));clearTimeout(SAVE_TIMER);

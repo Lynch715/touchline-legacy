@@ -1,0 +1,31 @@
+<!doctype html><meta charset="utf-8"><title>执掌绿茵 · 旧存档只读验收</title>
+<script>
+(async()=>{
+ const html=await(await fetch('../index.html',{cache:'no-store'})).text();
+ const sourceSha=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(html)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+ const setup=()=>document.addEventListener('DOMContentLoaded',()=>{
+  startMenu=async function(){
+   SAVE_PAUSED=true;clearTimeout(SAVE_TIMER);
+   const digest=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+   // 本页始终阻止写入正文与补写存档；只在内存测试，刷新不会保存测试进度。
+   storeSave=async()=>{throw Error('只读验收禁止保存');};healSave=async()=>[];
+   const original=await readSave(),originalSha=original?await digest(original):null;
+   let input=null,loadPassed=null,originalUnchanged=null,error=null;
+   const report=document.createElement('script');report.type='application/json';report.id='compat-report';document.body.appendChild(report);
+   const panel=document.createElement('div');panel.id='compat-panel';panel.style.cssText='position:fixed;z-index:9999;right:8px;top:8px;max-width:80vw;padding:10px;background:var(--bg2);border:1px solid var(--line);border-radius:8px';
+   const status=document.createElement('div');status.id='compat-status';status.textContent=original?'已读取原存档；自动保存已关闭。':'此浏览器没有原存档，可导入旧档验收。';panel.appendChild(status);
+   function update(){report.textContent=JSON.stringify({sourceSha:document.querySelector('meta[name=qa-source-sha]').content,originalSha,originalBytes:original?new TextEncoder().encode(original).length:0,loadPassed,originalUnchanged,savePaused:SAVE_PAUSED,error,view:VIEW,busy:BUSY,world:WORLD?{club:UC().cn,season:WORLD.season,day:WORLD.day,balance:UC().finance.balance,roster:UC().squad.length,injured:UC().squad.filter(id=>P(id).injury>0).length,match:CURMATCH?{comp:CURMATCH.comp,done:CURMATCH.done,day:WORLD.day}:null}:null});}
+   function button(label,fn){const b=document.createElement('button');b.textContent=label;b.style.cssText='margin:5px 5px 0 0';b.onclick=async()=>{try{await fn();}catch(e){error=e.message;status.textContent='验收错误：'+e.message;}finally{update();}};panel.appendChild(b);}
+   function preserve(w){return JSON.stringify({season:w.season,day:w.day,userClub:w.userClub,clubs:w.clubs.map(c=>({id:c.id,balance:c.finance.balance,squad:c.squad,lineup:c.lineup,subs:c.subs})),players:Object.values(w.players).map(p=>({id:p.id,clubId:p.clubId,loan:p.loan,contract:p.contract,wage:p.wage,injury:p.injury,ca:p.ca,pa:p.pa,a:p.a}))});}
+   async function load(raw){const obj=JSON.parse(raw),before=JSON.stringify(obj),summary=preserve(obj);adoptWorld(obj);SAVE_PAUSED=true;clearTimeout(SAVE_TIMER);loadPassed=JSON.stringify(obj)===before&&preserve(WORLD)===summary;input=raw;status.textContent=loadPassed?'旧存档加载通过，球队、资金、合同、球员属性与伤病均保留。':'旧档发生迁移，需要核对报告。';enterGame();fitAppHeight();update();}
+   button('导出原存档备份',()=>{if(!original)throw Error('没有原存档');const a=document.createElement('a'),u=URL.createObjectURL(new Blob([original],{type:'application/json'}));a.href=u;a.download='执掌绿茵-线上原存档备份.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);});
+   button('只读加载原存档',()=>{if(!original)throw Error('没有原存档');return load(original);});
+   const file=document.createElement('input');file.type='file';file.accept='.json';file.style.display='none';file.onchange=async()=>{try{const f=file.files[0];if(f)await load(await f.text());}catch(e){error=e.message;status.textContent=e.message;update();}};panel.appendChild(file);button('导入旧档只读验收',()=>file.click());
+   button('核对原存档未变',async()=>{const now=await readSave();originalUnchanged=now===original;status.textContent=originalUnchanged?'原存档逐字节未变，测试进度未写入。':'原存档发生变化，请保留备份核对。';});
+   document.body.appendChild(panel);document.getElementById('loadscr').style.display='none';document.getElementById('app').style.display='none';update();
+   document.addEventListener('click',()=>setTimeout(update,0));setInterval(update,200);
+  };
+ });
+ document.open();document.write(html.replace('</head>','<meta name="qa-source-sha" content="'+sourceSha+'"><script>('+setup.toString()+')();<\/script></head>'));document.close();
+})();
+</script>
