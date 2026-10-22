@@ -14902,8 +14902,17 @@ async function zipSave(str){
   }
   return "Z0:"+str;
 }
+function unpackSaveEnvelope(payload){
+  const value=String(payload);
+  if(!value.startsWith('S1:'))return {packed:value,header:null};
+  const nl=value.indexOf('\n');if(nl<0)throw new Error('存档封装不完整');
+  const header=JSON.parse(value.slice(3,nl)),packed=value.slice(nl+1);
+  if(!header||!Number.isFinite(header.at)||header.checksum!==hashStr(packed))throw new Error('存档封装校验失败');
+  return {packed,header};
+}
 async function unzipSave(p){
   if(p==null) return null;
+  p=unpackSaveEnvelope(p).packed;
   const h=String(p).slice(0,3);
   if(h==="Z0:") return p.slice(3);
   const f=Z_HDR2FMT[h];
@@ -14990,29 +14999,31 @@ async function readSaveRecord(){
   for(const row of rows){
     if(!row.payload) continue;
     if(!decoded.has(row.payload)) decoded.set(row.payload,(async()=>{
-      const str=await unzipSave(row.payload), obj=JSON.parse(str);
+      const envelope=unpackSaveEnvelope(row.payload),str=await unzipSave(envelope.packed),obj=JSON.parse(str);
+      if(envelope.header&&(envelope.header.season!==obj.season||envelope.header.day!==obj.day))throw new Error('存档封装进度不匹配');
       // 沿用正文内时间戳格式，加上上游的完整性校验；旧档无 checksum 仍兼容。
-      if(obj._saveStamp && Object.hasOwn(obj._saveStamp,"checksum")){
+      if(!envelope.header && obj._saveStamp && Object.hasOwn(obj._saveStamp,"checksum")){
         const unstamped={...obj};delete unstamped._saveStamp;
         if(!Number.isFinite(obj._saveStamp.at) || obj._saveStamp.checksum!==hashStr(JSON.stringify(unstamped))) throw new Error("存档正文校验失败");
       }
       assertLoadable(obj);
-      return {str,obj};
+      return {str,obj,header:envelope.header};
     })());
     try{
-      const {str,obj}=await decoded.get(row.payload);
-      const embedded=Number(obj._saveStamp&&obj._saveStamp.at);
-      // 老版没有正文时间戳，仅在索引与正文的赛季、日期相符时接受索引时间。
-      const matched=row.meta && row.meta.season===obj.season && row.meta.day===obj.day;
-      const at=Number.isFinite(embedded)&&embedded>0?embedded:(matched?Number(row.meta.at)||0:0);
+      const {str,obj,header}=await decoded.get(row.payload);
+      const embedded=Number(obj._saveStamp&&obj._saveStamp.at),sourceMeta=header||row.meta;
+      // S1 的校验封装时间属于正文；独立索引仍须与正文进度一致。
+      const matched=sourceMeta && sourceMeta.season===obj.season && sourceMeta.day===obj.day;
+      const at=header?header.at:Number.isFinite(embedded)&&embedded>0?embedded:(matched?Number(sourceMeta.at)||0:0);
       const club=obj.clubs[obj.userClub];
-      const meta={...(matched?row.meta:{}),club:club.cn,season:obj.season,day:obj.day,
+      const meta={...(matched?sourceMeta:{}),club:club.cn,season:obj.season,day:obj.day,
         at,mb:(str.length/1048576).toFixed(2),zmb:(row.payload.length/1048576).toFixed(2)};
       valid.push({...row,str,obj,at,meta});
     }catch(e){} // 损坏或无法解压的副本不能盖过另一层的有效存档。
   }
   valid.sort((a,b)=>b.at-a.at || b.obj.season-a.obj.season || b.obj.day-a.obj.day);
-  return valid[0]||null;
+  const best=valid[0]||null;if(best)SAVE_WRITE_AT=Math.max(SAVE_WRITE_AT,best.at);
+  return best;
 }
 async function healSave(){
   const epoch=SAVE_EPOCH, best=await readSaveRecord();

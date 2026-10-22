@@ -1,8 +1,8 @@
 {
   "version": "20261022.1",
-  "sourceSha256": "4e0136a01a150b557af1324903a646e6c3f20761806d363a24ff19e2c33e1878",
+  "sourceSha256": "15cbe3321280025a4a8093e24b146632fd8cc591d55c06fcaead4db2fc8efe12",
   "remoteBase": "43a619b7fd07b86b9b3c81e418b1cb31509431ad",
-  "regressionChecks": 122,
+  "regressionChecks": 146,
   "oldSaveRoundTripCases": 2,
   "oldSaveKeyStatePreserved": true,
   "oldSaveSourceUntouched": true,
@@ -31,5 +31,10 @@
   "newAndLegacyTotalMatches": 40778,
   "localBrowserOldSaveLoadAndAdvance": true,
   "testAutoSaveDisabled": true,
-  "physicalDeviceAcceptance": false
+  "physicalDeviceAcceptance": false,
+  "saveEnvelopeCases": 17,
+  "inheritedStorageChecks": 7,
+  "s1Supported": true,
+  "coreFullSeasonSourceSha256": "4e0136a01a150b557af1324903a646e6c3f20761806d363a24ff19e2c33e1878",
+  "note": "Complete seasons precede the storage-only S1 compatibility extension. Final source has 146 passing regression checks plus two old-save progression and reload cases."
 }

@@ -1,0 +1,162 @@
+{
+  "sha256": "15cbe3321280025a4a8093e24b146632fd8cc591d55c06fcaead4db2fc8efe12",
+  "checks": [
+    {
+      "name": "足总杯",
+      "nation": 0,
+      "day": 11,
+      "manual": true
+    },
+    {
+      "name": "国王杯",
+      "nation": 1,
+      "day": 11,
+      "manual": true
+    },
+    {
+      "name": "意大利杯",
+      "nation": 2,
+      "day": 11,
+      "manual": true
+    },
+    {
+      "name": "德国杯",
+      "nation": 3,
+      "day": 11,
+      "manual": true
+    },
+    {
+      "name": "法国杯",
+      "nation": 4,
+      "day": 11,
+      "manual": true
+    },
+    {
+      "name": "足协杯",
+      "nation": 5,
+      "day": 25,
+      "manual": true
+    },
+    {
+      "name": "天皇杯",
+      "nation": 6,
+      "day": 25,
+      "manual": true
+    },
+    {
+      "name": "国王杯",
+      "nation": 7,
+      "day": 25,
+      "manual": true
+    },
+    {
+      "name": "美国公开杯",
+      "nation": 8,
+      "day": 25,
+      "manual": true
+    },
+    {
+      "name": "俄罗斯杯",
+      "nation": 9,
+      "day": 25,
+      "manual": true
+    },
+    {
+      "name": "葡萄牙杯",
+      "nation": 10,
+      "day": 25,
+      "manual": true
+    },
+    {
+      "name": "荷兰杯",
+      "nation": 11,
+      "day": 25,
+      "manual": true
+    },
+    {
+      "name": "苏格兰杯",
+      "nation": 12,
+      "day": 25,
+      "manual": true
+    },
+    {
+      "name": "瑞士杯",
+      "nation": 13,
+      "day": 25,
+      "manual": true
+    },
+    {
+      "name": "芬兰杯",
+      "nation": 14,
+      "day": 25,
+      "manual": true
+    },
+    {
+      "name": "比利时杯",
+      "nation": 15,
+      "day": 25,
+      "manual": true
+    },
+    {
+      "name": "巴西杯",
+      "nation": 16,
+      "day": 11,
+      "manual": true
+    },
+    {
+      "name": "韩国杯",
+      "nation": 17,
+      "day": 25,
+      "manual": true
+    },
+    {
+      "name": "澳大利亚杯",
+      "nation": 18,
+      "day": 25,
+      "manual": true
+    },
+    {
+      "name": "阿根廷杯",
+      "nation": 19,
+      "day": 11,
+      "manual": true
+    },
+    {
+      "name": "土耳其杯",
+      "nation": 20,
+      "day": 25,
+      "manual": true
+    }
+  ],
+  "cupNames": [
+    "足总杯",
+    "国王杯",
+    "意大利杯",
+    "德国杯",
+    "法国杯",
+    "足协杯",
+    "天皇杯",
+    "国王杯",
+    "美国公开杯",
+    "俄罗斯杯",
+    "葡萄牙杯",
+    "荷兰杯",
+    "苏格兰杯",
+    "瑞士杯",
+    "芬兰杯",
+    "比利时杯",
+    "巴西杯",
+    "韩国杯",
+    "澳大利亚杯",
+    "阿根廷杯",
+    "土耳其杯"
+  ],
+  "screenshotMail": {
+    "checks": 3,
+    "passes": true,
+    "weeklyReports": 40,
+    "falseCupExit": false,
+    "falseSingleMatch12Goals": false,
+    "actualScoreIncluded": true
+  }
+}

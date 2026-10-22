@@ -1,0 +1,24 @@
+{
+  "passed": true,
+  "checks": 4,
+  "sha256": "15cbe3321280025a4a8093e24b146632fd8cc591d55c06fcaead4db2fc8efe12",
+  "oldFileSha256": "ea8ffcd57a571dfe2b911181b2383f03c59195e8980bce63440082dc134ce7c6",
+  "results": [
+    {
+      "name": "输入对象未修改",
+      "pass": true
+    },
+    {
+      "name": "20261020.2 活动存档赛程、财政、历史、征召、首发和战术逐字保持",
+      "pass": true
+    },
+    {
+      "name": "活动赛程可验证、反复读取幂等",
+      "pass": true
+    },
+    {
+      "name": "读取旧档后仍可进入下一场国家队手动临场",
+      "pass": true
+    }
+  ]
+}
