@@ -1,0 +1,1043 @@
+{
+  "updated": "2026-10-23",
+  "usage": "标识归各俱乐部所有，用于对应球队辨识。保存原始来源和摘要供核查；运行时均随游戏本地打包，不请求外站。",
+  "entries": [
+    {
+      "en": "Terrasa",
+      "image": "https://www.terrassafc.com/images/escuts/TerrassaFC.png",
+      "page": "https://www.terrassafc.com/club/identitat",
+      "originalSize": [
+        3375,
+        3375
+      ],
+      "trimmedSize": [
+        2937,
+        3367
+      ],
+      "sourceSha256": "14d31e2d5b7ff8c459fdf93c0d0887f591d429aab8573b224b2bf3765aa185da",
+      "bytes": 27950,
+      "sha256": "17c8d35f557aa8cd1e4183c89fe935739ecd782423435b771eac259f8328fe57",
+      "path": "assets/images/17c8d35f557aa8cd1e4183c8.webp"
+    },
+    {
+      "en": "PK-35",
+      "image": "https://edustus.pk-35.fi/wp-content/uploads/2022/02/PK-35_logo.png",
+      "page": "https://edustus.pk-35.fi/",
+      "originalSize": [
+        592,
+        592
+      ],
+      "trimmedSize": [
+        592,
+        592
+      ],
+      "sourceSha256": "8bb14d9c4b564972a8c634c0fcd1de0bbd444a6f2abe2c9fee27a294c3835a0e",
+      "bytes": 24234,
+      "sha256": "a13acd65f31a33bef2782de26f51e23af8bab6924468d9279833e96e29fbb965",
+      "path": "assets/images/a13acd65f31a33bef2782de2.webp"
+    },
+    {
+      "en": "Reipas",
+      "image": "https://www.lahdenreipas.fi/wp-content/uploads/2026/04/reipas-1.webp",
+      "page": "https://www.lahdenreipas.fi/",
+      "originalSize": [
+        200,
+        200
+      ],
+      "trimmedSize": [
+        195,
+        200
+      ],
+      "sourceSha256": "376e854fc011e321e08a234ca328a3010e087e2fb27002543e799a3290cf281c",
+      "bytes": 60616,
+      "sha256": "1edb7b958a66e46c50024d325d338e3909580615ddbbaaa01f7e664034abb77b",
+      "path": "assets/images/1edb7b958a66e46c50024d32.webp"
+    },
+    {
+      "en": "TP-47",
+      "image": "https://static.jopox.fi/tp-47/logos/logo-300.png",
+      "page": "https://www.tp47.com/",
+      "originalSize": [
+        300,
+        300
+      ],
+      "trimmedSize": [
+        215,
+        295
+      ],
+      "sourceSha256": "87c4e18eca26f91dcb41b2af49418ad9e2cb0d5787c118f08c0ed1534ca88fdb",
+      "bytes": 16460,
+      "sha256": "2a9a08597fe8731dd2ca8dec11646bea8231b8d3e6bd249665bf2d811e11f774",
+      "path": "assets/images/2a9a08597fe8731dd2ca8dec.webp"
+    },
+    {
+      "en": "GBK",
+      "image": "https://static.jopox.fi/gbk/logos/logo-300.png",
+      "page": "https://www.gbk.fi/",
+      "originalSize": [
+        300,
+        300
+      ],
+      "trimmedSize": [
+        214,
+        274
+      ],
+      "sourceSha256": "97a974a00b05d1a9d7ec52e13f3b8f7e8d14b1254b2c59a9f9393e1c6d1c1506",
+      "bytes": 18436,
+      "sha256": "468008a08198bb690c371caa96d1a4bf60e29155a8fe70425662c75d61c5c060",
+      "path": "assets/images/468008a08198bb690c371caa.webp"
+    },
+    {
+      "en": "JBK",
+      "image": "https://assets.cdn.filesafe.space/BP27khaSs6XWjl3Fiiox/media/69878e582dd9858310c33618.png",
+      "page": "https://jbk.fi/",
+      "originalSize": [
+        824,
+        780
+      ],
+      "trimmedSize": [
+        801,
+        768
+      ],
+      "sourceSha256": "51fc8694c9df695e9aa9166c894c87d174cb37d2c3cf3692d6e5227a342dd4c3",
+      "bytes": 58992,
+      "sha256": "97888d855162b99f1beedc4d3c8aed7e40b44cf9513d05f9351cf16063ec8fab",
+      "path": "assets/images/97888d855162b99f1beedc4d.webp"
+    },
+    {
+      "en": "Närpes Kraft",
+      "image": "https://www.kraftff.com/sites/all/themes/kraftff/logo.png",
+      "page": "https://www.kraftff.com/",
+      "originalSize": [
+        154,
+        106
+      ],
+      "trimmedSize": [
+        152,
+        104
+      ],
+      "sourceSha256": "2d77723212f1476feab9089ed760da70a16755d36bc0b1f053c141ffa8d44951",
+      "bytes": 30698,
+      "sha256": "40f2af78f576e36f787599ffc1e4c3defc6e5c74313e2a7243c6dff7b2636862",
+      "path": "assets/images/40f2af78f576e36f787599ff.webp"
+    },
+    {
+      "en": "FC Biel-Bienne",
+      "image": "https://www.fcbiel-bienne.ch/images/logos-clubs/fcbielbienne.png",
+      "page": "https://www.fcbiel-bienne.ch/",
+      "originalSize": [
+        377,
+        500
+      ],
+      "trimmedSize": [
+        335,
+        458
+      ],
+      "sourceSha256": "ddbead75a472b92e6e56db5968fbbd5577d3bfe9d7daf36a15b5d0edfe483d88",
+      "bytes": 18230,
+      "sha256": "2a13c5ac1c0e0cea3589a8385756fa19b7fda62d3c92d16d2b79893dedad0baf",
+      "path": "assets/images/2a13c5ac1c0e0cea3589a838.webp"
+    },
+    {
+      "en": "Sint-Eloois-Winkel",
+      "image": "https://winkelsport.be/assets/img/WSP.png",
+      "page": "https://winkelsport.be/",
+      "originalSize": [
+        373,
+        512
+      ],
+      "trimmedSize": [
+        369,
+        506
+      ],
+      "sourceSha256": "7387769c90062f1445e804cf3bd868a343f15b48a4366362c8d8115209db0b04",
+      "bytes": 27332,
+      "sha256": "c08009216311492d5ba3abd01a740cd8c6262dc1898aec793779db927ae45734",
+      "path": "assets/images/c08009216311492d5ba3abd0.webp"
+    },
+    {
+      "en": "Antelope Valley",
+      "image": "https://www.avaltafc.com/wp-content/uploads/sites/149/2024/05/cropped-Primary-identity-3-color.png",
+      "page": "https://www.avaltafc.com/",
+      "originalSize": [
+        3626,
+        4419
+      ],
+      "trimmedSize": [
+        3626,
+        4419
+      ],
+      "sourceSha256": "4bb9dbf82c0eef4c5351737b0d2c0436de3f9ac9e75a8e1827af6dd6a581f910",
+      "bytes": 14178,
+      "sha256": "18280f9ee4fcefd97456cfd46df088acfa2c3231afa8ee04754c48d31d8b8dfa",
+      "path": "assets/images/18280f9ee4fcefd97456cfd4.webp"
+    },
+    {
+      "en": "Al Shoalah",
+      "image": "https://www.saff.com.sa/uploadcenter/saffteamsmall1566299453.png",
+      "page": "https://www.saff.com.sa/championship.php?id=253",
+      "identity": "الشعلة",
+      "originalSize": [
+        50,
+        50
+      ],
+      "trimmedSize": [
+        40,
+        50
+      ],
+      "sourceSha256": "a0d7a19194b2958436369075f737ae8a3bacd45b9bdcbf687daced81ada0cf5e",
+      "bytes": 45106,
+      "sha256": "5278e09e8c5a91ceddedc3fab932a4e928d7d60ca420c5e8b61dbb5a5418ed68",
+      "path": "assets/images/5278e09e8c5a91ceddedc3fa.webp"
+    },
+    {
+      "en": "Al Rawdhah",
+      "image": "https://www.saff.com.sa/uploadcenter/saffteamsmall1566292956.png",
+      "page": "https://www.saff.com.sa/championship.php?id=253",
+      "identity": "الروضة",
+      "originalSize": [
+        50,
+        50
+      ],
+      "trimmedSize": [
+        46,
+        46
+      ],
+      "sourceSha256": "d7b8d63edbabe29a25c24fb9e54ef107bdcb80d8a1b289f825e4c35085cd454c",
+      "bytes": 56514,
+      "sha256": "71644842b122eec522198df3f04e32b11cafee0374c35669284863a3cbbd1eba",
+      "path": "assets/images/71644842b122eec522198df3.webp"
+    },
+    {
+      "en": "Al Entesar",
+      "image": "https://www.saff.com.sa/uploadcenter/saffteamsmall1696748833.png",
+      "page": "https://www.saff.com.sa/championship.php?id=253",
+      "identity": "الانتصار",
+      "originalSize": [
+        400,
+        400
+      ],
+      "trimmedSize": [
+        322,
+        342
+      ],
+      "sourceSha256": "fcaaa45cd7657fef66422ebb4413932552caf8a0b1c2a5fbfd9bf4c1f735b1de",
+      "bytes": 42920,
+      "sha256": "c42aa016da364c048e8b27272773b942f30536073eac2439daf1b0a24d342ead",
+      "path": "assets/images/c42aa016da364c048e8b2727.webp"
+    },
+    {
+      "en": "Al Taqadom",
+      "image": "https://www.saff.com.sa/uploadcenter/saffteamsmall1566206933.png",
+      "page": "https://www.saff.com.sa/championship.php?id=253",
+      "identity": "التقدم",
+      "originalSize": [
+        50,
+        50
+      ],
+      "trimmedSize": [
+        43,
+        43
+      ],
+      "sourceSha256": "401de4a70575188ed0d099bfafb65e7ca9f52ef4bb2c31c477fdba3bf063f18d",
+      "bytes": 44480,
+      "sha256": "8bc669776b83bcabf38b79f44809b8168e2fcffd4c1f484661aaac306444eca3",
+      "path": "assets/images/8bc669776b83bcabf38b79f4.webp"
+    },
+    {
+      "en": "Al Qaisumah",
+      "image": "https://www.saff.com.sa/uploadcenter/saffteamsmall1608133338.png",
+      "page": "https://www.saff.com.sa/championship.php?id=253",
+      "identity": "القيصومة",
+      "originalSize": [
+        400,
+        400
+      ],
+      "trimmedSize": [
+        293,
+        388
+      ],
+      "sourceSha256": "a315a99bfdf70068d13917681861e97796c20f6994d26fffad5e1a4defe73550",
+      "bytes": 21020,
+      "sha256": "bff11712876364eaf06ef527c9921f3ee6af5a504a16ceac3456eac0b23f41e5",
+      "path": "assets/images/bff11712876364eaf06ef527.webp"
+    },
+    {
+      "en": "Al Mojzel",
+      "image": "https://www.saff.com.sa/uploadcenter/saffteamsmall1685534127.png",
+      "page": "https://www.saff.com.sa/championship.php?id=2",
+      "identity": "المجزل",
+      "originalSize": [
+        400,
+        400
+      ],
+      "trimmedSize": [
+        294,
+        387
+      ],
+      "sourceSha256": "1b7052191180b310de88304c469f768b2b0b7fdff1999d8d5d71d08c51adac72",
+      "bytes": 15822,
+      "sha256": "8297b880df1b949edd9b8d5436f582b312308d4b0089584395a1eb60f0b81041",
+      "path": "assets/images/8297b880df1b949edd9b8d54.webp"
+    },
+    {
+      "en": "Al Deraa",
+      "image": "https://www.saff.com.sa/uploadcenter/saffteamlarge1566292415.png",
+      "page": "https://www.saff.com.sa/team.php?id=31",
+      "identity": "الدرع",
+      "originalSize": [
+        400,
+        400
+      ],
+      "trimmedSize": [
+        295,
+        354
+      ],
+      "sourceSha256": "6cc45cdb28513ee3eba489895c70d458ebf9062f4152d19c851d1eb51f52a4f5",
+      "bytes": 56048,
+      "sha256": "bb0d52980e1b297b95514c7999a8e3c210273983735430ac71d07fcafb4d3092",
+      "path": "assets/images/bb0d52980e1b297b95514c79.webp"
+    },
+    {
+      "en": "Al Watani",
+      "image": "https://www.saff.com.sa/uploadcenter/saffteamlarge1566384048.png",
+      "page": "https://www.saff.com.sa/team.php?id=148",
+      "identity": "الوطني",
+      "originalSize": [
+        400,
+        400
+      ],
+      "trimmedSize": [
+        340,
+        351
+      ],
+      "sourceSha256": "c2cabce533bf9015137abf3a49372bf274f8642d47db56abea66f4ab55fda2a3",
+      "bytes": 45946,
+      "sha256": "abc5e0120d903946a97c2331440af5b425efe846ccd9f81b7dcd89be6bde77c2",
+      "path": "assets/images/abc5e0120d903946a97c2331.webp"
+    },
+    {
+      "en": "Cardiff City",
+      "title": "Cardiff City F.C.",
+      "image": "https://thumb.wikimedia.org/wikipedia/en/thumb/3/3c/Cardiff_City_crest.svg/330px-Cardiff_City_crest.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/Cardiff_City_F.C.",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/3/3c/Cardiff_City_crest.svg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 310,
+        "height": 323
+      },
+      "originalSize": [
+        330,
+        344
+      ],
+      "trimmedSize": [
+        330,
+        342
+      ],
+      "sourceSha256": "00b75b0f55ce91da41674c40209262937164a244babefb7477df70f028f13200",
+      "bytes": 40346,
+      "sha256": "2306ef01a4d28426c88fa5e1d6a07fb21185f7f5aa91480288c2f2aaa2af3b0d",
+      "path": "assets/images/2306ef01a4d28426c88fa5e1.webp"
+    },
+    {
+      "en": "Bolton Wanderers",
+      "title": "Bolton Wanderers F.C.",
+      "image": "https://thumb.wikimedia.org/wikipedia/en/thumb/8/82/Bolton_Wanderers_FC_logo.svg/330px-Bolton_Wanderers_FC_logo.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/Bolton_Wanderers_F.C.",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/8/82/Bolton_Wanderers_FC_logo.svg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 277,
+        "height": 299
+      },
+      "originalSize": [
+        330,
+        356
+      ],
+      "trimmedSize": [
+        328,
+        354
+      ],
+      "sourceSha256": "6b51d8580e52d96dc7da90d26aa9f5bf157c0c73d73df64ec351558b15b179d2",
+      "bytes": 17334,
+      "sha256": "71a61166986b5a05e638558290a4e26f621c498081477a0a43a9bccd921e2a57",
+      "path": "assets/images/71a61166986b5a05e6385582.webp"
+    },
+    {
+      "en": "Charlton Athletic",
+      "title": "Charlton Athletic F.C.",
+      "image": "https://thumb.wikimedia.org/wikipedia/en/thumb/f/f5/Charlton_Athletic_FC_crest.svg/330px-Charlton_Athletic_FC_crest.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/Charlton_Athletic_F.C.",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/f/f5/Charlton_Athletic_FC_crest.svg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 316,
+        "height": 316
+      },
+      "originalSize": [
+        330,
+        330
+      ],
+      "trimmedSize": [
+        330,
+        330
+      ],
+      "sourceSha256": "046f3d12209cad6cfda4b22a995da84b715057196ad6a65f5d0d9d587c4b2d5b",
+      "bytes": 31924,
+      "sha256": "d74c49dc2c74cedf8b003f98bbfbd0287432f81fb06a139a22177f04feb524f3",
+      "path": "assets/images/d74c49dc2c74cedf8b003f98.webp"
+    },
+    {
+      "en": "Rotherham United",
+      "title": "Rotherham United F.C.",
+      "image": "https://thumb.wikimedia.org/wikipedia/en/thumb/4/42/Rotherham_United_F.C._svg.svg/330px-Rotherham_United_F.C._svg.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/Rotherham_United_F.C.",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/4/42/Rotherham_United_F.C._svg.svg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 250,
+        "height": 332
+      },
+      "originalSize": [
+        330,
+        439
+      ],
+      "trimmedSize": [
+        330,
+        439
+      ],
+      "sourceSha256": "561f5d32acf8182c3f9b32c2cb3ab2fdea3a94d17addb54321ff5b927b813c03",
+      "bytes": 25460,
+      "sha256": "7bbf278ab3188f9272c8f2a612922a6a232af887ce2616f9146f9e975e420c85",
+      "path": "assets/images/7bbf278ab3188f9272c8f2a6.webp"
+    },
+    {
+      "en": "Peterborough United",
+      "title": "Peterborough United F.C.",
+      "image": "https://thumb.wikimedia.org/wikipedia/en/thumb/9/9a/Peterborough_United_FC_crest.svg/330px-Peterborough_United_FC_crest.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/Peterborough_United_F.C.",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/9/9a/Peterborough_United_FC_crest.svg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 271,
+        "height": 369
+      },
+      "originalSize": [
+        330,
+        449
+      ],
+      "trimmedSize": [
+        330,
+        449
+      ],
+      "sourceSha256": "5b2ff1dce477fd585c83c31b86d508732769a2e73a20710e77adffaa5e700a7b",
+      "bytes": 15556,
+      "sha256": "e24e7533b47162e93e215b406430ef9be9ef3ee1bc18dfe44e8a9ced4e1d22ba",
+      "path": "assets/images/e24e7533b47162e93e215b40.webp"
+    },
+    {
+      "en": "Bristol Rovers",
+      "title": "Bristol Rovers F.C.",
+      "image": "https://thumb.wikimedia.org/wikipedia/en/thumb/4/47/Bristol_Rovers_F.C._logo.svg/330px-Bristol_Rovers_F.C._logo.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/Bristol_Rovers_F.C.",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/4/47/Bristol_Rovers_F.C._logo.svg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 145,
+        "height": 157
+      },
+      "originalSize": [
+        330,
+        358
+      ],
+      "trimmedSize": [
+        323,
+        352
+      ],
+      "sourceSha256": "62483081dc11f6ddde6685e548b4eff91e8d69902ef4fa092ed0332a34cc6ed1",
+      "bytes": 37346,
+      "sha256": "107647aa45abcd17cb098335c431fea5aa7ae441e823dadd94550426d75e2b20",
+      "path": "assets/images/107647aa45abcd17cb098335.webp"
+    },
+    {
+      "en": "Lincoln City",
+      "title": "Lincoln City F.C.",
+      "image": "https://thumb.wikimedia.org/wikipedia/en/thumb/3/39/Lincoln_City_FC_2024_crest.svg/330px-Lincoln_City_FC_2024_crest.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/Lincoln_City_F.C.",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/3/39/Lincoln_City_FC_2024_crest.svg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 244,
+        "height": 410
+      },
+      "originalSize": [
+        330,
+        556
+      ],
+      "trimmedSize": [
+        330,
+        556
+      ],
+      "sourceSha256": "735c4eb267d52e270ea326157c51e0f5240e8fa84d45d4c6d059407b68939555",
+      "bytes": 16746,
+      "sha256": "3b370b7ec5edfe9e18aea60c06b3abd32374b369fa169fe502d4a3e4ed1effde",
+      "path": "assets/images/3b370b7ec5edfe9e18aea60c.webp"
+    },
+    {
+      "en": "Northampton Town",
+      "title": "Northampton Town F.C.",
+      "image": "https://thumb.wikimedia.org/wikipedia/en/thumb/2/2d/Northampton_Town_F.C._logo.svg/330px-Northampton_Town_F.C._logo.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/Northampton_Town_F.C.",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/2/2d/Northampton_Town_F.C._logo.svg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 155,
+        "height": 200
+      },
+      "originalSize": [
+        330,
+        426
+      ],
+      "trimmedSize": [
+        330,
+        426
+      ],
+      "sourceSha256": "57ce93630a228b8978000f21531fbc1ce961cb03688c1a98cc6f65e358013b95",
+      "bytes": 42354,
+      "sha256": "6ea34051f9f9af81710eb1f473260d44e1cc9bd61d5c5d46ce8183574b8046f7",
+      "path": "assets/images/6ea34051f9f9af81710eb1f4.webp"
+    },
+    {
+      "en": "Exeter City",
+      "title": "Exeter City F.C.",
+      "image": "https://thumb.wikimedia.org/wikipedia/en/thumb/7/71/Exeter_City_FC.svg/330px-Exeter_City_FC.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/Exeter_City_F.C.",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/7/71/Exeter_City_FC.svg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 200,
+        "height": 200
+      },
+      "originalSize": [
+        330,
+        330
+      ],
+      "trimmedSize": [
+        330,
+        330
+      ],
+      "sourceSha256": "77b3cc5c0907ea43fb3b9c351d25307cfd83093128daa08ae1b29ae0fd1cb855",
+      "bytes": 35830,
+      "sha256": "f7519b0b65ace94014646f3f89c5add3ef7fed0c5b0c4c9afabd3d0bb1fd6cc9",
+      "path": "assets/images/f7519b0b65ace94014646f3f.webp"
+    },
+    {
+      "en": "Burton Albion",
+      "title": "Burton Albion F.C.",
+      "image": "https://thumb.wikimedia.org/wikipedia/en/thumb/9/93/Burton_Albion_FC_crest.svg/330px-Burton_Albion_FC_crest.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/Burton_Albion_F.C.",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/9/93/Burton_Albion_FC_crest.svg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 300,
+        "height": 300
+      },
+      "originalSize": [
+        330,
+        330
+      ],
+      "trimmedSize": [
+        330,
+        330
+      ],
+      "sourceSha256": "67ed6d4af43923db219f7873e925607168823e5a8f855ab07126c81466c3cfdb",
+      "bytes": 33042,
+      "sha256": "e8fe6d3e253a10d7c6ae7424f7c4d20f01f77fb9bb3bf8d44488e165f1719370",
+      "path": "assets/images/e8fe6d3e253a10d7c6ae7424.webp"
+    },
+    {
+      "en": "Shrewsbury Town",
+      "title": "Shrewsbury Town F.C.",
+      "image": "https://thumb.wikimedia.org/wikipedia/en/thumb/1/1b/Shrewsbury_Town_F.C._logo.svg/330px-Shrewsbury_Town_F.C._logo.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/Shrewsbury_Town_F.C.",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/1/1b/Shrewsbury_Town_F.C._logo.svg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 200,
+        "height": 200
+      },
+      "originalSize": [
+        330,
+        330
+      ],
+      "trimmedSize": [
+        330,
+        330
+      ],
+      "sourceSha256": "e79c78172988988f1c15552ba6285fbef6464f5f64d8c1d581e7081b9ba5464b",
+      "bytes": 53162,
+      "sha256": "f601ae9d0bc7849151a1d9463c4afca714376ae19016a361601052f4da44f4d5",
+      "path": "assets/images/f601ae9d0bc7849151a1d946.webp"
+    },
+    {
+      "en": "Spezia",
+      "title": "Spezia Calcio",
+      "image": "https://thumb.wikimedia.org/wikipedia/en/thumb/6/6f/Spezia_Calcio_crest.svg/330px-Spezia_Calcio_crest.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/Spezia_Calcio",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/6/6f/Spezia_Calcio_crest.svg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 286,
+        "height": 350
+      },
+      "originalSize": [
+        330,
+        405
+      ],
+      "trimmedSize": [
+        330,
+        405
+      ],
+      "sourceSha256": "340560972374880726fb28a53336acac77066998a70d123498b346acb6bae9e6",
+      "bytes": 14294,
+      "sha256": "327c9e91c47449eecff84c1cd80def89342892ae017d1816f32a43d53ea37bae",
+      "path": "assets/images/327c9e91c47449eecff84c1c.webp"
+    },
+    {
+      "en": "Salernitana",
+      "title": "US Salernitana 1919",
+      "image": "https://thumb.wikimedia.org/wikipedia/en/thumb/8/85/US_Salernitana_1919_logo.svg/330px-US_Salernitana_1919_logo.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/US_Salernitana_1919",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/8/85/US_Salernitana_1919_logo.svg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 300,
+        "height": 295
+      },
+      "originalSize": [
+        330,
+        326
+      ],
+      "trimmedSize": [
+        328,
+        323
+      ],
+      "sourceSha256": "74890d195ca0d90b17ea3502a205b8b937584e1ff403e34a292bad66115cfa34",
+      "bytes": 19788,
+      "sha256": "e89e9b63d1d988f0a5165ce1658ab306eba99351ec6ce7f94ddf13749879b7a7",
+      "path": "assets/images/e89e9b63d1d988f0a5165ce1.webp"
+    },
+    {
+      "en": "Brescia",
+      "title": "Brescia Calcio",
+      "image": "https://thumb.wikimedia.org/wikipedia/en/thumb/1/17/Brescia_calcio_badge.svg/330px-Brescia_calcio_badge.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/Brescia_Calcio",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/1/17/Brescia_calcio_badge.svg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 203,
+        "height": 250
+      },
+      "originalSize": [
+        330,
+        408
+      ],
+      "trimmedSize": [
+        330,
+        408
+      ],
+      "sourceSha256": "c08003e005376586d9b81226d7657dba2d788ac8202c7cffd90678d799dc42fd",
+      "bytes": 23442,
+      "sha256": "9d4dc2b69ef28b49924cbd2a3c56f57ae70f20751f295a8291863ed32a2539fe",
+      "path": "assets/images/9d4dc2b69ef28b49924cbd2a.webp"
+    },
+    {
+      "en": "Cittadella",
+      "title": "AS Cittadella",
+      "image": "https://thumb.wikimedia.org/wikipedia/en/thumb/e/e3/AS_Cittadella_logo.svg/330px-AS_Cittadella_logo.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/AS_Cittadella",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/e/e3/AS_Cittadella_logo.svg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 300,
+        "height": 300
+      },
+      "originalSize": [
+        330,
+        330
+      ],
+      "trimmedSize": [
+        330,
+        330
+      ],
+      "sourceSha256": "bb4b8ec852de23406c5fc982b307e0c56f6533df24de47680d228d9cca2ecb44",
+      "bytes": 30774,
+      "sha256": "1081972264bee02233c175133cef9f413d09458162f42ae64929d304ffc7f661",
+      "path": "assets/images/1081972264bee02233c17513.webp"
+    },
+    {
+      "en": "Cosenza",
+      "title": "Cosenza Calcio",
+      "image": "https://thumb.wikimedia.org/wikipedia/en/thumb/6/6d/Cosenza_Calcio_crest.svg/330px-Cosenza_Calcio_crest.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/Cosenza_Calcio",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/6/6d/Cosenza_Calcio_crest.svg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 274,
+        "height": 364
+      },
+      "originalSize": [
+        330,
+        439
+      ],
+      "trimmedSize": [
+        330,
+        439
+      ],
+      "sourceSha256": "7863260c4a311fdecc4d04736ca6d3116828d44f80e1c3214e8a502fedb2b75d",
+      "bytes": 25868,
+      "sha256": "9beb228033c9a4e14a3b41380113f9609a28d8bc46eafd15293af6f43824ce2d",
+      "path": "assets/images/9beb228033c9a4e14a3b4138.webp"
+    },
+    {
+      "en": "Fortuna Dusseldorf",
+      "title": "Fortuna Düsseldorf",
+      "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/94/Fortuna_D%C3%BCsseldorf.svg/330px-Fortuna_D%C3%BCsseldorf.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/Fortuna_D%C3%BCsseldorf",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/commons/9/94/Fortuna_D%C3%BCsseldorf.svg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 759,
+        "height": 759
+      },
+      "originalSize": [
+        330,
+        330
+      ],
+      "trimmedSize": [
+        330,
+        330
+      ],
+      "sourceSha256": "cdac42d5da7f05cc0c6d81ecf17a4172e3daa78061ddab1d85b1d744cfd8650c",
+      "bytes": 22542,
+      "sha256": "886112db3932ed227a15f5f409e5eb761e70c049a75b8a3ad89904959ce8b913",
+      "path": "assets/images/886112db3932ed227a15f5f4.webp"
+    },
+    {
+      "en": "Preussen Munster",
+      "title": "SC Preußen Münster",
+      "image": "https://thumb.wikimedia.org/wikipedia/en/thumb/1/1c/SC_Preu%C3%9Fen_M%C3%BCnster_logo_%282018%29.svg/330px-SC_Preu%C3%9Fen_M%C3%BCnster_logo_%282018%29.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/SC_Preu%C3%9Fen_M%C3%BCnster",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/1/1c/SC_Preu%C3%9Fen_M%C3%BCnster_logo_%282018%29.svg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 300,
+        "height": 300
+      },
+      "originalSize": [
+        330,
+        330
+      ],
+      "trimmedSize": [
+        318,
+        330
+      ],
+      "sourceSha256": "95c1afd3f62c3c432117f43b2bb652e8cf14850c30ca6182b60bbdc1044115d1",
+      "bytes": 21438,
+      "sha256": "5cf6dbaa6bb7770b595175ae6c2733e7562811ec3e76c66a8b61985050808fc7",
+      "path": "assets/images/5cf6dbaa6bb7770b595175ae.webp"
+    },
+    {
+      "en": "SSV Ulm",
+      "title": "SSV Ulm 1846",
+      "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6c/SSV_Ulm_1846_Fussball.svg/330px-SSV_Ulm_1846_Fussball.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/SSV_Ulm_1846",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/commons/6/6c/SSV_Ulm_1846_Fussball.svg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 406,
+        "height": 601
+      },
+      "originalSize": [
+        330,
+        488
+      ],
+      "trimmedSize": [
+        330,
+        488
+      ],
+      "sourceSha256": "1c5dd6f41d0a757d43dcc2519bbf23d7eee50eb15e53206ca91b2384e057c8cb",
+      "bytes": 10690,
+      "sha256": "3a44d950d11dc8aa3c6659b80743c17b5d7f8c8895ccf2f935fa22e1061932ff",
+      "path": "assets/images/3a44d950d11dc8aa3c6659b8.webp"
+    },
+    {
+      "en": "Caen",
+      "title": "Stade Malherbe Caen",
+      "image": "https://thumb.wikimedia.org/wikipedia/en/thumb/a/aa/SM_Caen_2016_logo.svg/330px-SM_Caen_2016_logo.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/Stade_Malherbe_Caen",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/a/aa/SM_Caen_2016_logo.svg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 274,
+        "height": 365
+      },
+      "originalSize": [
+        330,
+        441
+      ],
+      "trimmedSize": [
+        330,
+        440
+      ],
+      "sourceSha256": "f6afe17bb432905b770aa235ce6516fc703dd32bb3208a9e4cfef4dc27571850",
+      "bytes": 29382,
+      "sha256": "53eaa5504b1eb8f896776477a4ec86a25fa6274f691aae69e399b07c3c721913",
+      "path": "assets/images/53eaa5504b1eb8f896776477.webp"
+    },
+    {
+      "en": "Bastia",
+      "title": "SC Bastia",
+      "image": "https://thumb.wikimedia.org/wikipedia/en/thumb/d/d7/SC_Bastia_logo_2024.svg/330px-SC_Bastia_logo_2024.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/SC_Bastia",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/d/d7/SC_Bastia_logo_2024.svg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 237,
+        "height": 300
+      },
+      "originalSize": [
+        330,
+        418
+      ],
+      "trimmedSize": [
+        330,
+        418
+      ],
+      "sourceSha256": "89fd189c28c56b336911ef4fecafa0d393aa51d66926fdc90a6bc659d912dbbf",
+      "bytes": 37618,
+      "sha256": "b0dc46c3e014a4ce92e2af7a35fe5d969e8fedb54e9b59319010d8f4e3d01e79",
+      "path": "assets/images/b0dc46c3e014a4ce92e2af7a.webp"
+    },
+    {
+      "en": "Amiens",
+      "title": "Amiens SC",
+      "image": "https://thumb.wikimedia.org/wikipedia/en/thumb/2/25/Amiens_SC_logo.svg/330px-Amiens_SC_logo.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/Amiens_SC",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/2/25/Amiens_SC_logo.svg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 289,
+        "height": 346
+      },
+      "originalSize": [
+        330,
+        396
+      ],
+      "trimmedSize": [
+        330,
+        395
+      ],
+      "sourceSha256": "7817ed3bbaa7d8d3e9536a2e02cbcc73d4e641f29076850f8473dec9dde20346",
+      "bytes": 13188,
+      "sha256": "dc8570aea805c5d0ee7d405e5ba8bcda31c943a87f6502531f6c35b4d1f14456",
+      "path": "assets/images/dc8570aea805c5d0ee7d405e.webp"
+    },
+    {
+      "en": "Ajaccio",
+      "title": "AC Ajaccio",
+      "image": "https://thumb.wikimedia.org/wikipedia/en/thumb/1/1f/AC_Ajaccio_logo.svg/330px-AC_Ajaccio_logo.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/AC_Ajaccio",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/1/1f/AC_Ajaccio_logo.svg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 212,
+        "height": 281
+      },
+      "originalSize": [
+        330,
+        438
+      ],
+      "trimmedSize": [
+        330,
+        438
+      ],
+      "sourceSha256": "fc1773a9f5b41ae1ce143fa3b861278a343055ba3ed0d90ca916d44bb8fabf7f",
+      "bytes": 20582,
+      "sha256": "28344097d537693b8cb73ac5e60191d2ded4a759e5265369a63f75659e98632b",
+      "path": "assets/images/28344097d537693b8cb73ac5.webp"
+    },
+    {
+      "en": "FC Black Stars Basel",
+      "title": "FC Black Stars Basel",
+      "image": "https://upload.wikimedia.org/wikipedia/en/d/d9/FC_Black_Stars_Basel.png?utm_source=en.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "page": "https://en.wikipedia.org/wiki/FC_Black_Stars_Basel",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/d/d9/FC_Black_Stars_Basel.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 170,
+        "height": 218
+      },
+      "originalSize": [
+        170,
+        218
+      ],
+      "trimmedSize": [
+        166,
+        212
+      ],
+      "sourceSha256": "65e4ef6832317944049203a64a3d73d9cbfdb8b343767ad77e57249df9bcc5f1",
+      "bytes": 7610,
+      "sha256": "061b022a927b70a9416b89b985bbc619da91373edff44e97125f0c40c75c080e",
+      "path": "assets/images/061b022a927b70a9416b89b9.webp"
+    },
+    {
+      "en": "Namdong",
+      "title": "FC Namdong",
+      "image": "https://upload.wikimedia.org/wikipedia/en/a/a2/FC_Namdong.png?utm_source=en.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "page": "https://en.wikipedia.org/wiki/FC_Namdong",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/a/a2/FC_Namdong.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 195,
+        "height": 252
+      },
+      "originalSize": [
+        195,
+        252
+      ],
+      "trimmedSize": [
+        189,
+        249
+      ],
+      "sourceSha256": "05a0f97e9e2606a0e91a8ec148789afff721fb09a1366f4d9c22db8877ac8daf",
+      "bytes": 48490,
+      "sha256": "2e13a98ae4171a931758e8156c3689a957636338ef68be897eeb61d050bf4e5f",
+      "path": "assets/images/2e13a98ae4171a931758e815.webp"
+    },
+    {
+      "en": "Jeonju Citizen",
+      "title": "Jeonju Citizen FC",
+      "image": "https://upload.wikimedia.org/wikipedia/en/5/59/Jeonju_FC.png?utm_source=en.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "page": "https://en.wikipedia.org/wiki/Jeonju_Citizen_FC",
+      "original": {
+        "source": "https://upload.wikimedia.org/wikipedia/en/5/59/Jeonju_FC.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
+        "width": 216,
+        "height": 203
+      },
+      "originalSize": [
+        216,
+        203
+      ],
+      "trimmedSize": [
+        208,
+        177
+      ],
+      "sourceSha256": "0e9a75d69dfb3976ba9ec8ddc01f4a43e971b75b7d9046363cdea7f86afa2593",
+      "bytes": 52248,
+      "sha256": "bfb6fb13487112db1dfdd6bbd2e9bbabcd601e8bb09eb74950fac8922ba474d4",
+      "path": "assets/images/bfb6fb13487112db1dfdd6bb.webp"
+    },
+    {
+      "en": "Paju Citizen",
+      "image": "https://thumb.wikimedia.org/wikipedia/en/thumb/0/0c/Paju_Citizen_FC.png/250px-Paju_Citizen_FC.png?utm_source=en.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "page": "https://en.wikipedia.org/wiki/File:Paju_Citizen_FC.png",
+      "identity": "Paju Citizen历史队徽",
+      "originalSize": [
+        250,
+        311
+      ],
+      "trimmedSize": [
+        250,
+        311
+      ],
+      "sourceSha256": "92e8a792e89eb5342bac36a30839980a67b772f6e284ac968ea8bb6fd6eb9879",
+      "bytes": 36148,
+      "sha256": "56220b9c47eb4b13a67ed8d9c8f9b82157044efdb89d6739c3581bcb2db707a6",
+      "path": "assets/images/56220b9c47eb4b13a67ed8d9.webp"
+    },
+    {
+      "en": "Ilves-Kissat",
+      "image": "https://www.ilveskissatjuniorit.fi/wp-content/uploads/2021/07/Ilves-Kissat-juniorilogo-120x120.png",
+      "page": "https://www.ilveskissatjuniorit.fi/",
+      "identity": "现存官方俱乐部网站品牌",
+      "originalSize": [
+        120,
+        120
+      ],
+      "trimmedSize": [
+        120,
+        120
+      ],
+      "sourceSha256": "99be805e20d830477ba2e78ee3f3e157bfdfb06d3dbeb9d9f159ee3653c175e1",
+      "bytes": 33222,
+      "sha256": "27982753cf2650f7764708308697dd5119e54a46d7910c32436c41c8c16a5c11",
+      "path": "assets/images/27982753cf2650f776470830.webp"
+    },
+    {
+      "en": "Al Qotah",
+      "image": "https://www.saff.com.sa/uploadcenter/saffteamlarge1706028302.png",
+      "page": "https://www.saff.com.sa/team.php?id=50",
+      "identity": "Al-Qotah / Al-Gottah / الغوطة同一俱乐部",
+      "originalSize": [
+        400,
+        400
+      ],
+      "trimmedSize": [
+        398,
+        398
+      ],
+      "sourceSha256": "2c7a57d3d0ddcf9eee731150eb7c8030fc7dd9202deed6b81314da60512b457c",
+      "bytes": 59244,
+      "sha256": "04fe0a38ed6c5f080ce1b9d3c9cba05225b31d4799fbfe91abac66f34e45e1a8",
+      "path": "assets/images/04fe0a38ed6c5f080ce1b9d3.webp"
+    },
+    {
+      "en": "Al Nojoom",
+      "image": "https://www.saff.com.sa/uploadcenter/saffteamsmall3HmQW1791815070.jpeg",
+      "page": "https://www.saff.com.sa/team.php?id=138",
+      "identity": "النجوم",
+      "originalSize": [
+        3000,
+        3000
+      ],
+      "trimmedSize": [
+        3000,
+        3000
+      ],
+      "sourceSha256": "699b6e0b2d01b3dd9d57c205d7d1e233881d4daade09f2edad415c4989ddb514",
+      "bytes": 22250,
+      "sha256": "aef54a6c7c02bfa095bdb613bd3a153137074514e56268713dd1ef2939b6239d",
+      "path": "assets/images/aef54a6c7c02bfa095bdb613.webp"
+    }
+  ],
+  "aliases": [
+    {
+      "en": "Seoul E-Land B",
+      "parent": "Seoul E-Land",
+      "reason": "预备队沿用母队标识；保留预备队名称与球队ID"
+    }
+  ],
+  "originalFallbacks": [
+    "Guangzhou Youth",
+    "Wuhan Youth",
+    "Chengdu Youth",
+    "Shanghai Youth",
+    "Beijing Youth",
+    "Zhejiang Youth",
+    "Shandong Youth",
+    "Jiangsu Youth",
+    "Henan Youth",
+    "Tianjin Youth",
+    "Liaoning Youth",
+    "Chongqing Youth",
+    "Fujian Youth",
+    "Anhui Youth",
+    "Sichuan Youth",
+    "Al Sahaab",
+    "Sejong Vanesse",
+    "Chungju Citizen"
+  ],
+  "historicalIdentity": "Paju Citizen采用旧名称对应历史队徽；Chungju与Sejong未采用迁址或改名后的新城市标识。",
+  "legacyRestored": [
+    "Cardiff City",
+    "Bolton Wanderers",
+    "Charlton Athletic",
+    "Rotherham United",
+    "Peterborough United",
+    "Bristol Rovers",
+    "Lincoln City",
+    "Northampton Town",
+    "Exeter City",
+    "Burton Albion",
+    "Shrewsbury Town",
+    "Spezia",
+    "Salernitana",
+    "Brescia",
+    "Cittadella",
+    "Cosenza",
+    "Fortuna Dusseldorf",
+    "Preussen Munster",
+    "SSV Ulm",
+    "Caen",
+    "Bastia",
+    "Amiens",
+    "Ajaccio"
+  ]
+}

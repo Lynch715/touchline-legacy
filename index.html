@@ -239,6 +239,8 @@ label{font-size:11px;color:var(--dim);display:block;margin-bottom:3px}
 .crest{vertical-align:-4px;margin-right:6px;flex:0 0 auto;object-fit:contain;
   filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))}
 img.crest{display:inline-block}
+/* 深色单色标识加浅底，保留原图轮廓；自定义队徽不套用。 */
+img.crest-plate{background:#f5f1e9;border-radius:50%;padding:2px;box-sizing:border-box}
 
 /* ---------- 弹窗 ---------- */
 #modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;z-index:100;
@@ -5391,60 +5393,43 @@ function crestTheme(c){
   return pool[h%pool.length];
 }
 
-// 精致队徽生成
+// 缺少真实标识时使用清晰的扁平徽章；城市图案只用于原创青年队，不冒充真实商标。
+const CREST_CITY_MARKS={
+ "Guangzhou Youth":'<g fill="currentColor">'+Array.from({length:5},(_,i)=>`<path d="M32 30C17 26 18 9 28 9C39 9 41 22 32 30Z" transform="rotate(${i*72} 32 31)"/>`).join('')+'<circle cx="32" cy="31" r="6" fill="#f5f1e9"/></g>',
+ "Wuhan Youth":'<path d="M7 45H57M15 19V45M49 19V45M15 25H49M7 36C17 36 21 27 32 27S47 36 57 36M23 29V45M41 29V45" fill="none" stroke="currentColor" stroke-width="4"/>',
+ "Chengdu Youth":'<path d="M32 48V27M32 38C8 34 7 20 9 15C17 14 24 17 32 23C40 17 47 14 55 15C57 20 56 34 32 38ZM32 35L18 21M32 35L46 21" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>',
+ "Shanghai Youth":'<path d="M29 6V45H8L29 13ZM35 14L56 45H35Z" fill="currentColor"/><path d="M8 50Q32 58 56 50" fill="none" stroke="currentColor" stroke-width="4"/>',
+ "Beijing Youth":'<path d="M10 42H54V27H10ZM7 23H57L49 17H15ZM18 13H46L41 8H23Z" fill="currentColor"/><path d="M24 46V35Q32 27 40 35V46" fill="#f5f1e9"/>',
+ "Zhejiang Youth":'<path d="M7 36Q32 12 57 36M7 37H57M15 30V37M24 25V37M40 25V37M49 30V37M8 46Q20 40 32 46T56 46M14 54Q25 49 36 54T54 54" fill="none" stroke="currentColor" stroke-width="4"/>',
+ "Shandong Youth":'<path d="M5 47L20 23L29 36L39 11L59 47H5Z" fill="currentColor"/><path d="M29 36L39 11L47 25L40 22L35 30" fill="#f5f1e9"/>',
+ "Jiangsu Youth":'<path d="M10 47V27L24 15L39 27V47M5 27H44M17 47V34H31V47M44 47V17M40 20H54M42 11H52M8 54H56" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>',
+ "Henan Youth":'<path d="M13 19V9H22V19M42 19V9H51V19M11 20H53L48 43H16ZM22 43L19 55M42 43L45 55" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="M24 28H40M24 35H40" stroke="currentColor" stroke-width="4"/>',
+ "Tianjin Youth":'<circle cx="32" cy="27" r="19" fill="none" stroke="currentColor" stroke-width="4"/><path d="M32 8V46M13 27H51M18 13L46 41M18 41L46 13M10 53H54L43 43H21Z" fill="none" stroke="currentColor" stroke-width="3.5"/>',
+ "Liaoning Youth":'<path d="M11 48V29L25 20V29L39 20V29H53V48ZM44 28V9H51V28" fill="currentColor"/><path d="M19 37H24M31 37H36M43 37H48" stroke="#f5f1e9" stroke-width="4"/>',
+ "Chongqing Youth":'<path d="M5 31L17 15L29 31L41 12L59 35M7 44Q20 34 32 44T57 44M7 54Q20 44 32 54T57 54" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linejoin="round"/>',
+ "Fujian Youth":'<path d="M12 47H52V24L44 13H20L12 24ZM23 46V30Q32 20 41 30V46M8 23H56M8 52H56" fill="none" stroke="currentColor" stroke-width="4"/><path d="M20 23V17M44 23V17" stroke="currentColor" stroke-width="4"/>',
+ "Anhui Youth":'<path d="M7 47V29L20 17L32 29V47M32 47V22L45 10L57 22V47M7 47H57M14 28H25M39 21H50M17 47V36H23M42 47V31H49" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="miter"/>',
+ "Sichuan Youth":'<path d="M32 10C24 4 16 10 19 18C8 17 4 29 13 34C9 45 22 51 29 43C34 54 47 49 45 39C58 38 61 24 50 20C53 9 41 3 32 10Z" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="32" cy="28" r="7" fill="currentColor"/>',
+ "Al Sahaab":'<path d="M10 27Q21 14 32 27T54 27M10 40Q21 27 32 40T54 40M10 53Q21 40 32 53T54 53" fill="none" stroke="currentColor" stroke-width="5"/>',
+ "Sejong Vanesse":'<path d="M30 27C18 3 4 10 10 28C4 45 19 51 30 32M34 27C46 3 60 10 54 28C60 45 45 51 34 32M32 18V49" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>',
+ "Chungju Citizen":'<path d="M32 9V52M10 19L32 12L54 19V39L32 52L10 39ZM10 19L32 31L54 19M32 31V52" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>'
+};
 function buildCrestSVG(c){
-  const idx = "c"+hashStr(c.en).toString(36);
-  const shape=c.shape||"shield", pat=c.pat||"solid";
-  let c1=c.c1, c2=c.c2;
-  if(contrast(c1,c2)<1.35) c2 = lum(c1)>0.5? shade(c1,-0.55) : shade(c1,0.55);
-  const dark = lum(c1)>0.55;
-  const border = dark? shade(c1,-0.62) : shade(c1,-0.35);
-  const band   = dark? "#111820" : "#ffffff";
-  const theme = crestTheme(c);
-  const sym = CREST_SYMBOLS[theme];
-  // 符号颜色：取与底色对比度高的颜色
-  const symCol = contrast(c1, band)>=2.2 ? band : (contrast(c2, band)>=2.2 ? c2 : band);
-  const ini=initialsOf(c.en, c.abbr);
-  const stars = c.rep>=85?3 : c.rep>=68?2 : c.rep>=48?1 : 0;
-  const clip=`cl${idx}`;
-  const inner = shape==="round"
-    ? `<circle cx="32" cy="32" r="26.5"/>`
-    : `<path d="${shapePath(shape,4)}"/>`;
-  const outer = shape==="round"
-    ? `<circle cx="32" cy="32" r="30" fill="${border}"/>`
-    : `<path d="${shapePath(shape,0)}" fill="${border}"/>`;
-
-  // 顶部小字（队名缩写，精致徽章感）
-  const topText = ini.length<=3 ? ini : ini.slice(0,3);
-
-  // 内圈描边（精致徽章感）
-  const innerStroke = shape==="round"
-    ? `<circle cx="32" cy="32" r="24.5" fill="none" stroke="${band}" stroke-opacity=".55" stroke-width=".8"/>`
-    : `<path d="${shapePath(shape,7)}" fill="none" stroke="${band}" stroke-opacity=".5" stroke-width=".8"/>`;
-  // 顶部弧形缩写（经典队徽元素）
-  const topBand = shape==="round" ? "" : `<text x="32" y="13" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="6.5" font-weight="700" fill="${band}" letter-spacing="1.5" opacity=".9">${topText}</text>`;
-
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-<defs><clipPath id="${clip}">${inner}</clipPath>
-<linearGradient id="g${idx}" x1="0" y1="0" x2="0" y2="1">
-<stop offset="0" stop-color="#ffffff" stop-opacity=".22"/><stop offset=".5" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#000000" stop-opacity=".3"/></linearGradient>
-<linearGradient id="b${idx}" x1="0" y1="0" x2="1" y2="0">
-<stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs>
-${outer}
-<g clip-path="url(#${clip})">
-  <rect x="0" y="0" width="64" height="64" fill="${c1}"/>
-  ${patternSVG(pat,c2)}
-  <rect x="0" y="0" width="64" height="64" fill="url(#g${idx})"/>
-  ${topBand}
-  ${sym ? `<g transform="translate(0 1.5)" opacity=".35" filter="none">${sym(symCol, c1)}</g>` : ""}
-  ${sym ? sym(symCol, c1) : ""}
-  ${starRow(stars, shape==="round"?15:16)}
-</g>
-${innerStroke}
-${shape==="round"?`<circle cx="32" cy="32" r="26.5" fill="none" stroke="${band}" stroke-opacity=".4" stroke-width="1.2"/>`
- :`<path d="${shapePath(shape,4)}" fill="none" stroke="${band}" stroke-opacity=".35" stroke-width="1"/>`}
-</svg>`;
+  const valid=x=>/^#[0-9a-f]{6}$/i.test(x||"");
+  const main=valid(c.c1)?c.c1:"#164f42",second=valid(c.c2)?c.c2:"#ffffff";
+  const paper="#f5f1e9",edge="#14212a",round=c.shape==="round";
+  let ink=main;
+  for(let step=0;step<8&&contrast(ink,paper)<4.5;step++)ink=shade(ink,-.12);
+  const outline=round?'<circle cx="64" cy="64" r="58"/>':'<path d="M64 5L114 23V60C114 90 92 112 64 123C36 112 14 90 14 60V23Z"/>';
+  const id="crest-"+hashStr(c.en||c.cn||"club").toString(36);
+  const abbreviation=initialsOf(c.en||"Football Club",c.abbr).replace(/[^A-Z0-9]/gi,"").slice(0,4)||"FC";
+  const mark=CREST_CITY_MARKS[c.en];
+  const field=mark?`<g color="${ink}" transform="translate(32 43)">${mark}</g>`:`<text x="64" y="84" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="${abbreviation.length>3?29:36}" font-weight="900" fill="${ink}">${abbreviation}</text>`;
+  const headText=mark?abbreviation:"FC";
+  const trim=contrast(ink,second)>2.2?second:paper;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><defs><clipPath id="${id}">${outline}</clipPath></defs><g fill="${ink}" stroke="${edge}" stroke-width="3">${outline}</g><g clip-path="url(#${id})"><rect width="128" height="128" fill="${paper}"/><rect width="128" height="45" fill="${ink}"/><path d="M8 45H120" stroke="${trim}" stroke-width="4"/><text x="64" y="34" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="${headText.length>3?19:23}" font-weight="900" letter-spacing="1" fill="${paper}">${headText}</text>${field}<path d="M40 107H88" stroke="${ink}" stroke-width="4"/><circle cx="64" cy="107" r="5" fill="${paper}" stroke="${ink}" stroke-width="3"/></g><g fill="none" stroke="${paper}" stroke-width="2.4">${outline}</g></svg>`;
 }
+
 
 // ---------- 缓存与自定义 ----------
 const CREST_CACHE={};
@@ -5467,8 +5452,14 @@ function saveCustomCrests(){
 
 
 
+// 核实来源的新增与历史球队队徽；来源见 assets/crest-additions.json。
+const VERIFIED_CRESTS={"Terrasa":"assets/images/17c8d35f557aa8cd1e4183c8.webp","PK-35":"assets/images/a13acd65f31a33bef2782de2.webp","Reipas":"assets/images/1edb7b958a66e46c50024d32.webp","TP-47":"assets/images/2a9a08597fe8731dd2ca8dec.webp","GBK":"assets/images/468008a08198bb690c371caa.webp","JBK":"assets/images/97888d855162b99f1beedc4d.webp","Närpes Kraft":"assets/images/40f2af78f576e36f787599ff.webp","FC Biel-Bienne":"assets/images/2a13c5ac1c0e0cea3589a838.webp","Sint-Eloois-Winkel":"assets/images/c08009216311492d5ba3abd0.webp","Antelope Valley":"assets/images/18280f9ee4fcefd97456cfd4.webp","Al Shoalah":"assets/images/5278e09e8c5a91ceddedc3fa.webp","Al Rawdhah":"assets/images/71644842b122eec522198df3.webp","Al Entesar":"assets/images/c42aa016da364c048e8b2727.webp","Al Taqadom":"assets/images/8bc669776b83bcabf38b79f4.webp","Al Qaisumah":"assets/images/bff11712876364eaf06ef527.webp","Al Mojzel":"assets/images/8297b880df1b949edd9b8d54.webp","Al Deraa":"assets/images/bb0d52980e1b297b95514c79.webp","Al Watani":"assets/images/abc5e0120d903946a97c2331.webp","Cardiff City":"assets/images/2306ef01a4d28426c88fa5e1.webp","Bolton Wanderers":"assets/images/71a61166986b5a05e6385582.webp","Charlton Athletic":"assets/images/d74c49dc2c74cedf8b003f98.webp","Rotherham United":"assets/images/7bbf278ab3188f9272c8f2a6.webp","Peterborough United":"assets/images/e24e7533b47162e93e215b40.webp","Bristol Rovers":"assets/images/107647aa45abcd17cb098335.webp","Lincoln City":"assets/images/3b370b7ec5edfe9e18aea60c.webp","Northampton Town":"assets/images/6ea34051f9f9af81710eb1f4.webp","Exeter City":"assets/images/f7519b0b65ace94014646f3f.webp","Burton Albion":"assets/images/e8fe6d3e253a10d7c6ae7424.webp","Shrewsbury Town":"assets/images/f601ae9d0bc7849151a1d946.webp","Spezia":"assets/images/327c9e91c47449eecff84c1c.webp","Salernitana":"assets/images/e89e9b63d1d988f0a5165ce1.webp","Brescia":"assets/images/9d4dc2b69ef28b49924cbd2a.webp","Cittadella":"assets/images/1081972264bee02233c17513.webp","Cosenza":"assets/images/9beb228033c9a4e14a3b4138.webp","Fortuna Dusseldorf":"assets/images/886112db3932ed227a15f5f4.webp","Preussen Munster":"assets/images/5cf6dbaa6bb7770b595175ae.webp","SSV Ulm":"assets/images/3a44d950d11dc8aa3c6659b8.webp","Caen":"assets/images/53eaa5504b1eb8f896776477.webp","Bastia":"assets/images/b0dc46c3e014a4ce92e2af7a.webp","Amiens":"assets/images/dc8570aea805c5d0ee7d405e.webp","Ajaccio":"assets/images/28344097d537693b8cb73ac5.webp","FC Black Stars Basel":"assets/images/061b022a927b70a9416b89b9.webp","Namdong":"assets/images/2e13a98ae4171a931758e815.webp","Jeonju Citizen":"assets/images/bfb6fb13487112db1dfdd6bb.webp","Paju Citizen":"assets/images/56220b9c47eb4b13a67ed8d9.webp","Ilves-Kissat":"assets/images/27982753cf2650f776470830.webp","Al Qotah":"assets/images/04fe0a38ed6c5f080ce1b9d3.webp","Al Nojoom":"assets/images/aef54a6c7c02bfa095bdb613.webp"};
+VERIFIED_CRESTS["Seoul E-Land B"]=REAL_CRESTS["Seoul E-Land"];
+
+function crestClass(c){return "crest"+(!CUSTOM_CRESTS[c.en]&&["FC Black Stars Basel","Bolton Wanderers","Peterborough United"].includes(c.en)?" crest-plate":"");}
 function crestURI(c){
   if(CUSTOM_CRESTS[c.en]) return CUSTOM_CRESTS[c.en];
+  if(VERIFIED_CRESTS[c.en]) return VERIFIED_CRESTS[c.en];
   if(CREST_FIXES[c.en]) return CREST_FIXES[c.en];
   if(REAL_CRESTS[c.en]) return REAL_CRESTS[c.en];
   { const slug=c.en.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); if(REAL_CRESTS[slug]) return REAL_CRESTS[slug]; }
@@ -12185,7 +12176,7 @@ function closeModal(){ $("#modal").classList.remove("on");
 
 function crestHTML(c,sz){
   const s=sz||18;
-  return `<img loading="lazy" decoding="async" class="crest" data-en="${esc(c.en)}" src="${crestURI(c)}" width="${s}" height="${s}" alt="${esc(c.short)}" title="${esc(c.cn)}">`;
+  return `<img loading="lazy" decoding="async" class="${crestClass(c)}" data-en="${esc(c.en)}" src="${crestURI(c)}" width="${s}" height="${s}" alt="${esc(c.short)}" title="${esc(c.cn)}">`;
 }
 function barHTML(v,max,color){
   const pct=clamp(v/max*100,0,100);
@@ -14363,7 +14354,7 @@ function vHistory(v){
 let CRESTTIER=0;
 function vCrests(v){
   v.appendChild(el("div","",`<h1>队徽</h1><div class="sub">
-    内置队徽为按各队传统队色与版式自绘的原创图形，不含任何真实商标。你也可以用自己的图片替换。</div>`));
+    优先使用已收录的真实队徽；未收录的球队使用按队色绘制的原创徽章。你导入的自定义队徽会优先显示。</div>`));
 
   const tools=el("div","card");
   tools.innerHTML=`<h3>批量替换</h3>
@@ -14389,7 +14380,7 @@ function vCrests(v){
   WORLD.clubs.filter(c=>c.nation===CRESTTIER).sort((a,b)=>a.tier-b.tier||b.rep-a.rep)
     .forEach(c=>{
     const card=el("div","card"); card.style.textAlign="center";
-    card.innerHTML=`<img loading="lazy" decoding="async" class="crest" data-en="${esc(c.en)}" src="${crestURI(c)}" width="62" height="62" style="margin:0 auto 6px;display:block">
+    card.innerHTML=`<img loading="lazy" decoding="async" class="${crestClass(c)}" data-en="${esc(c.en)}" src="${crestURI(c)}" width="62" height="62" style="margin:0 auto 6px;display:block">
       <b style="font-size:13px">${esc(c.cn)}</b>
       <div class="hint" style="font-size:10.5px;margin-bottom:7px">${esc(c.en)}</div>`;
     const inp=el("input"); inp.type="file"; inp.accept="image/*"; inp.style.display="none";
@@ -15692,7 +15683,7 @@ function newGameScreen(){
       d.onmouseleave=()=>d.style.borderColor="var(--line)";
       const diff = rep>=80?["轻松","#00d47e"] : rep>=60?["普通","#7ed957"] : rep>=42?["有挑战","#ffd24a"] : rep>=30?["困难","#f0a020"] : ["地狱","var(--bad)"];
       d.innerHTML=`<div style="display:flex;align-items:center;gap:9px;margin-bottom:7px">
-        <img loading="lazy" decoding="async" class="crest" data-en="${esc(en)}" src="${crestURI(clubFromData(curNation,curTier,idx))}" width="38" height="38" alt="">
+        <img loading="lazy" decoding="async" class="${crestClass(clubFromData(curNation,curTier,idx))}" data-en="${esc(en)}" src="${crestURI(clubFromData(curNation,curTier,idx))}" width="38" height="38" alt="">
         <div><b style="font-size:14px">${cn}</b><div class="hint" style="font-size:10.5px">${en}</div></div></div>
         <div class="hint">${st} · ${cap.toLocaleString()} 座</div>
         <div style="margin:6px 0"><div class="hint">俱乐部声望 ${rep}</div>
