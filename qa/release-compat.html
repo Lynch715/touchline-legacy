@@ -25,6 +25,7 @@
    button('只读加载原存档',()=>{if(!original)throw Error('没有原存档');return load(original);});
    const file=document.createElement('input');file.type='file';file.accept='.json';file.style.display='none';file.onchange=async()=>{try{const f=file.files[0];if(f)await load(await f.text());}catch(e){error=e.message;status.textContent=e.message;update();}};panel.appendChild(file);button('导入旧档只读验收',()=>file.click());
    button('核对原存档未变',async()=>{const now=await readSave(),current=await Promise.all([idbGet,cacheGet,async k=>localStorage.getItem(k)].map(async get=>{const p=await get(SAVEKEY);return p?await digest(p):null;}));originalUnchanged=now===original&&diagnostics.every((d,i)=>d.storedSha===current[i]);status.textContent=originalUnchanged?'原存档逐字节未变，测试进度未写入。':'原存档发生变化，请保留备份核对。';});
+   button('收起验收面板',()=>{panel.style.display='none';});
    document.body.appendChild(panel);document.getElementById('loadscr').style.display='none';document.getElementById('app').style.display='none';update();
    document.addEventListener('click',()=>setTimeout(update,0));setInterval(update,200);
   };

@@ -15306,8 +15306,9 @@ function vSave(v){
 
   const up=el("div","card");
   const webEdition=document.querySelector('meta[name="touchline-distribution"]')?.content==="web";
-  up.innerHTML=webEdition?'<h3>完整离线版</h3><div class="hint">网页版按需加载图片。需要离线使用时，请下载资源已内嵌的完整单文件版；请先导出存档，在离线版中导入。添加在线地址到主屏幕不能保证离线可用。</div><div class="hr"></div><a class="btn" href="执掌绿茵.html" download="执掌绿茵.html" onclick="downloadStandalone(event)">下载完整单文件版</a>':"<h3>单文件 v3</h3><div class=hint>资源已内嵌。下载并保留此 HTML，可用支持本地 HTML 的浏览器离线打开；在线地址添加到主屏幕不能保证离线可用。升级时请先导出存档，再打开新文件并导入。</div>";
+  up.innerHTML=webEdition?'<h3>完整离线版</h3><div class="hint"><span id="resource-cache-status"></span><br>进入主界面后会后台保存队徽、国旗和网页入口，之后优先复用本地图片。缓存与存档分开，浏览器清理空间时可能回收缓存。需要长期保留完整离线文件，可下载单文件版，并导出存档后导入。</div><div class="hr"></div><a class="btn" href="执掌绿茵.html" download="执掌绿茵.html" onclick="downloadStandalone(event)">下载完整单文件版</a>':"<h3>单文件 v3</h3><div class=hint>资源已内嵌。下载并保留此 HTML，可用支持本地 HTML 的浏览器离线打开；在线地址添加到主屏幕不能保证离线可用。升级时请先导出存档，再打开新文件并导入。</div>";
   v.appendChild(up);
+  if(webEdition)up.querySelector("#resource-cache-status").textContent=RESOURCE_CACHE_STATUS;
 
   const st=el("div","card");
   st.innerHTML="<h3>存储自检</h3><div class='hint'>存档莫名丢失时点这里，把结果截图发出来即可定位是哪一层存储被浏览器拦掉了</div><div class='hr'></div>";
@@ -15332,6 +15333,30 @@ function vSave(v){
     <dt>制作人微信</dt><dd class="credit-contact"><b id="wx-id">lynchrrr</b><button type="button" class="sm" onclick="copyWx()">复制微信号</button></dd></dl>
     <div class="hint" style="margin-top:14px">反馈问题时可附上截图和「存储自检」结果，方便定位。</div>`;
   v.appendChild(credits);
+}
+// 网页资源与存档分别存放；单文件版无需注册，失败不阻断游戏。
+let RESOURCE_CACHE_STARTED=false, RESOURCE_CACHE_STATUS="进入主界面后自动准备本地资源。";
+function resourceCacheText(s){
+  if(s.phase==="ready")return `图片已保存在本地（${s.done}/${s.total}），页面切换和再次打开可直接复用。`;
+  if(s.phase==="warming")return `正在后台保存图片（${s.done}/${s.total}），可继续游戏。`;
+  if(s.phase==="partial")return `已保存 ${s.done}/${s.total} 张图片，下次进入主界面将继续补齐。`;
+  return "当前浏览器暂不能保存离线资源，联网时可正常游玩。";
+}
+function startResourceCache(){
+  if(RESOURCE_CACHE_STARTED||document.querySelector('meta[name="touchline-distribution"]')?.content!=="web")return;
+  RESOURCE_CACHE_STARTED=true;
+  const update=s=>{RESOURCE_CACHE_STATUS=resourceCacheText(s);const node=document.getElementById("resource-cache-status");if(node)node.textContent=RESOURCE_CACHE_STATUS;};
+  if(!navigator.serviceWorker||!window.isSecureContext){update({phase:"unavailable"});return;}
+  navigator.serviceWorker.addEventListener("message",e=>{if(e.data?.type==="TOUCHLINE_CACHE")update(e.data);});
+  navigator.serviceWorker.addEventListener("controllerchange",()=>navigator.serviceWorker.controller?.postMessage({type:"TOUCHLINE_WARM"}));
+  const boot=async()=>{try{
+    const base=new URL("./",document.baseURI);
+    const reg=await navigator.serviceWorker.register(new URL("sw.js",base).href,{scope:base.href,updateViaCache:"none"});
+    if(!reg.active){const worker=reg.installing||reg.waiting;if(worker)await new Promise((resolve,reject)=>{worker.addEventListener("statechange",()=>{if(worker.state==="activated")resolve();if(worker.state==="redundant")reject(Error("cache-worker"));});if(worker.state==="activated")resolve();});}
+    reg.active?.postMessage({type:"TOUCHLINE_WARM"});
+  }catch(e){update({phase:"unavailable"});}};
+  if(window.requestIdleCallback)window.requestIdleCallback(boot,{timeout:2000});else setTimeout(boot,1000);
+  window.addEventListener("online",()=>{navigator.serviceWorker.getRegistration(new URL("./",document.baseURI).href).then(reg=>reg?.active?.postMessage({type:"TOUCHLINE_WARM"})).catch(()=>{});});
 }
 // 按需下载完整离线版；Blob下载兼容不会直接保存HTML链接的内嵌浏览器。
 async function downloadStandalone(event){
@@ -15489,6 +15514,7 @@ function enterGame(){
   document.getElementById("app").style.display="flex";
   prepareDeadlineMarket();
   render();
+  startResourceCache();
 }
 function continueGame(){
   toast("正在读取存档…");
