@@ -1,0 +1,128 @@
+{
+  "sourceSha256": "a11aa460e1e0185f0a6a21a79bdfab881ebc0805eb83a29ef333781cce11819b",
+  "entrypointsIdentical": true,
+  "suites": {
+    "core": {
+      "passCount": 16,
+      "failCount": 0
+    },
+    "all-events": {
+      "passCount": 63,
+      "failCount": 0
+    },
+    "legacy-world": {
+      "passCount": 9,
+      "failCount": 0
+    },
+    "player-feedback": {
+      "passCount": 15,
+      "failCount": 0
+    },
+    "save-envelope": {
+      "passCount": 17,
+      "failCount": 0
+    },
+    "regression": {
+      "passCount": 13,
+      "failCount": 0
+    }
+  },
+  "totalChecks": 133,
+  "careersPerVersion": 480,
+  "season": {
+    "passed": true,
+    "scenario": "new",
+    "season": 2028,
+    "sha256": "70171c65171900ff3ee89cf9c8559aff89db5cfc410b109499ed00fa06d014ce",
+    "counts": {
+      "clubMatches": 20312,
+      "nationalMatches": 139,
+      "userClubMatches": 43,
+      "userNationalMatches": 11,
+      "advances": 293,
+      "byCompetition": {
+        "L": 18280,
+        "C": 1169,
+        "WCL": 120,
+        "NAS": 15,
+        "NEU": 31,
+        "NAM": 15,
+        "NAF": 15,
+        "NWC": 63,
+        "CON": 31,
+        "LIB": 31,
+        "AFC": 31,
+        "CL": 125,
+        "EL": 125,
+        "ECL": 125,
+        "PO": 275
+      },
+      "dailyTicks": 293
+    },
+    "completed": {
+      "NWC": {
+        "stage": "F",
+        "matches": 63,
+        "champion": "西班牙",
+        "runnerUp": "奥地利"
+      },
+      "NEU": {
+        "stage": "F",
+        "matches": 31,
+        "champion": "英格兰",
+        "runnerUp": "丹麦"
+      },
+      "NAM": {
+        "stage": "F",
+        "matches": 15,
+        "champion": "加拿大",
+        "runnerUp": "巴拉圭"
+      },
+      "NAS": {
+        "stage": "F",
+        "matches": 15,
+        "champion": "日本",
+        "runnerUp": "澳大利亚"
+      },
+      "NAF": {
+        "stage": "F",
+        "matches": 15,
+        "champion": "摩洛哥",
+        "runnerUp": "尼日利亚"
+      }
+    },
+    "elapsedSeconds": 257
+  },
+  "finalChangeAfterSeason": "仅更新游戏说明中已过时的24岁削潜、27岁定型文案；已反向重建并验证整季测试源文件SHA，玩法完全一致。",
+  "browser": {
+    "overflow": false,
+    "report": {
+      "savePaused": true,
+      "senior": {
+        "after": 69,
+        "age": 25,
+        "before": 60,
+        "cap": 90,
+        "potential": 90
+      },
+      "sourceSha256": "a11aa460e1e0185f0a6a21a79bdfab881ebc0805eb83a29ef333781cce11819b",
+      "storageUnchanged": true,
+      "youth": {
+        "apps": 3,
+        "games": 4,
+        "potentialUnchanged": true,
+        "share": 0.75
+      }
+    },
+    "viewport": {
+      "height": 664,
+      "width": 319
+    },
+    "youthCopy": [
+      "青训学院",
+      "青训评级 11/20 · 每年 3 月输送新一批年轻球员",
+      "年度普通青训至少 80% 为本国籍；传奇和特殊妖人保留原国籍。新苗子只计算入队后的出场机会，入队首个不完整赛季不下调潜力预期。",
+      "U21 球员（7 人）"
+    ]
+  }
+}

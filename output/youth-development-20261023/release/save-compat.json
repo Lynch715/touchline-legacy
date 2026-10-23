@@ -1,0 +1,50 @@
+{
+  "passed": true,
+  "sourceSha256": "a11aa460e1e0185f0a6a21a79bdfab881ebc0805eb83a29ef333781cce11819b",
+  "results": [
+    {
+      "file": "active-oldloader.json",
+      "inputSha256": "ea8ffcd57a571dfe2b911181b2383f03c59195e8980bce63440082dc134ce7c6",
+      "inputBytes": 38471070,
+      "keyStatePreserved": true,
+      "sourceUntouched": true,
+      "idempotent": true,
+      "progressAndReload": true,
+      "originalDay": 31,
+      "resultDay": 32
+    },
+    {
+      "file": "qa-save-before.json",
+      "inputSha256": "ca7dcb78ca95c73ee4b5a6b6cdd7ed3a563eafa11192474eff15157c111b6c78",
+      "inputBytes": 38392324,
+      "keyStatePreserved": true,
+      "sourceUntouched": true,
+      "idempotent": true,
+      "progressAndReload": true,
+      "originalDay": 0,
+      "resultDay": 1
+    },
+    {
+      "file": "线上原存档备份.json",
+      "inputSha256": "330836d78202ca441a18eca03c3454d3484510f41d997771857bde0aea3a2e6b",
+      "inputBytes": 6525884,
+      "keyStatePreserved": true,
+      "sourceUntouched": true,
+      "idempotent": true,
+      "progressAndReload": true,
+      "originalDay": 0,
+      "resultDay": 1
+    },
+    {
+      "file": "线上原存档备份.json",
+      "inputSha256": "0bed5708bf078f0694bfe1a2743466732576737cebd00bed9d4b96a6f140a06b",
+      "inputBytes": 8032007,
+      "keyStatePreserved": true,
+      "sourceUntouched": true,
+      "idempotent": true,
+      "progressAndReload": true,
+      "originalDay": 0,
+      "resultDay": 1
+    }
+  ]
+}

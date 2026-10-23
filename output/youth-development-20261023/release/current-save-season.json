@@ -1,0 +1,48 @@
+{
+  "passed": true,
+  "scenario": "legacy",
+  "season": 2026,
+  "sha256": "a11aa460e1e0185f0a6a21a79bdfab881ebc0805eb83a29ef333781cce11819b",
+  "counts": {
+    "clubMatches": 4398,
+    "nationalMatches": 15,
+    "userClubMatches": 53,
+    "userNationalMatches": 5,
+    "advances": 289,
+    "byCompetition": {
+      "L": 3884,
+      "WCL": 27,
+      "C": 207,
+      "NAF": 15,
+      "CL": 125,
+      "EL": 125,
+      "PO": 30
+    },
+    "dailyTicks": 289
+  },
+  "completed": {
+    "NWC": {
+      "stage": "D",
+      "matches": 0
+    },
+    "NEU": {
+      "stage": "D",
+      "matches": 0
+    },
+    "NAM": {
+      "stage": "D",
+      "matches": 0
+    },
+    "NAS": {
+      "stage": "D",
+      "matches": 0
+    },
+    "NAF": {
+      "stage": "F",
+      "matches": 15,
+      "champion": "尼日利亚",
+      "runnerUp": "喀麦隆"
+    }
+  },
+  "elapsedSeconds": 41
+}

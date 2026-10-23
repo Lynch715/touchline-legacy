@@ -1,0 +1,34 @@
+<!doctype html><meta charset="utf-8"><title>青训与成长专项验收</title>
+<script>
+(async()=>{
+ const html=await(await fetch('../index.html',{cache:'no-store'})).text();
+ const digest=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(html)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+ const setup=()=>document.addEventListener('DOMContentLoaded',()=>{
+  const start=startMenu;startMenu=async function(){await start();try{
+   const storageBefore=JSON.stringify(Object.keys(localStorage).sort().map(k=>[k,localStorage.getItem(k)]));
+   newWorld(4242,'Manchester City');SAVE_PAUSED=true;clearTimeout(SAVE_TIMER);
+   const c=UC(),o=WORLD.clubs.find(x=>x.id!==c.id);WORLD.day=232;
+   WORLD.fixtures=Array.from({length:30},(_,i)=>({home:c.id,away:o.id,day:i*7,comp:'L',played:true,hg:0,ag:0}));c.seasonStats.p=30;
+   const p=makePlayer(42,'MC',17,c.id);p.cn='三月青训验收';p.homegrown=true;p.pa=170;WORLD.players[p.id]=p;c.squad.push(p.id);assignNumber(c,p);
+   const oldStarter=c.lineup[3];c.lineup[3]=p.id;
+   for(let i=0;i<4;i++){
+    if(i===3)c.lineup[3]=oldStarter;
+    const f={home:c.id,away:o.id,day:WORLD.day,comp:i%2?'C':'L',played:false,hg:0,ag:0};WORLD.fixtures.push(f);
+    const m=createMatch(c.id,o.id,{comp:f.comp,record:false});
+    for(const T of m.teams)for(const man of T.men)man.mins=90;
+    endMatch(m);applyResult(f,m);WORLD.day++;
+   }
+   const youthPA=p.pa;p.age++;prospectFate(p);
+   const q=c.squad.map(P).find(x=>x.id!==p.id&&x.pos==='MC');q.cn='25岁成长验收';q.age=25;q.a=Object.fromEntries(ATTR_KEYS.map(k=>[k,12]));q.ca=calcCA(q.a,q.pos);q.ca0=70;q.pa=180;q.prof=11;q.ambition=11;q.injury=0;q.dev=0;q.legend=false;q.trainPlan=[];
+   q.development={season:WORLD.season,games:38,apps:28,weeks:0,startCA:q.ca};const before=q.ca,squad=[...c.squad];c.squad=[q.id];c.trainIntensity=2;c.coachRating=15;c.trainFocus='balanced';
+   seedRng(44);for(let week=0;week<43;week++)trainClub(c);c.squad=squad;
+   const data={sourceSha256:document.querySelector('meta[name=qa-source-sha]').content,savePaused:SAVE_PAUSED,youth:{apps:p.development.apps,games:p.development.games,share:developmentShare(p),potentialUnchanged:p.pa===youthPA},senior:{age:q.age,before:before/2,after:q.ca/2,cap:devCap(q)/2,potential:q.pa/2},storageUnchanged:storageBefore===JSON.stringify(Object.keys(localStorage).sort().map(k=>[k,localStorage.getItem(k)]))};
+   const report=document.createElement('div');report.id='development-qa';report.style.cssText='position:fixed;top:0;right:0;z-index:9999;background:var(--bg2);border:1px solid var(--border);padding:8px;font-size:12px;max-width:55vw';
+   report.textContent=`专项验收：新青训 ${data.youth.apps}/${data.youth.games} = ${Math.round(data.youth.share*100)}%，首季潜力保留；25岁球员43周训练 ${data.senior.before} → ${data.senior.after}，潜力 ${data.senior.potential}。自动保存关闭。`;
+   document.body.appendChild(report);const json=document.createElement('pre');json.id='development-report';json.textContent=JSON.stringify(data);json.hidden=true;document.body.appendChild(json);
+   SORT={k:'age',d:1};VIEW='training';enterGame();fitAppHeight();
+  }catch(e){console.error(e);const x=document.createElement('pre');x.id='development-error';x.textContent=e.stack;document.body.appendChild(x);}};
+ });
+ document.open();document.write(html.replace('</head>','<meta name="qa-source-sha" content="'+digest+'"><script>('+setup.toString()+')();<\/script></head>'));document.close();
+})();
+</script>
