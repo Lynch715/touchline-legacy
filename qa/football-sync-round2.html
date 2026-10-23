@@ -40,6 +40,6 @@
  };
  });
  const bootstrap='<script>('+setup.toString()+')();<\/script>';
- document.open();document.write(html.replace('</head>',bootstrap+'</head>'));document.close();
+ document.open();document.write(html.replace('</head>','<base href="../">'+bootstrap+'</head>'));document.close();
 })();
 </script>

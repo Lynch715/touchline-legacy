@@ -29,6 +29,6 @@
    SORT={k:'age',d:1};VIEW='training';enterGame();fitAppHeight();
   }catch(e){console.error(e);const x=document.createElement('pre');x.id='development-error';x.textContent=e.stack;document.body.appendChild(x);}};
  });
- document.open();document.write(html.replace('</head>','<meta name="qa-source-sha" content="'+digest+'"><script>('+setup.toString()+')();<\/script></head>'));document.close();
+ document.open();document.write(html.replace('</head>','<base href="../">'+'<meta name="qa-source-sha" content="'+digest+'"><script>('+setup.toString()+')();<\/script></head>'));document.close();
 })();
 </script>

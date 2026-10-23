@@ -31,6 +31,6 @@
    document.addEventListener('click',()=>setTimeout(report,0));document.addEventListener('change',()=>setTimeout(report,0));
   }catch(e){document.body.appendChild(Object.assign(document.createElement('pre'),{id:'theme-audit-error',textContent:e.stack}));console.error(e)}};
  });
- document.open();document.write(html.replace('</head>','<script>('+setup.toString()+')();<\/script></head>'));document.close();
+ document.open();document.write(html.replace('</head>','<base href="../">'+'<script>('+setup.toString()+')();<\/script></head>'));document.close();
 })();
 </script>

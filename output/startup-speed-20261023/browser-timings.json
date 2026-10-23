@@ -1,0 +1,50 @@
+[
+  {
+    "variant": "before",
+    "bytesPerSecond": 1250000,
+    "gzipBytes": 8663857,
+    "downloadMs": 6934.899999976158,
+    "parseAndMenuMs": 153.60000002384186,
+    "totalMs": 7088.5
+  },
+  {
+    "variant": "after",
+    "bytesPerSecond": 1250000,
+    "gzipBytes": 772792,
+    "downloadMs": 610.6000000238419,
+    "parseAndMenuMs": 67,
+    "totalMs": 677.6000000238419
+  },
+  {
+    "variant": "before",
+    "bytesPerSecond": 1250000,
+    "gzipBytes": 8663857,
+    "downloadMs": 6935.5,
+    "parseAndMenuMs": 90.89999997615814,
+    "totalMs": 7026.399999976158
+  },
+  {
+    "variant": "after",
+    "bytesPerSecond": 1250000,
+    "gzipBytes": 772792,
+    "downloadMs": 608.2000000476837,
+    "parseAndMenuMs": 40.39999997615814,
+    "totalMs": 648.6000000238419
+  },
+  {
+    "variant": "before",
+    "bytesPerSecond": 1250000,
+    "gzipBytes": 8663857,
+    "downloadMs": 6935.299999952316,
+    "parseAndMenuMs": 89.89999997615814,
+    "totalMs": 7025.199999928474
+  },
+  {
+    "variant": "after",
+    "bytesPerSecond": 1250000,
+    "gzipBytes": 772792,
+    "downloadMs": 607.6000000238419,
+    "parseAndMenuMs": 49.60000002384186,
+    "totalMs": 657.2000000476837
+  }
+]

@@ -21,6 +21,6 @@
    VIEW='transfer';enterGame();fitAppHeight();
   }catch(e){console.error(e);const pre=document.createElement('pre');pre.id='deadline-error';pre.textContent=e.stack;document.body.appendChild(pre)}};
  });
- document.open();document.write(html.replace('</head>','<script>('+setup.toString()+')();<\/script></head>'));document.close();
+ document.open();document.write(html.replace('</head>','<base href="../">'+'<script>('+setup.toString()+')();<\/script></head>'));document.close();
 })();
 </script>

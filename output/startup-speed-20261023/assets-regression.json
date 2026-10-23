@@ -1,0 +1,42 @@
+{
+  "passed": true,
+  "checks": 6,
+  "webSha256": "936cbbbc3b0b637920f80fd551886367815c2bccdc963f2ec662848c02a15dcc",
+  "standaloneSha256": "efb9a8aa5b88be5f338b23021df5af346285f6b24cd280390e5acef700bf937f",
+  "webBytes": 2533267,
+  "webGzipBytes": 787108,
+  "originalGzipBytes": 8678507,
+  "initialTransferReduction": 0.9093037546665572,
+  "images": 1273,
+  "states": [
+    "bf08c6aa92c329cd3eb7e70c7cee7f3030ce897026c1969c60f8395baa052e7a",
+    "bf08c6aa92c329cd3eb7e70c7cee7f3030ce897026c1969c60f8395baa052e7a",
+    "bf08c6aa92c329cd3eb7e70c7cee7f3030ce897026c1969c60f8395baa052e7a"
+  ],
+  "results": [
+    {
+      "name": "网页版全部图片与离线版原始字节相同，完整覆盖1273张图",
+      "pass": true
+    },
+    {
+      "name": "还原图片和发行标识后，网页版与离线版源码逐字节一致",
+      "pass": true
+    },
+    {
+      "name": "入口无外部脚本依赖，离线版无外部图片依赖",
+      "pass": true
+    },
+    {
+      "name": "资产清单中的每个文件均通过大小与SHA校验",
+      "pass": true
+    },
+    {
+      "name": "初始必要下载压缩体积减少至少85%",
+      "pass": true
+    },
+    {
+      "name": "同种子新世界和四周训练：发布前、网页版、离线版状态一致",
+      "pass": true
+    }
+  ]
+}

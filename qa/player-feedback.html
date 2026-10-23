@@ -25,6 +25,6 @@
    setInterval(update,100);NAT_SCOPE='nation';VIEW='tactics';enterGame();fitAppHeight();update();
   }catch(e){console.error(e);const x=document.createElement('pre');x.id='feedback-error';x.textContent=e.stack;document.body.appendChild(x);}};
  });
- document.open();document.write(html.replace('</head>','<meta name="qa-source-sha" content="'+digest+'"><script>('+setup.toString()+')();<\/script></head>'));document.close();
+ document.open();document.write(html.replace('</head>','<base href="../">'+'<meta name="qa-source-sha" content="'+digest+'"><script>('+setup.toString()+')();<\/script></head>'));document.close();
 })();
 </script>

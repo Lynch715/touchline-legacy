@@ -19,6 +19,6 @@
    document.addEventListener('input',()=>setTimeout(report,400));document.addEventListener('change',()=>setTimeout(report,0));document.addEventListener('click',()=>setTimeout(report,0));
   }catch(e){const out=document.createElement('pre');out.id='qa-error';out.textContent=e.stack;document.body.appendChild(out);console.error(e)}};
  });
- document.open();document.write(html.replace('</head>','<script>('+setup.toString()+')();<\/script></head>'));document.close();
+ document.open();document.write(html.replace('</head>','<base href="../">'+'<script>('+setup.toString()+')();<\/script></head>'));document.close();
 })();
 </script>

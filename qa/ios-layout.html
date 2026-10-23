@@ -60,7 +60,7 @@
   };
   const setupScript='('+setup.toString().replace('MODE',JSON.stringify(mode))+')();';
   const safeStyle=mode==='installed'||mode==='reported' ? '<style>:root{--sat:'+(mode==='reported'?59:0)+'px;--sab:'+inset+'px;--sal:0px;--sar:0px}'+(baseline?(mode==='reported'?'#app{height:1001.59px!important;bottom:auto!important}':'#side{padding-bottom:max(var(--sab),3px)!important}'):'')+'@media(orientation:landscape){:root{--sat:0px;--sab:21px;--sal:59px;--sar:59px}}</style>' : '';
-  const result=source.replace('</head>',safeStyle+'<script>'+setupScript+'<\/script></head>');
+  const result=source.replace('</head>','<base href="../">'+safeStyle+'<script>'+setupScript+'<\/script></head>');
   document.open();document.write(result);document.close();
 })();
 </script>

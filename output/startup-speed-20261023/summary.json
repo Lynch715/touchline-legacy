@@ -1,0 +1,38 @@
+{
+  "passed": true,
+  "checks": 139,
+  "suites": {
+    "core": {
+      "passed": 16,
+      "failed": 0
+    },
+    "all-events": {
+      "passed": 63,
+      "failed": 0
+    },
+    "save-envelope": {
+      "passed": 17,
+      "failed": 0
+    },
+    "player-feedback": {
+      "passed": 15,
+      "failed": 0
+    },
+    "legacy-world": {
+      "passed": 9,
+      "failed": 0
+    },
+    "youth": {
+      "passed": 13,
+      "failed": 0
+    },
+    "assets-regression": {
+      "passed": 6,
+      "failed": 0
+    }
+  },
+  "controlledColdLoadMs": {
+    "before": 7026.399999976158,
+    "after": 657.2000000476837
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "sourceSha256": "0faa737641a30f738967e0398656689ba2d2011e34af27c751b770355406ced1",
+  "results": [
+    {
+      "file": "线上原存档备份.json",
+      "inputSha256": "0bed5708bf078f0694bfe1a2743466732576737cebd00bed9d4b96a6f140a06b",
+      "inputBytes": 8032007,
+      "keyStatePreserved": true,
+      "sourceUntouched": true,
+      "idempotent": true,
+      "progressAndReload": true,
+      "originalDay": 0,
+      "resultDay": 1
+    }
+  ]
+}

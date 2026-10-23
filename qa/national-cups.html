@@ -21,6 +21,6 @@
   VIEW=params.get('unemployed')==='1'?'home':params.get('view')==='nation'?'nation':'schedule';enterGame();fitAppHeight();
  }catch(e){console.error(e);const x=document.createElement('pre');x.id='national-error';x.textContent=e.stack;document.body.appendChild(x)}};
  });
- document.open();document.write(html.replace('</head>','<script>('+setup.toString()+')();<\/script></head>'));document.close();
+ document.open();document.write(html.replace('</head>','<base href="../">'+'<script>('+setup.toString()+')();<\/script></head>'));document.close();
 })();
 </script>

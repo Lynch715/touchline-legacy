@@ -27,6 +27,6 @@
   VIEW=params.get('view')==='world'?'league':'schedule';if(VIEW==='league')LGNATION='WORLD';enterGame();fitAppHeight();
  }catch(e){console.error(e);const x=document.createElement('pre');x.id='club-cups-error';x.textContent=e.stack;document.body.appendChild(x)}};
  });
- document.open();document.write(html.replace('</head>','<script>('+setup.toString()+')();<\/script></head>'));document.close();
+ document.open();document.write(html.replace('</head>','<base href="../">'+'<script>('+setup.toString()+')();<\/script></head>'));document.close();
 })();
 </script>

@@ -29,6 +29,6 @@
    document.addEventListener('click',()=>setTimeout(update,0));setInterval(update,200);
   };
  });
- document.open();document.write(html.replace('</head>','<meta name="qa-source-sha" content="'+sourceSha+'"><script>('+setup.toString()+')();<\/script></head>'));document.close();
+ document.open();document.write(html.replace('</head>','<base href="../">'+'<meta name="qa-source-sha" content="'+sourceSha+'"><script>('+setup.toString()+')();<\/script></head>'));document.close();
 })();
 </script>

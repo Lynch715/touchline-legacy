@@ -1,0 +1,38 @@
+[
+  {
+    "sourceSha": "5cd2bec55ebf5cd51079c10c6c0166c8f66ae021f58472edaa0129b7ec3ffcc9",
+    "view": "transfer",
+    "day": 0,
+    "savePaused": true,
+    "images": 161,
+    "visible": 15,
+    "visibleLoaded": 15,
+    "broken": [],
+    "assetRequests": 164,
+    "overflow": false
+  },
+  {
+    "sourceSha": "5cd2bec55ebf5cd51079c10c6c0166c8f66ae021f58472edaa0129b7ec3ffcc9",
+    "view": "nation",
+    "day": 0,
+    "savePaused": true,
+    "images": 82,
+    "visible": 29,
+    "visibleLoaded": 29,
+    "broken": [],
+    "assetRequests": 245,
+    "overflow": false
+  },
+  {
+    "sourceSha": "5cd2bec55ebf5cd51079c10c6c0166c8f66ae021f58472edaa0129b7ec3ffcc9",
+    "view": "save",
+    "day": 0,
+    "savePaused": true,
+    "images": 1,
+    "visible": 1,
+    "visibleLoaded": 1,
+    "broken": [],
+    "assetRequests": 245,
+    "overflow": false
+  }
+]

@@ -34,6 +34,6 @@
   NAT_SCOPE=params.get('preview')==='1'?'nation':fx.national?null:'nation';VIEW=params.get('preview')==='1'?'tactics':'schedule';enterGame();fitAppHeight();
  }catch(e){console.error(e);const x=document.createElement('pre');x.id='all-events-error';x.textContent=e.stack;document.body.appendChild(x)}};
  });
- document.open();document.write(html.replace('</head>','<meta name="qa-source-sha" content="'+digest+'"><script>('+setup.toString()+')();<\/script></head>'));document.close();
+ document.open();document.write(html.replace('</head>','<base href="../">'+'<meta name="qa-source-sha" content="'+digest+'"><script>('+setup.toString()+')();<\/script></head>'));document.close();
 })();
 </script>
