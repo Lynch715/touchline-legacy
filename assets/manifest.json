@@ -1,5 +1,5 @@
 {
-  "version": "20261023.3",
+  "version": "20261023.4",
   "source": "执掌绿茵.html",
   "sourceSha256": "838734803c9d56f522344b5b479a18ccd95a063e06be85f5e8b6affeb340c4dd",
   "sourceBytes": 12994381,
@@ -11,8 +11,8 @@
   "files": [
     {
       "path": "sw.js",
-      "bytes": 188359,
-      "sha256": "4482e38233e91d03db5eaf77bd080c2c206a124fd3d3a17059c761025d9f862b"
+      "bytes": 188685,
+      "sha256": "bfe865aeeb597c0610db24b681c22b475dee104ae1ba1ca7e1a2650e7e2125a3"
     },
     {
       "path": "index.html",

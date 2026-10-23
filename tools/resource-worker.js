@@ -8,7 +8,8 @@ const CACHE = 'touchline-resources-v1:' + BASE.href;
 const SHELL = new URL('index.html', BASE).href;
 const FILES = new Map(ASSETS.map(f => [new URL(f.path, BASE).href, f]));
 const inflight = new Map();
-let warming = null;
+let warming = null, latestStatus = null;
+const watchers = new Map();
 const hex = bytes => [...new Uint8Array(bytes)].map(b => b.toString(16).padStart(2, '0')).join('');
 async function verified(response, sha, size) {
   if (!response.ok || response.type === 'opaque') throw Error('resource-http');
@@ -57,7 +58,10 @@ async function navigation(request, event) {
   finally { clearTimeout(timer); }
 }
 async function notify(source, status) {
-  try { source?.postMessage({ type: 'TOUCHLINE_CACHE', build: BUILD, ...status }); } catch (_) {}
+  latestStatus = { type: 'TOUCHLINE_CACHE', build: BUILD, ...status };
+  for (const [id, client] of watchers) {
+    try { client.postMessage(latestStatus); } catch (_) { watchers.delete(id); }
+  }
 }
 async function warm(source) {
   const cache = await caches.open(CACHE);
@@ -86,6 +90,8 @@ self.addEventListener('install', event => { event.waitUntil(self.skipWaiting());
 self.addEventListener('activate', event => { event.waitUntil(self.clients.claim()); });
 self.addEventListener('message', event => {
   if (event.data?.type !== 'TOUCHLINE_WARM') return;
+  if (event.source) watchers.set(event.source.id || event.source, event.source);
+  if (warming && latestStatus) { try { event.source?.postMessage(latestStatus); } catch (_) {} }
   if (!warming) { warming = warm(event.source).catch(() => notify(event.source, { phase: 'unavailable' })).finally(() => { warming = null; }); }
   event.waitUntil(warming);
 });
