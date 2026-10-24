@@ -7,8 +7,8 @@ function phase(code){const E=WORLD.clubCups[code],day=E.stage==='G'?E.gdays.find
 function toKO(code){while(WORLD.clubCups[code].stage==='G')phase(code);assert.equal(WORLD.clubCups[code].stage,'K')}
 function seed(code,n=4){
  WORLD.fixtures=WORLD.fixtures.filter(f=>f.comp!==code);delete WORLD.clubCups[code];clubCupHistory(code).length=0;
- const teams=[0,1,2,3].slice(0,n);WORLD.history.push({season:WORLD.season-1,euro:{CL:0,EL:1},leagues:[]});
- for(const [i,key]of ['libertadores','afc','concacaf'].entries())WORLD.contClubHistory[key]=[{season:WORLD.season-1,champion:teams[i+1]??0}];
+ const teams=[0,...[16,5,8].map(ni=>WORLD.clubs.find(c=>c.nation===ni&&c.tier===0).id)].slice(0,n);WORLD.history.push({season:WORLD.season-1,euro:{CL:0,EL:1},leagues:[]});
+ for(const [i,key]of ['libertadores','afc','concacaf'].entries())WORLD.contClubHistory[key]=teams[i+1]!=null?[{season:WORLD.season-1,champion:teams[i+1]}]:[];
  return ensureClubCup(code,WORLD.season);
 }
 function manual(f){

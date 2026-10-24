@@ -1,0 +1,7 @@
+{
+  "fullSeasonTestedSHA256": "f503cdfc7a0277ec5588e49c1d3dad75ed984b2bf68ec13728f4b090edb5e042",
+  "releaseSHA256": "5921960ccd52bda2ca025654e127513a9ebfcfb78517668e96ebe9ccf90fd01e",
+  "difference": "Removed one trailing space in renderClubCup; no executable or displayed content changes",
+  "onlyTrailingSpaceChanged": true,
+  "preReleaseFullSeasonChecks": true
+}

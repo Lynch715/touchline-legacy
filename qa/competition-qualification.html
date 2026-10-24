@@ -1,0 +1,22 @@
+<!doctype html><meta charset="utf-8"><title>赛事资格修复独立验收</title>
+<script>
+(async()=>{
+ const html=await(await fetch('../index.html',{cache:'no-store'})).text();
+ const sourceSha=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(html)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+ const setup=()=>document.addEventListener('DOMContentLoaded',()=>{
+  const start=startMenu;startMenu=async function(){await start();try{
+   SAVE_PAUSED=true;storeSave=async()=>{throw Error('独立验收禁止写入存档');};healSave=async()=>[];newWorld(4242,'Dalian Yingbo');SAVE_PAUSED=true;clearTimeout(SAVE_TIMER);
+   const c=UC(),id=c.id,ids=WORLD.leagues[c.lg].clubIds;
+   WORLD.history=[{season:2026,euro:{CL:0,EL:1},cups:[],leagues:WORLD.leagues.filter(l=>l.tier===0).map(l=>({lg:l.lg,nation:l.nation,tier:0,table:[...l.clubIds].sort((a,b)=>l.nation===5?(a===id?-1:b===id?1:C(b).rep-C(a).rep):C(b).rep-C(a).rep).map((id,i)=>({id,rank:i+1,pts:99-i}))}))}];
+   for(const [i,k]of ['libertadores','afc','concacaf'].entries())WORLD.contClubHistory[k]=[{season:2026,champion:WORLD.clubs.find(c=>c.nation===[16,5,8][i]&&c.tier===0).id}];
+   WORLD.season=2027;WORLD.day=0;buildSeason();WORLD.userClub=id;
+   const matchMode=new URLSearchParams(location.search).get('match')==='1';
+   if(matchMode){const f=WORLD.fixtures.find(f=>f.comp==='AFC'&&[f.home,f.away].includes(id));WORLD.day=f.day;for(const pid of UC().squad){P(pid).injury=0;P(pid).susp=0;P(pid).condition=100;}autoPickLineup(UC());}
+   VIEW=matchMode?'schedule':'league';LGNATION=5;LGTIER=0;enterGame();fitAppHeight();
+   const note=el('div','hint','独立验收世界 · 暂停存档 · 上季中超冠军：大连英博 · 本季亚冠资格：'+WORLD.clubCups.AFC.teams.includes(id));note.id='qualification-test-note';document.getElementById('view').prepend(note);
+   const report=document.createElement('script');report.type='application/json';report.id='qualification-browser-report';report.textContent=JSON.stringify({sourceSha:document.querySelector('meta[name=qa-source-sha]').content,season:WORLD.season,club:c.cn,afc:WORLD.clubCups.AFC.teams.includes(id),source:WORLD.clubCups.AFC.qualification.find(r=>r.id===id),europa:WORLD.euro.EL.teams.length,savePaused:SAVE_PAUSED});document.body.appendChild(report);
+  }catch(e){const x=document.createElement('pre');x.textContent=e.stack;document.body.appendChild(x);console.error(e);}};
+ });
+ document.open();document.write(html.replace('</head>','<base href="../">'+'<meta name="qa-source-sha" content="'+sourceSha+'"><script>('+setup.toString()+')();<\/script></head>'));document.close();
+})();
+</script>

@@ -1,0 +1,25 @@
+PASS Safari tab keeps its own viewport
+PASS Home Screen never exceeds the reported drawing area
+PASS No double inset when Home Screen already reports full height
+PASS Landscape with portrait screen metrics
+PASS Landscape with rotated screen metrics
+PASS Split window does not use full-screen height
+PASS Desktop window is not expanded to monitor height
+PASS Keyboard shrinks installed app to visible area
+PASS Keyboard panning includes viewport offset
+PASS Legacy keyboard without VisualViewport
+PASS Checkbox does not expand the drawing area
+PASS Input focus with hardware keyboard stays within viewport
+PASS Keyboard that also shrinks innerHeight remains visible
+PASS Pinch zoom does not rewrite app geometry
+PASS Transient zero viewport is ignored
+PASS Visual viewport grows before innerHeight catches up
+PASS Visible viewport excludes browser toolbar
+PASS Reported iPhone 462×932 / 393×852, scale 1
+PASS Reported iPhone 462×932 / 393×852, scale 0.85
+PASS Reported iPhone 462×932 / 393×852, scale 1.176
+PASS Zoomed-in iPhone remains inside its viewport
+PASS Scaled landscape iPhone uses the reported drawing area
+PASS Scaled iPhone keyboard still shrinks to the visible area
+PASS Scaled ordinary Safari tab is not forced to screen height
+27 viewport scenarios passed; full game script syntax passed.

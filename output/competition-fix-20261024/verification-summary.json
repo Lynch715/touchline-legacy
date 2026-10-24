@@ -1,0 +1,31 @@
+{
+  "version": "20261024.1",
+  "passed": true,
+  "checks": 212,
+  "bySuite": {
+    "qualification": 29,
+    "club-cups": 21,
+    "wcl": 12,
+    "national-cups": 26,
+    "all-events": 63,
+    "legacy-world": 9,
+    "general": 16,
+    "resource-cache": 9,
+    "viewport": 27
+  },
+  "fullSeasonSourceSHA256": "f503cdfc7a0277ec5588e49c1d3dad75ed984b2bf68ec13728f4b090edb5e042",
+  "fullSeasons": 2,
+  "clubMatches": 40606,
+  "manualEntries": {
+    "L": 60,
+    "WCL": 5,
+    "C": 6,
+    "AFC": 4
+  },
+  "oldWorldFixtures": "created from pre-fix source; no personal saves",
+  "browser": "Codex In-app Browser; 1280px, 320x568, 393x852; AFC entry, mentality, 2-2 result, next day, 1 point",
+  "personalSaveLoaded": false,
+  "published": false,
+  "releaseSourceSHA256": "5921960ccd52bda2ca025654e127513a9ebfcfb78517668e96ebe9ccf90fd01e",
+  "releaseOnlyTrailingSpaceChange": true
+}

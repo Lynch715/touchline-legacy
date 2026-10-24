@@ -8,7 +8,7 @@
   const params=new URLSearchParams(location.search),code=params.get('comp')||'AFC',knockout=params.get('stage')==='knockout';
   if(['CWC','SUP'].includes(code)){
    WORLD.history.push({season:WORLD.season-1,euro:{CL:0,EL:1},leagues:[]});
-   for(const [i,key]of ['libertadores','afc','concacaf'].entries())WORLD.contClubHistory[key]=[{season:WORLD.season-1,champion:i+1}];
+   for(const [i,key]of ['libertadores','afc','concacaf'].entries())WORLD.contClubHistory[key]=[{season:WORLD.season-1,champion:WORLD.clubs.find(c=>c.nation===[16,5,8][i]&&c.tier===0).id}];
    delete WORLD.clubCups[code];ensureClubCup(code,WORLD.season);
   }
   if(knockout&&WORLD.clubCups[code].stage==='G')while(WORLD.clubCups[code].stage==='G'){

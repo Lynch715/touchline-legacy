@@ -495,6 +495,8 @@ button.nav{font-family:inherit;box-shadow:none;width:100%;text-align:left;backgr
 button.nav.on{background:var(--bg3)}
 button.nav:focus-visible{outline:2px solid var(--acc);outline-offset:-2px}
 @media(max-width:900px){button.nav{text-align:center;border:0}button.nav.on{background:rgba(0,212,126,.13)}}
+/* 多项赛事标签在窄屏换行，保留积分列可读性。 */
+@media(max-width:600px){.qualification-tags{display:flex;max-width:94px;flex-wrap:wrap;gap:2px;margin-top:2px}.qualification-tags .tag{margin:0;font-size:9px;line-height:1.25;padding:1px 3px}}
 </style>
 </head>
 <body>
@@ -6733,31 +6735,52 @@ function winnerOf(f){
 }
 
 // ---------- 欧战：资格 ----------
-// 首个赛季按声望；之后由上赛季结算写入 WORLD.euroQual
-function defaultEuroQual(){
-  const q={CL:[],EL:[],ECL:[]};
-  NATIONS.forEach((nat,ni)=>{
-    if(nat.cl===0 && nat.el===0) return;   // 非欧洲联赛不参加欧战
-    const top=WORLD.clubs.filter(c=>c.nation===ni&&c.tier===0).sort((a,b)=>b.rep-a.rep);
-    q.CL.push(...top.slice(0,nat.cl).map(c=>c.id));
-    q.EL.push(...top.slice(nat.cl,nat.cl+nat.el+1).map(c=>c.id));  // 多一个名额代表杯赛冠军
-    q.ECL.push(...top.slice(nat.cl+nat.el+1, nat.cl+nat.el+1+Math.max(1,nat.el)).map(c=>c.id)); // 欧协联名额
-  });
+// 三项欧战各32队。欧联总席位含国内杯通道；冠军通道优先，联赛名额逐队顺延。
+const EURO_EL_SLOTS={ENG:4,ESP:4,ITA:4,GER:3,FRA:3,POR:2,NED:2,SCO:2,SUI:2,FIN:2,BEL:2,TUR:2};
+function previousSeasonSummary(season){return WORLD.history.find(h=>h.season===season-1)||null;}
+function hasQualificationTable(ni,summary){return !!summary?.leagues?.find(l=>l.nation===ni&&l.tier===0)?.table?.length;}
+function qualificationTable(ni,summary){
+  const table=summary?.leagues?.find(l=>l.nation===ni&&l.tier===0)?.table;
+  if(table?.length)return table.map(r=>r.id).filter(id=>C(id)?.nation===ni);
+  // 无历史开局或旧世界缺失该国排名时，只从现有顶级球队产生初始种子。
+  return WORLD.clubs.filter(c=>c.nation===ni&&c.tier===0).sort((a,b)=>b.rep-a.rep||a.id-b.id).map(c=>c.id);
+}
+function isEuropeanClub(id){const c=C(id);return !!c&&(c.nation===EURO_NATION||!!EURO_EL_SLOTS[NATIONS[c.nation]?.code]);}
+function allocateEuroQualifications(summary,season){
+  const q={v:1,season,CL:[],EL:[],ECL:[],sources:{CL:[],EL:[],ECL:[]}},used=new Set();
+  const add=(code,id,source,extra={})=>{if(!Number.isInteger(id)||!isEuropeanClub(id)||used.has(id))return false;
+    if(q[code].length>=32)throw new Error('欧战资格超出32队，请检查名额配置');
+    used.add(id);q[code].push(id);q.sources[code].push({id,source,sourceSeason:source==='opening'?null:summary?.season??null,...extra});return true;};
+  for(const code of ['CL','EL'])add('CL',summary?.euro?.[code],'holder',{competition:code});
+  NATIONS.forEach((nat,ni)=>{if(!EURO_EL_SLOTS[nat.code])return;qualificationTable(ni,summary).slice(0,nat.cl).forEach((id,i)=>add('CL',id,hasQualificationTable(ni,summary)?'league':'opening',{nation:ni,rank:i+1}));});
+  add('EL',summary?.euro?.ECL,'holder',{competition:'ECL'});
+  const records=NATIONS.map((nat,ni)=>({nat,ni,slots:EURO_EL_SLOTS[nat.code]||0,table:qualificationTable(ni,summary),assigned:0})).filter(r=>r.slots&&r.table.length);
+  // 卫冕冠军已凭国内成绩取得欧联时，占原有席位；只有未取得常规资格才占额外冠军席位。
+  const holder=q.EL[0],clUsed=new Set(q.CL);
+  const covered=holder!=null?records.find(r=>{const cup=summary?.cups?.[r.ni],ids=[];
+    if(C(cup)?.nation===r.ni&&!clUsed.has(cup))ids.push(cup);
+    for(const id of r.table)if(!clUsed.has(id)&&!ids.includes(id)&&ids.length<r.slots)ids.push(id);
+    return ids.includes(holder);
+  }):null;
+  if(covered)covered.assigned++;
+  let excess=records.reduce((n,r)=>n+r.slots,0)+q.EL.length-(covered?1:0)-32;
+  for(let i=records.length-1;i>=0&&excess>0;i--)while(records[i].slots>1&&excess>0){records[i].slots--;excess--;}
+  if(excess>0)throw new Error('欧联冠军通道无法分配');
+  records.forEach(r=>{const id=summary?.cups?.[r.ni];if(C(id)?.nation===r.ni&&add('EL',id,'cup',{nation:r.ni}))r.assigned++;});
+  records.forEach(r=>{for(const id of r.table){if(r.assigned>=r.slots)break;if(add('EL',id,hasQualificationTable(r.ni,summary)?'league':'opening',{nation:r.ni,rank:r.table.indexOf(id)+1}))r.assigned++;}});
+  records.forEach(r=>{let n=0;for(const id of r.table){if(n>=Math.max(1,r.nat.el))break;if(add('ECL',id,hasQualificationTable(r.ni,summary)?'league':'opening',{nation:r.ni,rank:r.table.indexOf(id)+1}))n++;}});
   return q;
 }
+function defaultEuroQual(){return allocateEuroQualifications(null,WORLD.season);}
 function fillEuroWithOthers(q){
-  const others=WORLD.clubs.filter(c=>c.nation===EURO_NATION)
-    .map(c=>({id:c.id, s:c.rep+gauss(0,5)})).sort((a,b)=>b.s-a.s).map(x=>x.id);
-  const needCL=32-q.CL.length, needEL=32-q.EL.length, needECL=32-(q.ECL?q.ECL.length:0);
-  q.CL.push(...others.slice(0,Math.max(0,needCL)));
-  q.EL.push(...others.slice(Math.max(0,needCL), Math.max(0,needCL)+Math.max(0,needEL)));
-  if(q.ECL) q.ECL.push(...others.slice(Math.max(0,needCL)+Math.max(0,needEL), Math.max(0,needCL)+Math.max(0,needEL)+Math.max(0,needECL)));
-  q.CL=q.CL.slice(0,32); q.EL=q.EL.slice(0,32);
-  if(q.ECL) q.ECL=q.ECL.slice(0,32);
-  // 五国旧世界的额外欧洲球队不足以填满三项欧战时，从现有欧洲联赛顺延资格。
   const used=new Set([...q.CL,...q.EL,...(q.ECL||[])]);
-  const fallback=WORLD.clubs.filter(c=>c.nation!==EURO_NATION&&(NATIONS[c.nation]?.cl>0||NATIONS[c.nation]?.el>0)&&!used.has(c.id)).sort((a,b)=>b.rep-a.rep||a.id-b.id);
-  for(const code of ["CL","EL","ECL"])if(q[code])while(q[code].length<32&&fallback.length){const c=fallback.shift();q[code].push(c.id);used.add(c.id);}
+  for(const code of ['CL','EL','ECL'])if(q[code].length>32)throw new Error('欧战已分配资格超过32队，不能截断参赛名单');
+  const others=WORLD.clubs.filter(c=>c.nation===EURO_NATION&&!used.has(c.id)).map(c=>({id:c.id,s:c.rep+gauss(0,5)})).sort((a,b)=>b.s-a.s||a.id-b.id).map(x=>x.id);
+  const fallback=WORLD.clubs.filter(c=>c.nation!==EURO_NATION&&c.tier===0&&isEuropeanClub(c.id)&&!used.has(c.id)).sort((a,b)=>b.rep-a.rep||a.id-b.id).map(c=>c.id);
+  for(const code of ['CL','EL','ECL']){
+    for(const pool of [others,fallback])while(q[code].length<32&&pool.length){const id=pool.shift();if(used.has(id))continue;used.add(id);q[code].push(id);q.sources?.[code]?.push({id,source:'fill',sourceSeason:null});}
+    if(q[code].length!==32)throw new Error('现有欧洲俱乐部不足以编排32队欧战');
+  }
 }
 
 // 分组抽签：按声望分 4 档，每组各档 1 队，尽量避免同国同组
@@ -6779,16 +6802,14 @@ function drawGroups(ids){
 }
 
 function buildEuro(){
-  const q = WORLD.euroQual ? {CL:[...WORLD.euroQual.CL],EL:[...WORLD.euroQual.EL],ECL:[...(WORLD.euroQual.ECL||[])]} : defaultEuroQual();
-  // 剔除已不存在 / 重复
-  q.CL=[...new Set(q.CL)]; q.EL=[...new Set(q.EL)].filter(id=>!q.CL.includes(id));
-  q.ECL=[...new Set(q.ECL||[])].filter(id=>!q.CL.includes(id)&&!q.EL.includes(id));
-  fillEuroWithOthers(q);
+  const summary=previousSeasonSummary(WORLD.season);
+  const q=allocateEuroQualifications(summary,WORLD.season);
+  fillEuroWithOthers(q);WORLD.euroQual=q;
   WORLD.euro={};
   ["CL","EL","ECL"].forEach(code=>{
     const def=EURO_COMPS[code];
     const ids=q[code];
-    const E={ code, name:def.name, short:def.short, teams:ids, groups:drawGroups(ids),
+    const E={ code, name:def.name, short:def.short, teams:ids, qualification:q.sources[code], groups:drawGroups(ids),
       gtable:{}, stage:"G", gdays:EURO_GROUP_WEEKS.map(w=>satOf(w)+(code==="CL"?3:4)),
       kdays:EURO_KO_WEEKS.map(([a,b])=>[satOf(a)+(code==="CL"?3:4), satOf(b)+(code==="CL"?3:4)]),
       finalDay: code==="CL"? satOf(40) : satOf(39)+4,
@@ -7828,7 +7849,10 @@ function applyResult(fx, M){
       if(c.form.length>8) c.form.shift();
     });
   }
-  if(Object.hasOwn(CLUB_CUP_CODES,fx.comp)&&fx.stage==="G")clubCupApplyGroupResult(fx);
+  if(Object.hasOwn(CLUB_CUP_CODES,fx.comp)){
+    fx.cupPlayers=M.teams.map(T=>({club:T.cid,ids:T.men.filter(m=>m.mins>0).map(m=>m.id)}));
+    if(fx.stage==='G')clubCupApplyGroupResult(fx);
+  }
   if(fx.comp==="WCL"){
     fx.wclPlayers=M.teams.flatMap(T=>T.men.filter(m=>m.mins>0).map(m=>m.id));
     if(fx.stage==="G")wclApplyGroupResult(fx);
@@ -10408,23 +10432,7 @@ function endSeason(){
   });
   // 只打欧战的其他欧洲球队：按声望折算其本国联赛的奖金与转播收入
   WORLD.clubs.filter(c=>c.nation===EURO_NATION).forEach(c=>addMoney(c, Math.round(Math.pow(c.rep,3)*EURO_TV_K), `${c.country||"本国"}联赛奖金/转播分成`));
-  // ---- 下赛季欧战资格（按各国顶级联赛排名 + 杯赛冠军）----
-  const qual={CL:[],EL:[],ECL:[]};
-  NATIONS.forEach((nat,ni)=>{
-    if(nat.cl===0 && nat.el===0) return;   // 非欧洲联赛不参加欧战
-    const t=tables[lgIndex(ni,0)]; if(!t?.length) return;
-    const ids=t.map(r=>r.id);
-    qual.CL.push(...ids.slice(0,nat.cl));
-    const el=ids.slice(nat.cl, nat.cl+nat.el);
-    const cupW=WORLD.cups[ni]?.winner;
-    if(cupW!=null && C(cupW).nation===ni && !qual.CL.includes(cupW) && !el.includes(cupW)) el.push(cupW);
-    else el.push(ids[nat.cl+nat.el]);           // 杯赛冠军已获资格 → 名额顺延给联赛下一名
-    qual.EL.push(...el.filter(x=>x!=null));
-    // 欧协联：EL 之后的球队 + 杯赛亚军（简化：联赛中游球队）
-    const eclStart = nat.cl + nat.el + 1;
-    qual.ECL.push(...ids.slice(eclStart, eclStart + Math.max(1,nat.el)).filter(x=>x!=null && !qual.CL.includes(x) && !qual.EL.includes(x)));
-  });
-  WORLD.euroQual=qual;
+  WORLD.euroQual=allocateEuroQualifications(summary,WORLD.season+1);
   // ---- 升降级：2 队直升 + 附加赛。英西意 3 队直降；德法 2 队直降，第 16 名打附加赛 ----
   const moves=[];
   NATIONS.forEach((nat,ni)=>{
@@ -10713,15 +10721,32 @@ function clubCupPlanDays(teams,count,minDay,early){
   }
   return days;
 }
-function clubCupQualifiers(code,season){
-  const key=CLUB_CUP_CODES[code];
-  if(key)return continentalClubPool(CONTINENTAL_CLUB_CONF[key]).slice(0,16);
-  const previous=WORLD.history.filter(h=>h.season<season).slice().reverse(),euro=previous.find(h=>h.euro?.CL!=null&&(code!=='SUP'||h.euro.EL!=null));
-  if(code==='SUP')return [...new Set([euro?.euro.CL,euro?.euro.EL].filter(id=>Number.isInteger(id)&&C(id)))];
-  const champion=k=>(WORLD.contClubHistory?.[k]||[]).filter(h=>h.season<season).at(-1)?.champion;
-  const domestic=codes=>codes.map(code=>NATIONS.findIndex(n=>n.code===code)).filter(i=>i>=0).map(ni=>previous[0]?.leagues.find(l=>l.nation===ni&&l.tier===0)?.table[0]?.id).filter(id=>id!=null&&C(id)).sort((a,b)=>C(b).rep-C(a).rep)[0];
-  return [...new Set([euro?.euro.CL,champion('libertadores')??domestic(['BRA','ARG']),champion('afc')??domestic(['CHN','JPN','KSA','KOR','AUS']),champion('concacaf')??domestic(['USA','RUS','TUR'])].filter(id=>Number.isInteger(id)&&C(id)))];
+// 固定16队简化赛制，资格由上季成绩产生；国内杯和卫冕通道可以来自低级别。
+const CONTINENTAL_SLOTS={afc:{CHN:3,JPN:4,KSA:4,KOR:3,AUS:2},libertadores:{BRA:8,ARG:8},concacaf:{USA:16}};
+function continentalQualifications(code,season,summary=previousSeasonSummary(season)){
+  const key=CLUB_CUP_CODES[code],conf=CONTINENTAL_CLUB_CONF[key],teams=[],sources=[],used=new Set();
+  const records=conf.nations.map(ni=>({ni,table:qualificationTable(ni,summary),slots:CONTINENTAL_SLOTS[key][NATIONS[ni].code]||0,count:0})).filter(r=>r.table.length);
+  const add=(id,source,extra={})=>{const r=records.find(r=>r.ni===C(id)?.nation);if(!Number.isInteger(id)||!r||used.has(id)||teams.length>=conf.size)return false;
+    used.add(id);teams.push(id);r.count++;sources.push({id,source,sourceSeason:source==='opening'?null:summary?.season??null,nation:r.ni,...extra});return true;};
+  const holder=WORLD.contClubHistory?.[key]?.find(h=>h.season===season-1)?.champion;
+  add(holder,'holder',{sourceSeason:season-1});
+  records.forEach(r=>add(r.table[0],hasQualificationTable(r.ni,summary)?'league':'opening',{rank:1}));
+  records.forEach(r=>add(summary?.cups?.[r.ni],'cup'));
+  for(let rank=0;rank<Math.max(0,...records.map(r=>r.table.length));rank++)for(const r of records)if(r.count<r.slots)add(r.table[rank],hasQualificationTable(r.ni,summary)?'league':'opening',{rank:rank+1});
+  // 早期旧世界若缺少某个国家，仅从实际存在的其他地区顶级联赛顺延。
+  for(let rank=0;rank<Math.max(0,...records.map(r=>r.table.length));rank++)for(const r of records)add(r.table[rank],hasQualificationTable(r.ni,summary)?'league':'opening',{rank:rank+1});
+  return {teams,sources};
 }
+function clubCupQualification(code,season){
+  const key=CLUB_CUP_CODES[code];if(key)return continentalQualifications(code,season);
+  const summary=previousSeasonSummary(season),teams=[],sources=[];
+  const add=(id,competition)=>{if(Number.isInteger(id)&&C(id)&&!teams.includes(id)){teams.push(id);sources.push({id,source:'holder',competition,sourceSeason:season-1});}};
+  if(isEuropeanClub(summary?.euro?.CL))add(summary.euro.CL,'CL');
+  if(code==='SUP'){if(isEuropeanClub(summary?.euro?.EL))add(summary.euro.EL,'EL');return {teams,sources};}
+  for(const c of ['LIB','AFC','CON']){const k=CLUB_CUP_CODES[c],id=WORLD.contClubHistory?.[k]?.find(h=>h.season===season-1)?.champion;if(CONTINENTAL_CLUB_CONF[k].nations.includes(C(id)?.nation))add(id,c);}
+  return {teams,sources};
+}
+function clubCupQualifiers(code,season){return clubCupQualification(code,season).teams;}
 function ensureClubCup(code,season){
   const history=clubCupHistory(code);
   if(season!==WORLD.season)return history.find(h=>h.season===season)||null;
@@ -10732,12 +10757,12 @@ function ensureClubCup(code,season){
     const teams=[...new Set((old.teams||old.groups?.flatMap(g=>g.standings.map(s=>s.id))||[old.champion,old.runnerUp]).filter(id=>Number.isInteger(id)&&C(id)))];
     return WORLD.clubCups[code]={v:1,code,season,stage:'F',legacy:true,teams,champion:old.champion,runnerUp:old.runnerUp??null,gdays:[],kdays:[]};
   }
-  const teams=clubCupQualifiers(code,season),isGroup=!!CLUB_CUP_CODES[code],count=isGroup?6:code==='CWC'&&teams.length>2?2:1;
+  const qualified=clubCupQualification(code,season),teams=qualified.teams,isGroup=!!CLUB_CUP_CODES[code],count=isGroup?6:code==='CWC'&&teams.length>2?2:1;
   const defer=reason=>WORLD.clubCups[code]={v:1,code,season,stage:'D',teams,reason,gdays:[],kdays:[]};
-  if(teams.length<(isGroup?8:2))return defer('参赛资格尚未齐备，待上一届赛事产生冠军后于下一季启用');
+  if(teams.length<(isGroup?16:2))return defer('参赛资格尚未齐备，待上一届赛事产生冠军后于下一季启用');
   const days=clubCupPlanDays(teams,count,WORLD.day>0?WORLD.day+1:0,code==='SUP');
   if(!days)return defer('本季剩余日期不足，下一季启用完整赛程');
-  const E=WORLD.clubCups[code]={v:1,code,season,stage:isGroup?'G':'K',teams,groups:[],gtable:{},gdays:isGroup?days.slice(0,3):[],kdays:isGroup?days.slice(3):days,ko:null,knockout:[],champion:null,runnerUp:null};
+  const E=WORLD.clubCups[code]={v:1,code,season,qualification:qualified.sources,stage:isGroup?'G':'K',teams,groups:[],gtable:{},gdays:isGroup?days.slice(0,3):[],kdays:isGroup?days.slice(3):days,ko:null,knockout:[],champion:null,runnerUp:null};
   if(isGroup){
     E.groups=Array.from({length:4},(_,i)=>teams.slice(i*4,(i+1)*4));
     teams.forEach(id=>E.gtable[id]={id,p:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0});
@@ -10769,7 +10794,7 @@ function clubCupApplyGroupResult(f){
 }
 function clubCupSnapshot(E){
   if(E.legacy)return clubCupHistory(E.code).find(h=>h.season===E.season);
-  const common={season:E.season,champion:E.champion,runnerUp:E.runnerUp,teams:[...E.teams],calendar:true};
+  const common={season:E.season,champion:E.champion,runnerUp:E.runnerUp,teams:[...E.teams],calendar:true,qualification:E.qualification||[]};
   if(E.code==='SUP'){const f=E.knockout.at(-1).results[0];return {...common,ga:f.ga,gb:f.gb,pens:f.pens,a:f.a,b:f.b};}
   if(E.code==='CWC'){const cv=r=>({...r,w:r.winner});return {...common,semi:E.knockout.slice(0,-1).flatMap(k=>k.results).map(cv),fin:cv(E.knockout.at(-1).results[0])};}
   return {...common,groups:E.groups.map((g,gi)=>({standings:wclStandings(E,g),results:WORLD.fixtures.filter(f=>f.comp===E.code&&f.stage==='G'&&f.grp===gi&&f.played).map(f=>({a:f.home,b:f.away,ga:f.hg,gb:f.ag,day:f.day}))})),knockout:structuredClone(E.knockout)};
@@ -10791,9 +10816,26 @@ function clubCupsDayEnd(day){
     const f=fx[0];E.champion=winners[0];E.runnerUp=E.champion===f.home?f.away:f.home;E.stage='F';
     const name=clubCupName(E.code),prize=CONTINENTAL_CLUB_CONF[CLUB_CUP_CODES[E.code]]?.prize||5e6,c=C(E.champion);
     c.trophies.push(E.season+' '+name+'冠军');addMoney(c,prize,name+'冠军奖金');
+    awardClubCupHonors(E);
     const history=clubCupHistory(E.code);if(!history.some(h=>h.season===E.season))history.push(clubCupSnapshot(E));
     news('🏆 '+name,`${finalLine(f)}，${c.cn} 夺得 ${E.season} ${name}冠军！`,E.champion===WORLD.userClub?'good':'info');
   }
+}
+function managerTitleRep(title){return ({'世冠联赛冠军':12,'欧冠冠军':10,'世俱杯冠军':8,'欧联冠军':6,'联赛冠军':5,'欧协联冠军':4,'亚冠精英联赛冠军':6,'南美解放者杯冠军':6,'中北美冠军联赛冠军':4})[title]||3;}
+function grantManagerTitle(c,season,title){
+  if(!c?.manager)return false;const m=c.manager;m.honors=m.honors||[];
+  const fresh=!m.honors.some(h=>h.s===season&&h.t===title);
+  if(fresh){m.honors.push({s:season,t:title,d:'率队夺冠'});m.rep=clamp(m.rep+2,10,99);}
+  if(c.id===WORLD.userClub&&!WORLD.needJob){WORLD.managerHonors=WORLD.managerHonors||[];const key=season+' '+title;
+    if(!WORLD.managerHonors.includes(key)){WORLD.managerHonors.push(key);addCoachRep(managerTitleRep(title),'率队夺得 '+title);}}
+  return fresh;
+}
+function awardClubCupHonors(E){
+  if(E.honorsV1||E.legacy)return;const title=clubCupName(E.code)+'冠军',c=C(E.champion);
+  grantManagerTitle(c,E.season,title);
+  const appeared=new Set(WORLD.fixtures.filter(f=>f.comp===E.code&&f.played).flatMap(f=>f.cupPlayers?.find(r=>r.club===c.id)?.ids||[]));
+  for(const id of appeared){const p=P(id);if(!p)continue;p.honors=p.honors||[];if(!p.honors.some(h=>h.s===E.season&&h.t===title))p.honors.push({s:E.season,t:title,d:'随队夺冠'});}
+  E.honorsV1=1;
 }
 function migrateClubCups(){buildClubCups();}
 function validateClubCups(w,fail){
@@ -10827,7 +10869,8 @@ function renderClubCup(v,code){
   let status=!E?'尚未编排':E.legacy?'本季已按旧版结算；下季起进入正常赛程':E.stage==='D'?E.reason:E.stage==='F'?'本季已完赛':E.stage==='G'?'小组赛进行中':E.ko.name+'进行中';
   box.innerHTML=`<h3>🏆 ${name}</h3><div class="sub">${esc(status)}</div>`;
   if(E&&!E.legacy&&['G','K','F'].includes(E.stage)){
-    if(E.teams.includes(WORLD.userClub))box.appendChild(el('div','sub','本队已获参赛资格，可在赛程中通过「继续」临场指挥。'));
+    if(E.teams.includes(WORLD.userClub))box.appendChild(el('div','sub',WORLD.season+'赛季资格：'+qualificationSourceText(E.qualification?.find(r=>r.id===WORLD.userClub))+'。可在赛程中通过「继续」临场指挥。'));
+    box.appendChild(el('div','hint',code==='CWC'?'本游戏为年度简化世俱杯：上一赛季各洲冠军参加，最多4队；亚冠冠军从下一季参赛。':code==='SUP'?'上一赛季欧冠冠军对欧联冠军。':'本游戏采用16队简化赛制；资格来自上季联赛、国内杯及卫冕通道。'));
     if(E.groups.length){const grid=el('div');grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px';E.groups.forEach((g,i)=>{const card=el('div');card.innerHTML=`<h4>${String.fromCharCode(65+i)}组</h4><table class="tbl"><thead><tr><th>球队</th><th>场</th><th>分</th><th>净胜</th></tr></thead><tbody>${wclStandings(E,g).map(t=>`<tr><td>${clubLink(C(t.id))}</td><td>${t.p}</td><td>${t.pts}</td><td>${t.gd}</td></tr>`).join('')}</tbody></table>`;grid.appendChild(card)});box.appendChild(grid);}
     const matches=WORLD.fixtures.filter(f=>f.comp===code);for(const f of matches.filter(f=>f.stage==='K'||f.home===WORLD.userClub||f.away===WORLD.userClub))box.appendChild(fixtureRow(f));
   }
@@ -11518,30 +11561,8 @@ function awardManagerHonors(summary){
     // 世冠联赛
     if(WORLD.wclHistory && WORLD.wclHistory.length && WORLD.wclHistory.some(h=>h.season===s&&h.champion===c.id)) titles.push("世冠联赛冠军");
     // 世俱杯
-    if(WORLD.cwcHistory && WORLD.cwcHistory.length && WORLD.cwcHistory.some(h=>h.season===s&&h.champion===c.id)) titles.push("世俱杯冠军");
-    titles.forEach(t=>{
-      m.honors = m.honors || [];
-      if(!m.honors.some(x=>x.s===s && x.t===t)) m.honors.push({s, t, d:"率队夺冠"});
-    });
-    // 教练声望微涨
-    if(titles.length) m.rep = clamp(m.rep + titles.length*2, 10, 99);
-    // 玩家教练荣誉同步（用于教练声望/荣誉展示）
-    if(c.id===UC().id && titles.length){
-      WORLD.managerHonors = WORLD.managerHonors || [];
-      titles.forEach(t=>{ if(!WORLD.managerHonors.includes(s+" "+t)) WORLD.managerHonors.push(s+" "+t); });
-      // 根据夺冠类型增加教练声望
-      let repGain=0;
-      titles.forEach(t=>{
-        if(t==="世冠联赛冠军") repGain+=12;
-        else if(t==="欧冠冠军") repGain+=10;
-        else if(t==="世俱杯冠军") repGain+=8;
-        else if(t==="欧联冠军") repGain+=6;
-        else if(t==="联赛冠军") repGain+=5;
-        else if(t==="欧协联冠军") repGain+=4;
-        else repGain+=3; // 杯赛冠军
-      });
-      if(repGain>0) addCoachRep(repGain, `率队夺得 ${titles.join("、")}`);
-    }
+    if(!WORLD.clubCups?.CWC?.honorsV1 && WORLD.cwcHistory?.some(h=>h.season===s&&h.champion===c.id)) titles.push("世俱杯冠军");
+    titles.forEach(t=>grantManagerTitle(c,s,t));
   });
 }
 
@@ -13883,6 +13904,27 @@ g.appendChild(el("div","card",`<h3>教练团队</h3>
 
 /* ================= 联赛 / 杯赛 / 欧战 ================= */
 let LGNATION=null, LGTIER=0, EUROTAB="CL";
+function qualificationSourceText(row){
+  if(!row)return '既有赛程资格';
+  const when=row.sourceSeason!=null?row.sourceSeason+'赛季':'开局';
+  return when+({league:'联赛第'+row.rank+'名',cup:'国内杯冠军',holder:(EURO_COMPS[row.competition]?.short||({LIB:'解放者杯',AFC:'亚冠',CON:'中北美'}[row.competition])||'本赛事')+'冠军',opening:'初始名额',fill:'补足名额'}[row.source]||'资格');
+}
+function clubQualificationBadges(id){
+  const tags=[];
+  for(const code of ['CL','EL','ECL'])if(WORLD.euro?.[code]?.teams.includes(id))tags.push(`<span class="tag t-eu" title="${esc(WORLD.season+'赛季参赛 · '+qualificationSourceText(WORLD.euro[code].qualification?.find(r=>r.id===id)))}">${EURO_COMPS[code].short}</span>`);
+  for(const code of ['AFC','LIB','CON','CWC','SUP'])if(WORLD.clubCups?.[code]?.teams.includes(id)&&WORLD.clubCups[code].stage!=='D')tags.push(`<span class="tag t-eu" title="${esc(WORLD.season+'赛季参赛 · '+qualificationSourceText(WORLD.clubCups[code].qualification?.find(r=>r.id===id)))}">${({AFC:'亚冠',LIB:'解放者',CON:'中北美',CWC:'世俱杯',SUP:'欧超杯'})[code]}</span>`);
+  if(WORLD.wclTeams?.includes(id))tags.push('<span class="tag t-wcl">世冠</span>');
+  return tags.length?' <span class="qualification-tags">'+tags.join(' ')+'</span>':'';
+}
+function currentQualificationSummary(){return {season:WORLD.season,leagues:WORLD.leagues.filter(l=>l.tier===0).map(l=>({nation:l.nation,tier:0,table:leagueTable(l.lg)})),cups:WORLD.cups.map(c=>c.winner),euro:Object.fromEntries(['CL','EL','ECL'].map(c=>[c,WORLD.euro?.[c]?.winner??null]))};}
+function leagueQualificationInfo(ni){
+  const nat=NATIONS[ni],summary=currentQualificationSummary(),colors={};let hint='';
+  if(EURO_EL_SLOTS[nat.code]){const q=allocateEuroQualifications(summary,WORLD.season+1);for(const code of ['CL','EL','ECL'])for(const id of q[code])colors[id]=({CL:'#00d47e',EL:'#f0a020',ECL:'#4a9eff'})[code];
+    hint=`本游戏简化配额：欧冠 ${nat.cl} 席、欧联 ${EURO_EL_SLOTS[nat.code]} 席（含国内杯通道）、欧协联 ${Math.max(1,nat.el)} 席。绿：欧冠　橙：欧联　蓝：欧协联。额外冠军通道会调整联赛席位；冠军通道优先，重复资格按联赛排名顺延。`;}
+  else {const code=['AFC','LIB','CON'].find(c=>CONTINENTAL_CLUB_CONF[CLUB_CUP_CODES[c]].nations.includes(ni));if(code){const key=CLUB_CUP_CODES[code],q=continentalQualifications(code,WORLD.season+1,summary);q.teams.forEach(id=>colors[id]='#00d47e');hint=`本游戏简化配额：${clubCupName(code)} ${CONTINENTAL_SLOTS[key][nat.code]} 席，联赛冠军、国内杯冠军及卫冕资格优先，其余按联赛排名顺延。绿：洲际赛事资格。`;}else hint='本国暂无洲际俱乐部赛事资格通道。';}
+  return {colors,hint:hint+' 边线按当前成绩预测下一季；球队标签表示本季参赛。世冠另取各国顶级联赛前两名。'};
+}
+
 function vLeague(v){
   const u=UC();
   if(LGNATION==null){ LGNATION = u.nation===EURO_NATION? "EU" : u.nation; LGTIER=u.tier||0; }
@@ -13904,7 +13946,7 @@ function vLeague(v){
   v.appendChild(bar2);
   const lgIdx=lgIndex(LGNATION,LGTIER), lg=WORLD.leagues[lgIdx];
   const tbl=leagueTable(lgIdx), n=tbl.length, top=LGTIER===0, bottom=LGTIER===nat.tiers.length-1;
-  const sqR=squadRanks(lg);
+  const sqR=squadRanks(lg),qualInfo=top?leagueQualificationInfo(LGNATION):null;
   const PO_UP=(ensurePlayoffs()).find(p=>p.nation===LGNATION&&p.tier===LGTIER);      // 本联赛作为上级
   const PO_LO=(WORLD.playoffs).find(p=>p.nation===LGNATION&&p.tier===LGTIER-1);       // 本联赛作为下级
   const poR=PO_LO? poSeedsRange(PO_LO.fmt) : [3,6];
@@ -13912,7 +13954,7 @@ function vLeague(v){
   const card=el("div","card"); card.innerHTML=`<h3>${lg.name} 积分榜 <span class="hint" style="font-weight:400">「阵容」= 阵容实力在本联赛的名次，和排名一比就知道谁在超额完成</span></h3>`;
   card.appendChild(makeTable([
     {h:"#",k:"rank",cls:"num",v:r=>r.rank,desc:false,r:r=>r.rank},
-    {h:"球队",k:"n",v:r=>C(r.id).cn,r:r=>crestHTML(C(r.id))+esc(C(r.id).cn)+(C(r.id).euro?` <span class="tag t-eu">${EURO_COMPS[C(r.id).euro].short}</span>`:"")+(WORLD.wclTeams&&WORLD.wclTeams.includes(r.id)?` <span class="tag t-wcl">世冠</span>`:"")},
+    {h:"球队",k:"n",v:r=>C(r.id).cn,r:r=>crestHTML(C(r.id))+esc(C(r.id).cn)+clubQualificationBadges(r.id)},
     {h:"场",k:"p",cls:"num",v:r=>r.p,r:r=>r.p},{h:"胜",k:"w",cls:"num",mh:true,v:r=>r.w,r:r=>r.w},
     {h:"平",k:"d",cls:"num",mh:true,v:r=>r.d,r:r=>r.d},{h:"负",k:"l",cls:"num",mh:true,v:r=>r.l,r:r=>r.l},
     {h:"进",k:"gf",cls:"num",mh:true,v:r=>r.gf,r:r=>r.gf},{h:"失",k:"ga",cls:"num",mh:true,v:r=>r.ga,r:r=>r.ga},
@@ -13923,8 +13965,7 @@ function vLeague(v){
   ], tbl, {onRow:r=>showClub(r.id), rowStyle:(row,r)=>{
       if(r.id===WORLD.userClub) row.style.background="var(--selected-bg)";
       if(top){
-        if(r.rank<=nat.cl) row.style.borderLeft="3px solid #00d47e";
-        else if(r.rank<=nat.cl+nat.el) row.style.borderLeft="3px solid #f0a020";
+        if(qualInfo.colors[r.id])row.style.borderLeft="3px solid "+qualInfo.colors[r.id];
       } else {
         if(r.rank<=2) row.style.borderLeft="3px solid #00d47e";
         else if(r.rank>=poR[0] && r.rank<=poR[1]) row.style.borderLeft="3px solid #4a9eff";
@@ -13933,7 +13974,7 @@ function vLeague(v){
       else if(!bottom && relN===2 && r.rank===n-2) row.style.borderLeft="3px solid #b07cff";
     }}));
   const relTxt = relN===2? "　紫：保级附加赛　红：直接降级" : "　红：降级区";
-  card.appendChild(el("div","hint", top? "绿：欧冠资格　橙：欧联资格（另一席给杯赛冠军）"+(bottom?"":relTxt)
+  card.appendChild(el("div","hint", top? qualInfo.hint+(bottom?"":relTxt)
                                      : "绿：直接升级　蓝：附加赛"+(bottom?"":relTxt)));
   v.appendChild(card);
   // 附加赛：下级联赛页一定显示；上级联赛页在德法（第 16 名要打）或附加赛开打后显示
@@ -16290,6 +16331,11 @@ function validateV3Details(w){
     if(!po||!Array.isArray(po.rounds)||!po.seed||!Array.isArray(po.clubIds)&&po.clubIds!=null)fail("附加赛");
     for(const r of po.rounds)if(!Array.isArray(r.ties)||r.ties.some(t=>!club(t.a)||!club(t.b)))fail("附加赛对阵");
   }
+  const validSource=r=>r&&Number.isInteger(r.id)&&club(r.id)&&['league','cup','holder','opening','fill'].includes(r.source)&&(r.sourceSeason==null||Number.isInteger(r.sourceSeason))&&(r.rank==null||Number.isInteger(r.rank)&&r.rank>0);
+  for(const E of [...Object.values(w.euro||{}),...Object.values(w.clubCups||{})])if(E.qualification!=null){
+    if(!Array.isArray(E.qualification)||E.qualification.length!==E.teams.length||E.qualification.some(r=>!validSource(r))||new Set(E.qualification.map(r=>r.id)).size!==E.teams.length||!E.qualification.every(r=>E.teams.includes(r.id)))fail('赛事资格来源');
+  }
+  for(const f of w.fixtures)if(f.cupPlayers!=null){if(!Array.isArray(f.cupPlayers)||f.cupPlayers.some(r=>!r||![f.home,f.away].includes(r.club)||!Array.isArray(r.ids)||new Set(r.ids).size!==r.ids.length||r.ids.some(id=>!Number.isInteger(id)||id<1))||new Set(f.cupPlayers.map(r=>r.club)).size!==f.cupPlayers.length)fail('洲际赛事出场记录');}
   validateWclCalendar(w,fail);
   validateClubCups(w,fail);
   validateNationalCalendars(w,fail);
