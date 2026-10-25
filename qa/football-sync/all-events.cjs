@@ -2,7 +2,7 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto');require('./shim.cjs');const testedSha256=crypto.createHash('sha256').update(fs.readFileSync(process.env.FMFILE||path.resolve(__dirname,'../../index.html'))).digest('hex');
 newWorld(4242,'Manchester City');WORLD.season=2028;
 WORLD.history.push({season:2027,euro:{CL:0,EL:1},leagues:[]});
-for(const [i,k]of ['libertadores','afc','concacaf'].entries())WORLD.contClubHistory[k]=[{season:2027,champion:WORLD.clubs.find(c=>c.nation===[16,5,8][i]&&c.tier===0).id}];buildSeason();
+for(const [i,k]of ['libertadores','afc','concacaf'].entries())WORLD.contClubHistory[k]=[{season:2027,champion:WORLD.clubs.find(c=>c.nation===[16,5,8][i]&&c.tier===0).id}];require('./rules-fixtures.cjs')();
 const base=JSON.stringify(WORLD),results=[],out=path.resolve(__dirname,'../../output/all-events-20261020');
 const noop=()=>{};global.openModal=noop;global.closeModal=noop;global.closeSubDialog=noop;
 function reset(){adoptWorld(JSON.parse(base));SAVE_PAUSED=true;clearTimeout(SAVE_TIMER);global.toast=noop;}

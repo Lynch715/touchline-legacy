@@ -1,0 +1,45 @@
+<!doctype html><meta charset="utf-8"><title>杯赛分项规则独立验收</title>
+<script>
+(async()=>{
+ const html=await(await fetch('../index.html',{cache:'no-store'})).text();
+ const setup=()=>document.addEventListener('DOMContentLoaded',()=>{
+  startMenu=async function(){
+   SAVE_PAUSED=true;storeSave=async()=>{throw Error('独立验收禁止写入存档');};healSave=async()=>[];
+   let scenario='',fixture=null,error=null;
+   const report=document.createElement('script');report.type='application/json';report.id='cup-rules-report';document.body.appendChild(report);
+   function update(){report.textContent=JSON.stringify({scenario,error,savePaused:SAVE_PAUSED,match:CURMATCH?{comp:CURMATCH.comp,half:CURMATCH.half,t:CURMATCH.t,done:CURMATCH.done,extraTime:CURMATCH.extraTime,pens:CURMATCH.pens,penaltyKicks:CURMATCH.penaltyKicks,rules:CURMATCH.rules,decision:CURMATCH.ruleDecision,subs:CURMATCH.subsMade,windows:CURMATCH.subWindows,limit:subLimit(CURMATCH)}:null});}
+   function noGoals(fn){const old=scoreGoal;scoreGoal=()=>{};try{fn();}finally{scoreGoal=old;}}
+   function showControls(){
+    const panel=el('div','card');panel.id='cup-rules-controls';panel.innerHTML='<b>杯赛分项规则验收 · 独立世界 · 存档写入关闭</b>';
+    const actions=[['超级杯直接点球',()=>open('SUP')],['西乙加时后按排名',()=>open('ESP')],['欧冠加时第6人',()=>open('CL')],['查看两回合赛程',()=>open('LIB')],['完成本场决胜',()=>{noGoals(()=>runMatch(CURMATCH));refreshMatchUI(true);}],['查看比赛报告',()=>{if(CURMATCH?.done){applyResult(fixture,CURMATCH);showMatchReport(fixture);}}]];
+    for(const [label,fn]of actions){const b=el('button','sm',label);b.onclick=()=>{try{pauseMatchPlayback();fn();}catch(e){error=e.stack;}update();};panel.appendChild(b);}
+    $('#view').prepend(panel);
+   }
+   function open(kind){
+    newWorld(4242,'Manchester City');SAVE_PAUSED=true;clearTimeout(SAVE_TIMER);scenario=kind;error=null;
+    if(kind==='LIB'){
+     const E=WORLD.clubCups.LIB;WORLD.userClub=E.teams[0];E.groups.forEach(g=>g.forEach((id,i)=>E.gtable[id].pts=9-i));E.fixtures=[];
+     WORLD.fixtures.filter(f=>f.comp==='LIB'&&f.stage==='G').forEach(f=>{f.played=true;f.hg=1;f.ag=0;});WORLD.day=E.gdays.at(-1);clubCupsDayEnd(WORLD.day);VIEW='world';enterGame();const view=$('#view');view.innerHTML='';renderClubCup(view,'LIB');showControls();update();return;
+    }
+    const comp=kind==='ESP'?'PO':kind,day=20;
+    let f={day,home:0,away:1,comp,stage:'K',round:comp==='CL'?4:1,played:false,hg:0,ag:0,pens:null,neutral:true};
+    if(kind==='ESP'){
+     const pi=WORLD.playoffs.findIndex(p=>p.fmt==='ESP'),po=WORLD.playoffs[pi];po.cur=0;po.rounds=[{name:'半决赛',legs:2,tb:'seed',rulesVersion:3,ties:[{a:0,b:1}]}];f={...f,po:pi,tie:0,leg:2,neutral:false};WORLD.fixtures.push({...f,day:17,home:1,away:0,leg:1,played:true});
+    }
+    if(kind==='SUP')WORLD.clubCups.SUP={v:1,code:'SUP',season:WORLD.season,stage:'K',teams:[0,1],groups:[],gdays:[],kdays:[day],knockout:[],ko:{round:0,teams:[0,1],name:'决赛',byes:[]}};
+    WORLD.fixtures.push(f);fixture=f;WORLD.userClub=0;WORLD.day=day;
+    for(const id of [0,1]){for(const pid of C(id).squad){P(pid).injury=0;P(pid).susp=0;P(pid).condition=100;}autoPickLineup(C(id));}
+    enterGame();startUserMatch(f);pauseMatchPlayback();
+    if(kind==='CL'){
+     const M=CURMATCH,T=M.teams[0];M.t=30;
+     for(let i=0;i<5;i++){const o=T.men.find(q=>!q.off&&q.pos!=='GK'),id=T.bench.find(id=>!T.men.some(q=>q.id===id)&&!P(id).injury&&!P(id).susp);if(!doSub(M,0,o,id))throw Error('替补准备失败');}
+    }
+    noGoals(()=>{while(!CURMATCH.done&&CURMATCH.half<3)stepMatch(CURMATCH);});
+    refreshMatchUI(true);showControls();fitAppHeight();update();
+   }
+   open('ESP');setInterval(update,300);
+  };
+ });
+ document.open();document.write(html.replace('</head>','<base href="../"><script>('+setup.toString()+')();<\/script></head>'));document.close();
+})();
+</script>

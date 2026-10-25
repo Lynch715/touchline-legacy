@@ -4398,6 +4398,14 @@ function simIntlGame(A,B){ // 模拟国家队比赛，返回 [gA,gB]（泊松分
 }
 // 国家队大赛独立记录征召、停赛和统计，与俱乐部共用比赛引擎及每日推进。
 const NATIONAL_COMPS={NWC:{name:'世界杯',cycle:4,size:32},NEU:{name:'欧洲杯',key:'euro',cycle:4,size:16},NAM:{name:'美洲杯',key:'america',cycle:4,size:8},NAS:{name:'亚洲杯',key:'asia',cycle:4,size:8},NAF:{name:'非洲杯',key:'africa',cycle:2,size:8}};
+function nationalEditionForSeason(code,season){
+  const year=season+1;
+  if(code==='NWC')return year%4===2?year:null;
+  if(code==='NEU'||code==='NAM')return year%4===0?year:null;
+  if(code==='NAS')return year>=2027&&year%4===3?year:null;
+  if(code==='NAF')return year===2027||year>=2028&&year%4===0?year:null;
+  return null;
+}
 function nationalHistory(code){
   if(code==='NWC')return WORLD.wcHistory||(WORLD.wcHistory=[]);
   WORLD.continentalHistory=WORLD.continentalHistory||{};
@@ -4439,10 +4447,10 @@ function ensureNationalCup(code,season){
   if(season!==WORLD.season)return history.find(h=>h.season===season)||null;
   WORLD.nationalCups=WORLD.nationalCups||{};
   if(WORLD.nationalCups[code]?.season===season)return WORLD.nationalCups[code];
-  const old=history.find(h=>h.season===season),base={v:1,code,season,teams:[],gdays:[],kdays:[],fixtures:[]};
+  const old=history.find(h=>h.season===season),editionYear=nationalEditionForSeason(code,season),base={v:1,code,season,calendarVersion:3,editionYear,teams:[],gdays:[],kdays:[],fixtures:[]};
   if(old)return WORLD.nationalCups[code]={...base,stage:'F',legacy:true,champion:old.champion,runnerUp:old.runnerUp??null};
   const defer=reason=>WORLD.nationalCups[code]={...base,stage:'D',reason};
-  if(season%conf.cycle!==0)return defer('本季非举办年');
+  if(editionYear==null)return defer('本季非举办届次');
   const pool=(conf.key?CONTINENTAL_CONF[conf.key].nations:WC_NATIONS).map(n=>buildNationalSquad(n)).filter(s=>s.players.length>=7&&s.strength>0).sort((a,b)=>b.strength-a.strength);
   const size=Math.min(conf.size,2**Math.floor(Math.log2(Math.max(1,pool.length))));
   if(size<4)return defer('具备参赛阵容的国家队不足');
@@ -4463,8 +4471,8 @@ function nationalScheduleKO(E,teams,round){
   const name=teams.length===2?'决赛':teams.length===4?'半决赛':teams.length===8?'1/4决赛':'16强';E.stage='K';E.ko={round,teams:[...teams],name};
   for(let i=0;i<teams.length;i+=2)E.fixtures.push({national:true,comp:E.code,stage:'K',round:round+1,day,home:teams[i],away:teams[i+1],played:false,hg:0,ag:0,pens:null,neutral:true});
 }
-function nationalWinner(f){return f.hg>f.ag?f.home:f.ag>f.hg?f.away:Array.isArray(f.pens)&&f.pens[0]!==f.pens[1]?(f.pens[0]>f.pens[1]?f.home:f.away):null;}
-function nationalSnapshot(E){return {season:E.season,champion:E.champion,runnerUp:E.runnerUp,calendar:true,teams:[...E.teams],groups:E.groups.map((g,gi)=>({teams:[...g],standings:nationalStandings(E,g),results:E.fixtures.filter(f=>f.stage==='G'&&f.grp===gi&&f.played).map(f=>({a:f.home,b:f.away,ga:f.hg,gb:f.ag,day:f.day}))})),knockout:structuredClone(E.knockout)};}
+function nationalWinner(f){return tieWinner([f]);}
+function nationalSnapshot(E){return {season:E.season,...(E.editionYear?{editionYear:E.editionYear}:{}),champion:E.champion,runnerUp:E.runnerUp,calendar:true,teams:[...E.teams],groups:E.groups.map((g,gi)=>({teams:[...g],standings:nationalStandings(E,g),results:E.fixtures.filter(f=>f.stage==='G'&&f.grp===gi&&f.played).map(f=>({a:f.home,b:f.away,ga:f.hg,gb:f.ag,day:f.day}))})),knockout:structuredClone(E.knockout)};}
 function nationalCupsDayEnd(day){
   for(const E of Object.values(WORLD.nationalCups||{})){
     if(!['G','K'].includes(E.stage))continue;
@@ -4476,7 +4484,7 @@ function nationalCupsDayEnd(day){
     }
     const r=E.ko.round,fx=E.fixtures.filter(f=>f.stage==='K'&&f.round===r+1);
     if(day<E.kdays[r]||!fx.length||fx.some(f=>!f.played))continue;
-    const results=fx.map(f=>({a:f.home,b:f.away,ga:f.hg,gb:f.ag,pens:f.pens||null,winner:nationalWinner(f),day:f.day})),winners=results.map(f=>f.winner);if(winners.some(n=>!n))throw new Error('国家队淘汰赛缺少胜者');
+    const results=fx.map(f=>({a:f.home,b:f.away,ga:f.hg,gb:f.ag,pens:f.pens||null,winner:nationalWinner(f),day:f.day})),winners=results.map(f=>f.winner);if(winners.some(n=>n==null))continue;
     E.knockout.push({name:E.ko.name,results});
     if(winners.length>1){nationalScheduleKO(E,winners,r+1);continue;}
     const f=fx[0],name=NATIONAL_COMPS[E.code].name;E.champion=winners[0];E.runnerUp=E.champion===f.home?f.away:f.home;E.stage='F';
@@ -4508,7 +4516,7 @@ function nationalTeamModel(M,nat,side){
 }
 function applyNationalResult(f,M){
   if(f.played)return false;if(!M.done||M.national!==f.comp||M.h!==f.home||M.a!==f.away)throw new Error('国家队比赛结果不匹配');
-  const E=WORLD.nationalCups[f.comp];f.played=true;f.hg=M.score[0];f.ag=M.score[1];f.pens=M.pens||null;f.extraTime=!!M.extraTime;f.stats=structuredClone(M.stats);f.motm=M.motm?.id||null;f.events=M.events.map(e=>({t:Math.floor(e.t),half:e.half,x:e.text,c:e.cls||''}));f.ratings=[];
+  const E=WORLD.nationalCups[f.comp];f.played=true;f.hg=M.score[0];f.ag=M.score[1];f.pens=M.pens||null;f.extraTime=!!M.extraTime;if(M.ruleDecision)f.ruleDecision={...M.ruleDecision};if(M.forfeit)f.forfeit=true;if(M.regulationScore)f.regulationScore=[...M.regulationScore];f.stats=structuredClone(M.stats);f.motm=M.motm?.id||null;f.events=M.events.map(e=>({t:Math.floor(e.t),half:e.half,x:e.text,c:e.cls||''}));f.ratings=[];
   for(const [side,T]of M.teams.entries()){
     for(const id of T.club.squad)if(E.discipline[id]?.susp>0)E.discipline[id].susp--;
     for(const m of T.men){
@@ -4558,7 +4566,7 @@ function validateNationalCalendars(w,fail){
     if(E.v!==1||E.code!==code||E.season!==w.season||!['G','K','F','D'].includes(E.stage)||!Array.isArray(E.fixtures)||!Array.isArray(E.teams)||!E.teams.every(known)||new Set(E.teams).size!==E.teams.length)fail('国家队赛事状态');
     if(E.legacy){if(E.stage!=='F'||E.fixtures.length||!history?.some(h=>h.season===E.season&&h.champion===E.champion))fail('旧国家队赛事');continue;}
     if(E.stage==='D'){if(E.fixtures.length)fail('延期国家队赛程');continue;}
-    if(E.season%NATIONAL_COMPS[code].cycle!==0||!Array.isArray(E.groups)||!E.groups.length||E.groups.some(g=>g.length!==4)||new Set(E.groups.flat()).size!==E.teams.length||!E.groups.flat().every(n=>E.teams.includes(n))||!E.gtable||!E.squads||!E.discipline||!Array.isArray(E.knockout))fail('国家队分组');
+    if((E.calendarVersion===3?E.editionYear!==nationalEditionForSeason(code,E.season)||E.editionYear==null:E.season%NATIONAL_COMPS[code].cycle!==0)||!Array.isArray(E.groups)||!E.groups.length||E.groups.some(g=>g.length!==4)||new Set(E.groups.flat()).size!==E.teams.length||!E.groups.flat().every(n=>E.teams.includes(n))||!E.gtable||!E.squads||!E.discipline||!Array.isArray(E.knockout))fail('国家队分组');
     if(!Array.isArray(E.gdays)||E.gdays.length!==3||!Array.isArray(E.kdays)||E.kdays.length!==Math.log2(E.groups.length*2))fail('国家队日期');
     const days=[...E.gdays,...E.kdays];if(days.some((d,i)=>!Number.isInteger(d)||d<0||d>=SEASON_DAYS||i&&d<=days[i-1]))fail('国家队日期顺序');
     for(const nat of E.teams){const ids=E.squads[nat];if(!Array.isArray(ids)||ids.length>23||new Set(ids).size!==ids.length||ids.some(id=>!w.players[id]||w.players[id].nat!==nat))fail('国家队赛事名单');for(const k of ['p','w','d','l','gf','ga','gd','pts'])if(!Number.isFinite(E.gtable[nat]?.[k]))fail('国家队积分');}
@@ -4680,7 +4688,7 @@ function renderNationalSchedule(v,compact){
 function renderNationalTournaments(v,userOnly){
   for(const [code,E]of Object.entries(WORLD.nationalCups||{})){
     if(userOnly&&!E.teams.includes(WORLD.userNation)&&!E.legacy)continue;
-    const name=NATIONAL_COMPS[code].name,box=el('div','card');box.innerHTML=`<h3>🌍 ${name}（${E.season}）</h3><div class="hint">${esc(E.legacy?'本届已按旧版结算，后续举办年启用临场赛程':E.stage==='D'?E.reason:E.stage==='F'?'已完赛，冠军：'+E.champion+' · 亚军：'+E.runnerUp:E.stage==='G'?'小组赛进行中':E.ko.name+'进行中')}</div>`;
+    const name=NATIONAL_COMPS[code].name,box=el('div','card');box.innerHTML=`<h3>🌍 ${name}（${E.editionYear||E.season}）</h3><div class="hint">${esc(E.legacy?'本届已按旧版结算，后续举办年启用临场赛程':E.stage==='D'?E.reason:E.stage==='F'?'已完赛，冠军：'+E.champion+' · 亚军：'+E.runnerUp:E.stage==='G'?'小组赛进行中':E.ko.name+'进行中')}</div>`;
     if(!E.legacy&&['G','K','F'].includes(E.stage)){
       E.groups.forEach((g,i)=>{if(userOnly&&!g.includes(WORLD.userNation))return;const details=el('details');if(g.includes(WORLD.userNation))details.open=true;details.innerHTML=`<summary style="cursor:pointer;margin:8px 0">${String.fromCharCode(65+i)}组</summary><table class="tbl"><thead><tr><th>国家队</th><th>场</th><th>分</th><th>净胜</th></tr></thead><tbody>${nationalStandings(E,g).map(s=>`<tr><td>${esc(s.nat)}</td><td>${s.p}</td><td>${s.pts}</td><td>${s.gd}</td></tr>`).join('')}</tbody></table>`;box.appendChild(details);});
       E.fixtures.filter(f=>f.stage==='K'&&(!userOnly||f.home===WORLD.userNation||f.away===WORLD.userNation)).forEach(f=>box.appendChild(nationalFixtureRow(f)));
@@ -6310,10 +6318,10 @@ function compShort(f){
 }
 function compLabel(f){
   if(f.national)return NATIONAL_COMPS[f.comp].name+" "+(f.stage==="G"?"小组赛 第"+f.round+"轮":(WORLD.nationalCups?.[f.comp]?.knockout[f.round-1]?.name||WORLD.nationalCups?.[f.comp]?.ko?.name||"淘汰赛"));
-  if(Object.hasOwn(CLUB_CUP_CODES,f.comp))return clubCupName(f.comp)+" "+(f.stage==="G"?"小组赛 第"+f.round+"轮":(WORLD.clubCups?.[f.comp]?.knockout[f.round-1]?.name||WORLD.clubCups?.[f.comp]?.ko?.name||"淘汰赛"));
+  if(Object.hasOwn(CLUB_CUP_CODES,f.comp))return clubCupName(f.comp)+" "+(f.stage==="G"?"小组赛 第"+f.round+"轮":(WORLD.clubCups?.[f.comp]?.knockout[f.round-1]?.name||WORLD.clubCups?.[f.comp]?.ko?.name||"淘汰赛")+(f.leg?(f.leg===1?" 首回合":" 次回合"):""));
   if(f.comp==="WCL")return "世冠联赛 "+(f.stage==="G"?"小组赛 第"+f.round+"轮":WCL_KO_NAMES[4-(WORLD.wcl?.kdays.length||4)+f.round-1]);
   if(f.comp==="L") return compShort(f)+" 第"+f.round+"轮";
-  if(f.comp==="C"){ const cup=WORLD.cups[f.nation]; return compShort(f)+" "+(cup? cup.roundNames[f.round-1] : "第"+f.round+"轮"); }
+  if(f.comp==="C"){ const cup=WORLD.cups[f.nation]; return compShort(f)+" "+(cup? cup.roundNames[f.round-1] : "第"+f.round+"轮")+(f.leg?(f.leg===1?" 首回合":" 次回合"):""); }
   if(EURO_COMPS[f.comp]){
     if(f.stage==="G") return compShort(f)+" 小组赛 第"+f.round+"轮";
     const rn=EURO_KO_NAMES[f.round-1]||"淘汰赛";
@@ -6430,13 +6438,13 @@ function buildSeason(){
     lg.rounds=all.length;
   });
 
-  // ---- 国内杯赛（每国一项，全体本国球队单场淘汰）----
+  // ---- 国内杯赛（每国一项；结构改动仅用于新建赛季）----
   WORLD.cups=NATIONS.map((nat,ni)=>{
     const ids=WORLD.clubs.filter(c=>c.nation===ni).map(c=>c.id);
     const rounds=ids.length<2?0:Math.ceil(Math.log2(ids.length));
     const dates=[satOf(0)+4,...CUP_WEEKS.map((w,i)=>i<5?satOf(w)+4:satOf(38))];
     const days=rounds?dates.slice(-rounds):[], roundNames=rounds?(rounds>6?["资格轮",...CUP_ROUND_NAMES]:CUP_ROUND_NAMES.slice(-rounds)):[];
-    return {nation:ni,name:nat.cup,roundNames,days,cur:0,alive:ids,byes:[],results:[],winner:ids.length===1?ids[0]:null,inactive:!ids.length,bracketV2:1};
+    return {nation:ni,name:nat.cup,roundNames,days,cur:0,alive:ids,byes:[],results:[],winner:ids.length===1?ids[0]:null,inactive:!ids.length,bracketV2:1,formatVersion:3};
   });
 
 
@@ -6503,7 +6511,7 @@ function poRoundSpec(po, r){
   }
   if(f==="ITA"){
     if(r===0) return {name:"预选赛", legs:1, tb:"seed", days:[S(37)+4], ties:[[P(5),P(8)],[P(6),P(7)]]};
-    if(r===1) return {name:"半决赛", legs:2, tb:"seed", days:[S(38)+1,S(38)+4], ties:[[P(3),W[1]],[P(4),W[0]]]};
+    if(r===1) return {name:"半决赛", legs:2, tb:"seed", days:[S(38)+1,S(38)+4], ties:[[P(3),po.rounds[0].ties[1].w],[P(4),po.rounds[0].ties[0].w]]};
     if(r===2) return {name:"决赛", legs:2, tb:"seed", days:[S(39)+1,S(40)+1], ties:[[W[0],W[1]]]};
   }
   if(f==="GER"){
@@ -6524,7 +6532,7 @@ function poFreeDay(d, ids){
 }
 function poSchedule(po, pi, r, today){
   const sp=poRoundSpec(po,r); if(!sp) return false;
-  const R={name:sp.name, legs:sp.legs, tb:sp.tb, neutral:!!sp.neutral, ties:sp.ties.map(([a,b])=>({a,b,w:null}))};
+  const R={name:sp.name, legs:sp.legs, tb:sp.tb, neutral:!!sp.neutral, rulesVersion:3, ties:sp.ties.map(([a,b])=>({a,b,w:null}))};
   po.rounds[r]=R; po.cur=r;
   R.ties.forEach((t,ti)=>{
     const ids=[t.a,t.b];
@@ -6544,18 +6552,14 @@ function poSchedule(po, pi, r, today){
   return true;
 }
 function poLegs(pi, r, ti){ return WORLD.fixtures.filter(f=>f.comp==="PO"&&f.po===pi&&f.round===r+1&&f.tie===ti).sort((x,y)=>x.leg-y.leg); }
-function poTieWinner(R, t, legs){
-  if(R.legs===1){ const f=legs[0]; t.g1=[f.hg,f.ag]; t.pens=f.pens;
-    if(f.hg!==f.ag) return f.hg>f.ag? f.home : f.away;
-    if(f.pens) return f.pens[0]>f.pens[1]? f.home : f.away;
-    return t.a; }
-  const [l1,l2]=legs;                       // l1 在 b 主场，l2 在 a 主场
-  const ga=l1.ag+l2.hg, gb=l1.hg+l2.ag;
-  t.g1=[l1.hg,l1.ag]; t.g2=[l2.hg,l2.ag]; t.agg=[ga,gb]; t.pens=l2.pens;
-  if(ga!==gb) return ga>gb? t.a : t.b;
-  if(l2.pens) return l2.pens[0]>l2.pens[1]? t.a : t.b;
-  return t.a;                                 // 总比分打平、不踢点球：种子高的晋级
+function poTieWinner(R,t,legs){
+  if(legs.length!==R.legs||legs.some(f=>!f.played))return null;
+  const winner=tieWinner(legs,{seedWinner:R.tb==='seed'&&R.rulesVersion!==3?t.a:null});if(winner==null)return null;
+  t.g1=[legs[0].hg,legs[0].ag];t.pens=legs.at(-1).pens;
+  if(R.legs===2){t.g2=[legs[1].hg,legs[1].ag];t.agg=[legs[0].ag+legs[1].hg,legs[0].hg+legs[1].ag];}
+  return winner;
 }
+
 // 从 id 一方的视角写比分：「总比分 3-2」/「2-1」，点球另附
 function poScore(t,id){
   const A=id===t.a, g=t.agg||t.g1, x=A?g[0]:g[1], y=A?g[1]:g[0];
@@ -6587,7 +6591,7 @@ function poStart(po, pi, today){
     if(t){ const opp=C(t.a===u.id?t.b:t.a);
       news(`${po.name}`, po.up16===u.id
         ? `${u.cn} 排名第 ${LG(u).clubIds.length-2}，要和 ${opp.cn} 打两回合附加赛保级。首回合 ${fmtDate(dateOf(t.days[0]))}（客场），次回合回到主场。`
-        : `${u.cn} 进入${po.name}，${R.name}对手是 ${opp.cn}。${R.legs===2?`首回合 ${fmtDate(dateOf(t.days[0]))}（${t.b===u.id?"主场":"客场"}），次回合 ${fmtDate(dateOf(t.days[1]))}（${t.a===u.id?"主场":"客场"}）。`:`${fmtDate(dateOf(t.days[0]))}（${R.neutral?"中立场地":(t.a===u.id?"主场":"客场")}）。`}${R.tb==="seed"?"打平的话排名高的一方晋级。":""}`,"info");
+        : `${u.cn} 进入${po.name}，${R.name}对手是 ${opp.cn}。${R.legs===2?`首回合 ${fmtDate(dateOf(t.days[0]))}（${t.b===u.id?"主场":"客场"}），次回合 ${fmtDate(dateOf(t.days[1]))}（${t.a===u.id?"主场":"客场"}）。`:`${fmtDate(dateOf(t.days[0]))}（${R.neutral?"中立场地":(t.a===u.id?"主场":"客场")}）。`}${R.tb==="seed"?(po.fmt==="ESP"||po.fmt==="ITA"&&po.cur===0?"平局先加时，仍平按联赛排名晋级。":"平局按本轮联赛排名及同积分决赛规则决定晋级。"):""}`,"info");
     } else {
       // 种子还没进本轮（法乙第 3 名、意乙前两名先轮空）
       news(`${po.name}`,`${u.cn} 进入${po.name}，首轮轮空，等待对手产生。`,"info");
@@ -6596,6 +6600,7 @@ function poStart(po, pi, today){
 }
 function poResolve(po, pi, today){
   const r=po.cur, R=po.rounds[r], u=WORLD.userClub;
+  if(R.ties.some((t,ti)=>{const legs=poLegs(pi,r,ti);return legs.length!==R.legs||tieWinner(legs,{seedWinner:R.tb==='seed'&&R.rulesVersion!==3?t.a:null})==null;}))return false;
   R.ties.forEach((t,ti)=>{
     t.w=poTieWinner(R,t,poLegs(pi,r,ti));
     if(t.a===u||t.b===u){
@@ -6639,24 +6644,30 @@ function playoffsDayEnd(day){
   });
 }
 function poKnockoutOpts(f){
-  const po=(WORLD.playoffs||[])[f.po]; const R=po&&po.rounds[f.round-1];
-  if(!R) return {knockout:false};
-  if(R.legs===1) return {knockout:R.tb==="pens", neutral:R.neutral};
-  if(f.leg===2 && R.tb==="pens"){
-    const l1=WORLD.fixtures.find(x=>x.comp==="PO"&&x.po===f.po&&x.round===f.round&&x.tie===f.tie&&x.leg===1&&x.played);
-    return {knockout:true, aggBase: l1? [l1.ag,l1.hg] : [0,0]};
+  const po=(WORLD.playoffs||[])[f.po],R=po?.rounds[f.round-1],tie=R?.ties[f.tie];
+  if(!R)return {knockout:false};
+  if(R.legs===2&&f.leg!==2)return {knockout:false};
+  const rules={extraTime:true,tieBreak:'pens',extraSub:false,windows:null};
+  if(R.tb==='seed'){
+    rules.tieBreak='seed'; rules.seedSide=tie?.a===f.away?1:0;
+    rules.extraTime=po.fmt==='ESP'||po.fmt==='ITA'&&f.round===1;
+    if(po.fmt==='ITA'&&f.round===3&&tie&&C(tie.a).seasonStats.pts===C(tie.b).seasonStats.pts){rules.extraTime=true;rules.tieBreak='pens';}
   }
-  return {knockout:false};
+  if(po.fmt==='FRA'&&R.legs===1)rules.extraTime=false;
+  if(po.fmt==='ESP'){rules.extraSub=true;rules.windows=3;}
+  const out={knockout:true,neutral:!!R.neutral,rules};
+  if(R.legs===2){const first=poLegs(f.po,f.round-1,f.tie).find(x=>x.leg===1&&x.played);if(!first)throw Error('次回合缺少已完成的首回合');out.aggBase=[first.home===f.home?first.hg:first.ag,first.home===f.home?first.ag:first.hg];}
+  return out;
 }
 // 附加赛对阵卡（联赛页）
 function poCard(po){
   const card=el("div","card"); card.innerHTML=`<h3>${po.name}</h3>`;
   const nm=id=>`${crestHTML(C(id))}<span style="${id===WORLD.userClub?'color:var(--acc);':''}">${esc(C(id).short)}</span>`;
   const rule={ENG:"第 3–6 名参加。半决赛两回合，决赛在温布利一场定胜负，打平先踢加时赛，仍平局再踢点球。",
-    ESP:"第 3–6 名参加。半决赛、决赛都是两回合，总比分打平时排名高的晋级。",
-    ITA:"第 3–8 名参加。5v8、6v7 先打单场预选赛，胜者分别挑战第 4、第 3 名；之后半决赛、决赛都是两回合，打平时排名高的晋级。第 3 名领先第 4 名 15 分以上时取消附加赛。",
+    ESP:"第 3–6 名参加。半决赛、决赛都是两回合，总比分打平先加时，仍平时排名高的晋级。",
+    ITA:"第 3–8 名参加。5v8、6v7 先打单场预选赛（平局先加时，仍平按排名），胜者分别挑战第 4、第 3 名；之后半决赛、决赛都是两回合，半决赛总比分平按排名；决赛两队联赛积分也相同时改用加时和点球。第 3 名领先第 4 名 15 分以上时取消附加赛。",
     GER:"德乙第 3 名对德甲第 16 名，两回合，打平先踢加时赛，仍平局再踢点球。",
-    FRA:"法乙第 4、5 名先打单场，胜者客场挑战第 3 名，最后的胜者和法甲第 16 名打两回合，打平先踢加时赛，仍平局再踢点球。"}[po.fmt];
+    FRA:"法乙第 4、5 名先打单场，胜者客场挑战第 3 名，最后的胜者和法甲第 16 名打两回合。前两轮平局直接点球；两回合总分平才加时，仍平再点球。"}[po.fmt];
   if(!po.started){
     const lo=leagueTable(lgIndex(po.nation,po.tier+1)), up=leagueTable(lgIndex(po.nation,po.tier));
     const [s0,s1]=poSeedsRange(po.fmt);
@@ -6696,13 +6707,30 @@ function poCard(po){
 }
 
 // ---------- 国内杯赛 ----------
+function domesticCupLegs(cup){
+  if(cup.formatVersion!==3)return 1;
+  const remaining=cup.days.length-cup.cur,code=NATIONS[cup.nation].code;
+  return remaining===2&&['ESP','ITA','BEL','TUR'].includes(code)||code==='BRA'&&remaining>=2&&remaining<=5?2:1;
+}
+function fixtureTies(fixtures){
+  const groups=new Map();
+  for(const f of fixtures){const key=f.leg?[f.home,f.away].sort((a,b)=>a-b).join(':'):'single:'+groups.size;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(f);}
+  return [...groups.values()].map(legs=>legs.sort((a,b)=>(a.leg||1)-(b.leg||1)));
+}
+function cupRoundWinners(cup,fixtures){
+  const groups=fixtureTies(fixtures),winners=[];
+  for(const legs of groups){if(legs.length!==(legs[0].leg?2:1))return null;const winner=tieWinner(legs);if(winner==null)return null;winners.push(winner);}
+  return winners;
+}
 function scheduleCupRound(cup){
   if(cup.winner!=null||cup.cur>=cup.days.length)return;
   const pool=shuffle([...cup.alive]),size=2**Math.ceil(Math.log2(Math.max(2,pool.length)));
   cup.byes=pool.splice(0,size-pool.length);
-  const day=cupFreeDay(cup,cup.days[cup.cur],cup.alive);cup.days[cup.cur]=day;
-  const isFinal=pool.length+cup.byes.length===2;
-  for(let i=0;i<pool.length;i+=2)WORLD.fixtures.push({day,home:pool[i],away:pool[i+1],comp:"C",nation:cup.nation,round:cup.cur+1,played:false,hg:0,ag:0,pens:null,neutral:isFinal});
+  const legs=domesticCupLegs(cup),first=cupFreeDay(cup,cup.days[cup.cur],cup.alive),isFinal=pool.length+cup.byes.length===2;
+  const dates=[first];
+  if(legs===2)dates.push(cupFreeDay(cup,first+3,cup.alive,null,first+3));
+  cup.days[cup.cur]=dates.at(-1);
+  for(let i=0;i<pool.length;i+=2)for(let l=0;l<legs;l++)WORLD.fixtures.push({day:dates[l],home:pool[i+(l?1:0)],away:pool[i+(l?0:1)],comp:'C',nation:cup.nation,round:cup.cur+1,...(legs===2?{leg:l+1,tie:i/2}:{}),played:false,hg:0,ag:0,pens:null,neutral:isFinal});
   WORLD.fixtures.sort((a,b)=>a.day-b.day);
 }
 function cupPrize(cup, roundIdx){
@@ -6715,9 +6743,10 @@ function advanceCupRound(cup){
   if(ms.some(f=>!f.played)) return false;
   const playing=new Set(ms.flatMap(f=>[f.home,f.away]));
   const byes=[...new Set([...(cup.byes||[]),...cup.alive.filter(id=>!playing.has(id))])];
-  const winners=ms.map(winnerOf).concat(byes), prizeIdx=Math.max(0,6-(cup.days.length-cup.cur));
-  ms.forEach(f=>addMoney(C(winnerOf(f)===f.home?f.away:f.home),cupPrize(cup,prizeIdx),cup.name+cup.roundNames[cup.cur]+"奖金"));
-  cup.results.push({round:cup.roundNames[cup.cur],byes:byes.slice(),matches:ms.map(f=>({h:f.home,a:f.away,hg:f.hg,ag:f.ag,pens:f.pens}))});
+  const resolved=cupRoundWinners(cup,ms);if(!resolved)return false;
+  const winners=resolved.concat(byes), prizeIdx=Math.max(0,6-(cup.days.length-cup.cur));
+  fixtureTies(ms).forEach((legs,i)=>{const f=legs[0];addMoney(C(resolved[i]===f.home?f.away:f.home),cupPrize(cup,prizeIdx),cup.name+cup.roundNames[cup.cur]+"奖金");});
+  cup.results.push({round:cup.roundNames[cup.cur],byes:byes.slice(),matches:ms.map(f=>({h:f.home,a:f.away,hg:f.hg,ag:f.ag,pens:f.pens,...(f.leg?{leg:f.leg,tie:f.tie}:{}),...(f.extraTime?{extraTime:true}:{})}))});
   cup.cur++; cup.alive=winners; cup.byes=[];
   if(winners.length===1){
     cup.winner=winners[0]; const w=C(cup.winner);
@@ -6729,9 +6758,7 @@ function advanceCupRound(cup){
   return true;
 }
 function winnerOf(f){
-  if(f.hg>f.ag) return f.home;
-  if(f.ag>f.hg) return f.away;
-  return f.pens && f.pens[0]>f.pens[1] ? f.home : f.away;
+  return tieWinner([f]);
 }
 
 // ---------- 欧战：资格 ----------
@@ -6845,7 +6872,7 @@ function euroApplyGroupResult(E, fx){
     else s.l++;
   });
 }
-// 淘汰赛：两回合，次回合总比分相同则点球
+// 欧战淘汰赛：两回合，总分平先加时，仍平再点球；不计客场进球
 function euroScheduleKO(E, pairs, roundIdx){
   const [d1,d2]=E.kdays[roundIdx];
   E.ko={round:roundIdx, ties:pairs.map(([a,b])=>({a,b}))};
@@ -6882,12 +6909,12 @@ function euroResolveRound(E){
   const r=E.ko.round;
   const legs=WORLD.fixtures.filter(f=>f.comp===E.code&&f.stage==="K"&&f.round===r+1&&f.played);
   const res=[]; const winners=[];
+  if(E.ko.ties.some((t,ti)=>{const pair=legs.filter(f=>f.tie===ti).sort((a,b)=>a.leg-b.leg);return pair.length!==2||tieWinner(pair)==null;}))return false;
   E.ko.ties.forEach((t,ti)=>{
     const l1=legs.find(f=>f.tie===ti&&f.leg===1), l2=legs.find(f=>f.tie===ti&&f.leg===2);
     if(!l1||!l2) return;
     const ga=l1.hg+l2.ag, gb=l1.ag+l2.hg;    // a 的总进球 / b 的总进球
-    let w;
-    if(ga>gb) w=t.a; else if(gb>ga) w=t.b; else w = l2.pens && l2.pens[0]>l2.pens[1] ? l2.home : l2.away;
+    const w=tieWinner([l1,l2]);
     winners.push(w);
     res.push({a:t.a,b:t.b,g1:[l1.hg,l1.ag],g2:[l2.hg,l2.ag],agg:[ga,gb],pens:l2.pens,winner:w});
     const loser = w===t.a? t.b : t.a; C(loser).euro=null;
@@ -6912,7 +6939,7 @@ function finalLine(fx){
   return `${C(fx.home).cn} ${fx.hg}-${fx.ag} ${C(fx.away).cn}${fx.pens?`（点球 ${fx.pens[0]}-${fx.pens[1]}）`:""}`;
 }
 function euroFinish(E, fx){
-  const w=winnerOf(fx), l= w===fx.home? fx.away : fx.home;
+  const w=winnerOf(fx);if(w==null)return false;const l=w===fx.home?fx.away:fx.home;
   E.results.push({round:"决赛", ties:[{a:fx.home,b:fx.away,g1:[fx.hg,fx.ag],pens:fx.pens,winner:w}]});
   E.winner=w; E.stage="F";
   const pz=EURO_COMPS[E.code].prize;
@@ -6947,19 +6974,56 @@ function competitionsDayEnd(day){
     }
   });
 }
-// 创建比赛时的淘汰赛参数（是否需要点球、总比分基数）
+// 决胜策略按赛事与轮次确定；旧档已完成赛果从不重算。
+function validShootout(p){return Array.isArray(p)&&p.length===2&&p.every(n=>Number.isInteger(n)&&n>=0)&&p[0]!==p[1];}
+function fixtureDecision(f){const d=f.ruleDecision;return d&&[f.home,f.away].includes(d.winner)?d.winner:null;}
+function tieWinner(legs,rules={}){
+  if(!legs.length||legs.some(f=>!f?.played||![f.hg,f.ag].every(n=>Number.isInteger(n)&&n>=0)))return null;
+  const teams=new Set([legs[0].home,legs[0].away]);if(teams.size!==2||legs.some(f=>!teams.has(f.home)||!teams.has(f.away)||f.home===f.away))return null;
+  const last=legs.at(-1),decided=fixtureDecision(last);if(decided!=null)return decided;
+  const ids=[last.home,last.away],goals=ids.map(id=>legs.reduce((n,f)=>n+(f.home===id?f.hg:f.ag),0));
+  if(goals[0]!==goals[1])return ids[goals[0]>goals[1]?0:1];
+  if(rules.awayGoals&&legs.length===2){const away=ids.map(id=>legs.reduce((n,f)=>n+(f.away===id?(f.regulationScore?.[1]??f.ag):0),0));if(away[0]!==away[1])return ids[away[0]>away[1]?0:1];}
+  if(validShootout(last.pens))return ids[last.pens[0]>last.pens[1]?0:1];
+  if(rules.seedWinner!=null)return rules.seedWinner;
+  return null;
+}
+function domesticCupRules(f){
+  const cup=WORLD.cups.find(c=>c.nation===(f.nation??C(f.home)?.nation)),code=NATIONS[cup?.nation??C(f.home)?.nation]?.code;
+  const remaining=cup?cup.days.length-f.round+1:f.neutral?1:3;
+  const rules={extraTime:true,tieBreak:'pens',extraSub:false,windows:null};
+  if(code==='FRA')rules.extraTime=remaining===1;
+  if(code==='ITA')rules.extraTime=remaining<=2;
+  if(code==='FIN')rules.extraTime=remaining<=2;
+  if(code==='ARG')rules.extraTime=false;
+  if(code==='CHN')rules.extraTime=remaining<=4;
+  // 保留巴西原参赛规模；新建赛制以剩余阶段映射2026的第5阶段起双回合。
+  if(code==='BRA')rules.extraTime=false;
+  if(code==='TUR'){rules.extraSub=true;rules.windows=3;}
+  return rules;
+}
 function knockoutOpts(f){
-  if(f.national)return {national:f.comp,knockout:f.stage==="K",neutral:true};
-  if(Object.hasOwn(CLUB_CUP_CODES,f.comp))return {knockout:f.stage==="K",neutral:!!f.neutral};
-  if(f.comp==="WCL")return {knockout:f.stage==="K",neutral:!!f.neutral};
-  if(f.comp==="PO") return poKnockoutOpts(f);
-  if(f.comp==="C") return {knockout:true, neutral:!!f.neutral};
-  if(EURO_COMPS[f.comp] && f.stage==="K"){
-    if(f.round===4) return {knockout:true, neutral:true};
-    if(f.leg===2){ const l1=euroFirstLegOf(f); return {knockout:true, aggBase: l1? [l1.ag,l1.hg] : [0,0]}; }
-    return {knockout:false};
+  if(f.comp==='PO')return poKnockoutOpts(f);
+  let out={knockout:false,neutral:!!f.neutral};
+  if(f.national){out={national:f.comp,knockout:f.stage==='K',neutral:true};if(out.knockout){const E=WORLD.nationalCups[f.comp],final=f.round===E?.kdays.length;out.rules={extraTime:f.comp!=='NAM'||final,tieBreak:'pens',extraSub:false,windows:null};}return out;}
+  if(f.comp==='C'){
+    const rounds=WORLD.fixtures.filter(x=>x.comp==='C'&&x.nation===f.nation&&x.round===f.round&&x.tie===f.tie&&x.leg);
+    out={knockout:!f.leg||f.leg===2,neutral:!!f.neutral,rules:domesticCupRules(f)};
+    if(f.leg===2){const first=rounds.find(x=>x.leg===1&&x.played);if(!first)throw Error('杯赛次回合缺少已完成的首回合');out.aggBase=[first.home===f.home?first.hg:first.ag,first.home===f.home?first.ag:first.hg];}
+    return out;
   }
-  return {knockout:false, neutral:!!f.neutral};
+  if(Object.hasOwn(CLUB_CUP_CODES,f.comp)||f.comp==='WCL'){
+    out.knockout=f.stage==='K'&&(!f.leg||f.leg===2);
+    const E=WORLD.clubCups?.[f.comp],final=f.round===E?.kdays.length;out.rules={extraTime:f.comp!=='SUP'&&(f.comp!=='LIB'||final),tieBreak:'pens',extraSub:f.comp==='CON',windows:['CON','SUP'].includes(f.comp)?3:null};
+    if(out.knockout){
+      if(f.leg===2){const first=WORLD.fixtures.find(x=>x.comp===f.comp&&x.round===f.round&&x.tie===f.tie&&x.leg===1&&x.played);if(!first)throw Error('洲际杯次回合缺少已完成的首回合');out.aggBase=[first.home===f.home?first.hg:first.ag,first.home===f.home?first.ag:first.hg];if(f.comp==='CON')out.rules.awayBase=[first.away===f.home?first.ag:0,first.away===f.away?first.ag:0];}
+    }return out;
+  }
+  if(EURO_COMPS[f.comp]){
+    out.rules={extraTime:true,tieBreak:'pens',extraSub:true,windows:3};
+    if(f.stage==='K'){if(f.round===4){out.knockout=true;out.neutral=true;}else if(f.leg===2){const first=euroFirstLegOf(f);if(!first)throw Error('欧战次回合缺少已完成的首回合');out.knockout=true;out.aggBase=[first.home===f.home?first.hg:first.ag,first.home===f.home?first.ag:first.hg];}}
+  }
+  return out;
 }
 
 // ---------- 积分榜 ----------
@@ -7154,11 +7218,12 @@ function createMatch(homeId, awayId, opts){
   const M={
     h:homeId, a:awayId, comp:opts.comp||opts.national||"L", round:opts.round||0, neutral:!!opts.neutral,
     knockout:!!opts.knockout, record:!!opts.record, aggBase:opts.aggBase||null,
+    rules:opts.rules||{extraTime:true,tieBreak:'pens',extraSub:!!EURO_COMPS[opts.comp],windows:EURO_COMPS[opts.comp]?3:null},
     t:0, addedTime:0, half:1, extraTime:false, done:false,
     score:[0,0], events:[], frames:[], 
     stats:[blankStats(),blankStats()],
     teams:[], possTicks:[0,0], ballOwner:null, side:0,
-    ball:{x:PW/2,y:PH/2}, lastTouch:null, subsMade:[0,0], pens:null,
+    ball:{x:PW/2,y:PH/2}, lastTouch:null, subsMade:[0,0], subWindows:[0,0], subWindowKeys:[null,null], pens:null,
     userSide: opts.userSide!=null?opts.userSide:-1,
     national:opts.national||null, players:opts.national?nationalMatchPlayers(opts.national,[homeId,awayId]):null,
     derby: opts.national?false:isDerby(homeId,awayId),
@@ -7438,7 +7503,8 @@ function finPhase(M,dt){
   } else if(M.half===2 && M.t>=90+M.addedTime){
     if(M.addedTime===0) M.addedTime=ri(2,6);
     if(M.t>=90+M.addedTime){
-      if(matchAggregateTied(M)){
+      if(matchAggregateTied(M)&&M.rules.extraTime){
+        M.regulationScore=[...M.score];
         addEvent(M,"sys",`—— 常规时间结束 ${M.score.join(" : ")}，进入加时赛 ——`,"sys");
         M.extraTime=true;
         startExtraTimeHalf(M,3);
@@ -7458,8 +7524,21 @@ function finPhase(M,dt){
   return M.events[M.events.length-1];
 }
 function matchAggregateTied(M){
-  return M.knockout && !M.forfeit && M.score[0]+(M.aggBase?.[0]||0)===M.score[1]+(M.aggBase?.[1]||0);
+  if(!M.knockout||M.forfeit||M.score[0]+(M.aggBase?.[0]||0)!==M.score[1]+(M.aggBase?.[1]||0))return false;
+  if(M.rules.awayBase){const score=M.regulationScore||M.score,away=[M.rules.awayBase[0],M.rules.awayBase[1]+score[1]];if(away[0]!==away[1])return false;}
+  return true;
 }
+function runShootout(M){
+  const score=[0,0],taken=[0,0];let side=0;
+  while(taken[0]<5||taken[1]<5){taken[side]++;if(rnd()<0.75)score[side]++;
+    if(score[0]>score[1]+5-taken[1]||score[1]>score[0]+5-taken[0])break;
+    side=1-side;
+  }
+  while(score[0]===score[1]){for(let s=0;s<2;s++){taken[s]++;if(rnd()<0.75)score[s]++;}}
+  M.pens=score;M.penaltyKicks=taken;
+  addEvent(M,'sys',`点球大战 ${score.join('-')}，${matchTeam(M,score[0]>score[1]?0:1).cn} 晋级`,'sys');
+}
+
 function startExtraTimeHalf(M,half){
   M.half=half; M.t=half===3?90:105; M.addedTime=0;
   M.side=half===3?0:1; M.lastTouch=null; M.counter=null;
@@ -7682,7 +7761,12 @@ function cardCheck(M,side,D,inBox){
 }
 
 // ---------- 换人 ----------
-function canSub(M,side){ return !M.done && M.subsMade[side]<5; }
+function subLimit(M){return 5+(M.extraTime&&M.rules?.extraSub?1:0);}
+function subWindowKey(M){return `${M.half}:${M.t.toFixed(6)}`;}
+function freeSubWindow(M){return M.half===2&&M.t===45||M.half===3&&M.t===90||M.half===4&&M.t===105;}
+function subWindowsLeft(M,side){return M.rules?.windows==null?null:Math.max(0,M.rules.windows+(M.extraTime&&M.rules.extraSub?1:0)-(M.subWindows?.[side]||0));}
+function canSub(M,side){return !M.done&&M.subsMade[side]<subLimit(M)&&(M.rules?.windows==null||freeSubWindow(M)||subWindowsLeft(M,side)>0||M.subWindowKeys?.[side]===subWindowKey(M));}
+
 function doSub(M,side,outMan,inPid){
   if(!canSub(M,side)) return false;
   const T=M.teams[side], p=matchPlayer(M,inPid), oppId=side===0?M.a:M.h;
@@ -7706,6 +7790,10 @@ function doSub(M,side,outMan,inPid){
       Object.assign(T.gk,T.gk.fieldRole); delete T.gk.fieldRole; delete T.gk.emergencyGK;
     }
     const home=slotWorld(5,50,side); w.x=home.x; w.y=home.y;
+  }
+  if(M.rules?.windows!=null&&!freeSubWindow(M)){
+    M.subWindows=M.subWindows||[0,0];M.subWindowKeys=M.subWindowKeys||[null,null];
+    const key=subWindowKey(M);if(M.subWindowKeys[side]!==key){M.subWindows[side]++;M.subWindowKeys[side]=key;}
   }
   outMan.off=true; outMan.subDone=2;
   const nm2={id:inPid,p,nationBoost:M.national?nationManagerBonus(T.cid):1,coach:T.club.coachRating||10,slot:outMan.slot,pos:replacingKeeper?"GK":slots[outMan.slot][0],bx:w.x,by:w.y,x:w.x,y:w.y,
@@ -7741,7 +7829,13 @@ function aiSubs(M){
     let bestId=null,bs=-1;
     bench.forEach(id=>{ const sc=playerScore(matchPlayer(M,id),want)* (matchPlayer(M,id).pos===want?1.1:1);
       if(sc>bs){bs=sc;bestId=id;} });
-    if(bestId) doSub(M,side,out,bestId);
+    if(bestId!=null&&doSub(M,side,out,bestId)&&!userLive&&M.rules?.windows!=null&&subWindowsLeft(M,side)===0){
+      while(canSub(M,side)){
+        const tired=T.men.filter(m=>!m.off&&m.pos!=='GK'&&m.cond<64).sort((a,b)=>a.cond-b.cond)[0];
+        if(!tired)break;const want=FORMATIONS[T.form][tired.slot][0],ids=T.bench.filter(id=>!T.men.some(m=>m.id===id)&&matchPlayer(M,id)?.injury<=0&&matchPlayer(M,id)?.susp<=0).sort((a,b)=>playerScore(matchPlayer(M,b),want)-playerScore(matchPlayer(M,a),want));
+        if(!ids.length||!doSub(M,side,tired,ids[0]))break;
+      }
+    }
   });
 }
 
@@ -7767,13 +7861,19 @@ function endMatch(M){
   // 全场最佳
   let best=null; M.teams.forEach(T=>T.men.forEach(m=>{ if(m.mins>0 && (!best||m.rating>best.rating)) best=m; }));
   M.motm=best;
-  if(matchAggregateTied(M)){
-    // 点球大战
-    let p=[0,0];
-    for(let i=0;i<5;i++){ if(rnd()<0.75)p[0]++; if(rnd()<0.75)p[1]++; }
-    while(p[0]===p[1]){ if(rnd()<0.75)p[0]++; if(rnd()<0.75)p[1]++; }
-    M.pens=p;
-    addEvent(M,"sys",`点球大战 ${p[0]}-${p[1]}，${matchTeam(M,p[0]>p[1]?0:1).cn} 晋级`,"sys");
+  if(M.forfeit){
+    const short=M.teams.map(T=>T.men.filter(m=>!m.off).length<7);
+    // 判负只决定本场比分；两回合仍按赛事总分处理，不臆造除名决定。
+    if(short[0]!==short[1]&&M.aggBase==null)M.ruleDecision={reason:'forfeit',winner:short[0]?M.a:M.h};
+  }else if(matchAggregateTied(M)){
+    if(M.rules.tieBreak==='seed'){
+      const side=M.rules.seedSide??0;M.ruleDecision={reason:'seed',winner:side===0?M.h:M.a};
+      addEvent(M,'sys',`按联赛排名，${matchTeam(M,side).cn} 晋级`,'sys');
+    }else runShootout(M);
+  }else if(M.knockout&&M.rules.awayBase&&M.score[0]+M.aggBase[0]===M.score[1]+M.aggBase[1]){
+    const score=M.regulationScore||M.score,away=[M.rules.awayBase[0],M.rules.awayBase[1]+score[1]];
+    M.ruleDecision={reason:'awayGoals',winner:away[0]>away[1]?M.h:M.a};
+    addEvent(M,'sys',`按常规时间客场进球，${matchTeam(M,away[0]>away[1]?0:1).cn} 晋级`,'sys');
   }
   addEvent(M,"sys",`—— ${M.extraTime?"加时赛结束":"全场结束"}  ${matchTeam(M,0).short} ${M.score[0]} : ${M.score[1]} ${matchTeam(M,1).short} ——`,"sys");
 }
@@ -7858,6 +7958,7 @@ function applyResult(fx, M){
   // 在标记赛果前初始化旧档的既有场次，再给实际在队球员增加这一次机会。
   [C(fx.home),C(fx.away)].forEach(c=>c.squad.forEach(id=>{const p=P(id);if(p)ensureDevelopment(p).games++;}));
   fx.played=true; fx.hg=M.score[0]; fx.ag=M.score[1]; fx.pens=M.pens; fx.extraTime=!!M.extraTime;
+  if(M.ruleDecision)fx.ruleDecision={...M.ruleDecision};if(M.forfeit)fx.forfeit=true;if(M.regulationScore)fx.regulationScore=[...M.regulationScore];
   fx.stats=[M.stats[0],M.stats[1]];
   fx.derby=!!M.derby;
   const H=C(fx.home), A=C(fx.away);
@@ -7932,7 +8033,7 @@ function applyResult(fx, M){
   [H,A].forEach(c=>{ c.squad.forEach(id=>{ const p=P(id);
     if(!M.teams.flatMap(t=>t.men).some(m=>m.id===id)) p.condition=clamp(p.condition+ri(2,6),0,100); }); });
   fx.motm = M.motm? M.motm.id : null;
-  fx.events = M.events.filter(e=>["goal","card","hurt","pen"].includes(e.type)||((M.forfeit||M.extraTime||M.pens)&&e.type==="sys")).map(e=>({t:e.t,half:e.half,x:e.text,c:e.cls}));
+  fx.events = M.events.filter(e=>["goal","card","hurt","pen"].includes(e.type)||((M.forfeit||M.extraTime||M.pens||M.ruleDecision)&&e.type==="sys")).map(e=>({t:e.t,half:e.half,x:e.text,c:e.cls}));
   return true;
 }
 
@@ -10737,10 +10838,10 @@ function clubCupHistory(code){
   WORLD.contClubHistory=WORLD.contClubHistory||{};
   return WORLD.contClubHistory[CLUB_CUP_CODES[code]]||(WORLD.contClubHistory[CLUB_CUP_CODES[code]]=[]);
 }
-function clubCupReservedDays(ids){return Object.values(WORLD.clubCups||{}).filter(E=>['G','K'].includes(E.stage)&&(!ids||E.teams.some(id=>ids.includes(id)))).flatMap(E=>[...E.gdays,...E.kdays]);}
+function clubCupReservedDays(ids){return Object.values(WORLD.clubCups||{}).filter(E=>['G','K'].includes(E.stage)&&(!ids||E.teams.some(id=>ids.includes(id)))).flatMap(E=>[...E.gdays,...(E.legDays?.flat()||E.kdays)]);}
 function clubCupPlanDays(teams,count,minDay,early){
   const reserved=new Set([...Object.values(WORLD.euro||{}).flatMap(E=>[...E.gdays,...E.kdays.flat(),E.finalDay]),...WORLD.cups.flatMap(c=>c.days),...wclReservedDays(),...clubCupReservedDays(),...nationalReservedDays()]),days=[];
-  const latest=SEASON_DAYS-2,preferred=early?[12]:count===2?[245,280]:[35,85,135,180,220,260];
+  const latest=SEASON_DAYS-2,preferred=early?[12]:count===2?[245,280]:Array.from({length:count},(_,i)=>35+Math.round(i*245/Math.max(1,count-1)));
   for(let i=0;i<count;i++){
     const aim=minDay===0?preferred[i]:minDay+2+i*Math.max(2,Math.floor((latest-minDay-3)/Math.max(1,count-1))),low=Math.max(minDay,days.length?days.at(-1)+2:0),high=latest-(count-i-1)*2;
     let chosen=null;
@@ -10788,12 +10889,13 @@ function ensureClubCup(code,season){
     const teams=[...new Set((old.teams||old.groups?.flatMap(g=>g.standings.map(s=>s.id))||[old.champion,old.runnerUp]).filter(id=>Number.isInteger(id)&&C(id)))];
     return WORLD.clubCups[code]={v:1,code,season,stage:'F',legacy:true,teams,champion:old.champion,runnerUp:old.runnerUp??null,gdays:[],kdays:[]};
   }
-  const qualified=clubCupQualification(code,season),teams=qualified.teams,isGroup=!!CLUB_CUP_CODES[code],count=isGroup?6:code==='CWC'&&teams.length>2?2:1;
+  const qualified=clubCupQualification(code,season),teams=qualified.teams,isGroup=!!CLUB_CUP_CODES[code],twoLegged=['LIB','CON'].includes(code),count=isGroup?(twoLegged?8:6):code==='CWC'&&teams.length>2?2:1;
   const defer=reason=>WORLD.clubCups[code]={v:1,code,season,stage:'D',teams,reason,gdays:[],kdays:[]};
   if(teams.length<(isGroup?16:2))return defer('参赛资格尚未齐备，待上一届赛事产生冠军后于下一季启用');
   const days=clubCupPlanDays(teams,count,WORLD.day>0?WORLD.day+1:0,code==='SUP');
   if(!days)return defer('本季剩余日期不足，下一季启用完整赛程');
-  const E=WORLD.clubCups[code]={v:1,code,season,qualification:qualified.sources,stage:isGroup?'G':'K',teams,groups:[],gtable:{},gdays:isGroup?days.slice(0,3):[],kdays:isGroup?days.slice(3):days,ko:null,knockout:[],champion:null,runnerUp:null};
+  const legDays=isGroup?(twoLegged?[days.slice(3,5),days.slice(5,7),days.slice(7,8)]:days.slice(3).map(d=>[d])):days.map(d=>[d]);
+  const E=WORLD.clubCups[code]={v:1,formatVersion:3,legDays,code,season,qualification:qualified.sources,stage:isGroup?'G':'K',teams,groups:[],gtable:{},gdays:isGroup?days.slice(0,3):[],kdays:legDays.map(ds=>ds.at(-1)),ko:null,knockout:[],champion:null,runnerUp:null};
   if(isGroup){
     E.groups=Array.from({length:4},(_,i)=>teams.slice(i*4,(i+1)*4));
     teams.forEach(id=>E.gtable[id]={id,p:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0});
@@ -10813,7 +10915,8 @@ function clubCupScheduleKO(E,teams,round){
   const name=teams.length>4?'1/4决赛':teams.length>2?'半决赛':'决赛';E.stage='K';E.ko={round,teams:[...teams],name,byes:[]};
   let pairs=teams;
   if(teams.length===3){E.ko.byes=[teams[0]];pairs=teams.slice(1);}
-  for(let i=0;i<pairs.length;i+=2)WORLD.fixtures.push({day,home:pairs[i],away:pairs[i+1],comp:E.code,stage:'K',round:round+1,played:false,hg:0,ag:0,pens:null,neutral:E.code==='CWC'||E.code==='SUP'||teams.length===2});
+  const dates=E.legDays?.[round]||[day];
+  for(let i=0;i<pairs.length;i+=2)for(let l=0;l<dates.length;l++)WORLD.fixtures.push({day:dates[l],home:pairs[i+(l?1:0)],away:pairs[i+(l?0:1)],comp:E.code,stage:'K',round:round+1,...(dates.length===2?{leg:l+1,tie:i/2}:{}),played:false,hg:0,ag:0,pens:null,neutral:E.code==='CWC'||E.code==='SUP'||teams.length===2});
   WORLD.fixtures.sort((a,b)=>a.day-b.day);
 }
 function clubCupApplyGroupResult(f){
@@ -10841,7 +10944,9 @@ function clubCupsDayEnd(day){
     }
     const r=E.ko.round,fx=WORLD.fixtures.filter(f=>f.comp===E.code&&f.stage==='K'&&f.round===r+1);
     if(!fx.length||fx.some(f=>!f.played))continue;
-    const results=fx.map(f=>({a:f.home,b:f.away,ga:f.hg,gb:f.ag,pens:f.pens||null,winner:winnerOf(f),day:f.day})),winners=[...E.ko.byes,...results.map(r=>r.winner)];
+    const ties=fixtureTies(fx);
+    if(ties.some(legs=>legs.length!==(E.legDays?.[r]?.length||1)||tieWinner(legs,{awayGoals:E.code==='CON'&&legs.length===2})==null))continue;
+    const results=ties.map(legs=>{const f=legs[0],last=legs.at(-1),ga=legs.reduce((n,g)=>n+(g.home===f.home?g.hg:g.ag),0),gb=legs.reduce((n,g)=>n+(g.home===f.away?g.hg:g.ag),0);return {a:f.home,b:f.away,ga,gb,pens:last.pens?(last.home===f.home?[...last.pens]:[...last.pens].reverse()):null,winner:tieWinner(legs,{awayGoals:E.code==='CON'&&legs.length===2}),day:last.day,...(legs.length===2?{legs:legs.map(g=>({h:g.home,a:g.away,hg:g.hg,ag:g.ag,day:g.day}))}:{})};}),winners=[...E.ko.byes,...results.map(r=>r.winner)];
     E.knockout.push({name:E.ko.name,results});
     if(winners.length>1){clubCupScheduleKO(E,winners,r+1);continue;}
     const f=fx[0];E.champion=winners[0];E.runnerUp=E.champion===f.home?f.away:f.home;E.stage='F';
@@ -10879,7 +10984,7 @@ function validateClubCups(w,fail){
     if(E.legacy){if(E.stage!=='F'||fx.length||!hist?.some(h=>h.season===E.season&&h.champion===E.champion))fail('旧洲际冠军');continue;}
     if(E.stage==='D'){if(fx.length)fail('延期赛事含有比赛');continue;}
     if(!Array.isArray(E.gdays)||!Array.isArray(E.kdays)||!Array.isArray(E.knockout)||!E.kdays.length)fail('洲际赛事日程');
-    const dates=[...E.gdays,...E.kdays];if(dates.some((d,i)=>!Number.isInteger(d)||d<0||d>=SEASON_DAYS||i&&d<=dates[i-1]))fail('洲际赛事轮次日期');
+    const dates=[...E.gdays,...(E.legDays?.flat()||E.kdays)];if(dates.some((d,i)=>!Number.isInteger(d)||d<0||d>=SEASON_DAYS||i&&d<=dates[i-1]))fail('洲际赛事轮次日期');
     if(key){
       if(E.groups?.length!==4||E.groups.some(g=>g.length!==4)||new Set(E.groups.flat()).size!==E.teams.length||!E.groups.flat().every(id=>E.teams.includes(id))||E.gdays.length!==3||E.kdays.length!==3||fx.filter(f=>f.stage==='G').length!==24)fail('洲际赛事分组');
       for(const id of E.teams)for(const k of ['p','w','d','l','gf','ga','gd','pts'])if(!Number.isFinite(E.gtable?.[id]?.[k]))fail('洲际赛事积分');
@@ -10888,10 +10993,10 @@ function validateClubCups(w,fail){
     for(const f of fx){
       if(!E.teams.includes(f.home)||!E.teams.includes(f.away)||!['G','K'].includes(f.stage))fail('洲际赛事对阵');
       if(f.stage==='G'&&(!key||!E.groups[f.grp]?.includes(f.home)||!E.groups[f.grp].includes(f.away)||f.day!==E.gdays[f.round-1]))fail('洲际赛事小组引用');
-      if(f.stage==='K'&&(f.day!==E.kdays[f.round-1]||f.played&&f.hg===f.ag&&(!Array.isArray(f.pens)||f.pens.length!==2||f.pens[0]===f.pens[1])))fail('洲际赛事淘汰赛引用');
+      if(f.stage==='K'){const dates=E.legDays?.[f.round-1]||[E.kdays[f.round-1]];if(f.day!==dates[(f.leg||1)-1])fail('洲际赛事淘汰赛引用');if(f.played&&(!f.leg||f.leg===2)){const legs=fx.filter(g=>g.stage==='K'&&g.round===f.round&&(f.leg?g.tie===f.tie:g===f)).sort((a,b)=>(a.leg||1)-(b.leg||1));if(tieWinner(legs,{awayGoals:code==='CON'&&dates.length===2})==null)fail('洲际赛事缺少晋级判定');}}
       for(const id of [f.home,f.away]){const k=f.day+':'+id;if(occupied.has(k)||w.fixtures.some(g=>g!==f&&g.comp!==code&&g.day===f.day&&(g.home===id||g.away===id)))fail('洲际赛事日程冲突');occupied.add(k);}
     }
-    if(E.stage==='K'&&(!E.ko||!Number.isInteger(E.ko.round)||E.ko.round<0||E.ko.round>=E.kdays.length||!Array.isArray(E.ko.teams)||!Array.isArray(E.ko.byes)||fx.filter(f=>f.stage==='K'&&f.round===E.ko.round+1).length!==(E.ko.teams.length-E.ko.byes.length)/2))fail('洲际赛事淘汰轮次');
+    if(E.stage==='K'&&(!E.ko||!Number.isInteger(E.ko.round)||E.ko.round<0||E.ko.round>=E.kdays.length||!Array.isArray(E.ko.teams)||!Array.isArray(E.ko.byes)||fx.filter(f=>f.stage==='K'&&f.round===E.ko.round+1).length!==(E.ko.teams.length-E.ko.byes.length)/2*(E.legDays?.[E.ko.round]?.length||1)))fail('洲际赛事淘汰轮次');
     if(E.stage==='F'&&(!club(E.champion)||!club(E.runnerUp)||E.champion===E.runnerUp||!hist?.some(h=>h.season===E.season&&h.champion===E.champion)))fail('洲际赛事冠军');
   }
 }
@@ -10901,7 +11006,7 @@ function renderClubCup(v,code){
   box.innerHTML=`<h3>🏆 ${name}</h3><div class="sub">${esc(status)}</div>`;
   if(E&&!E.legacy&&['G','K','F'].includes(E.stage)){
     if(E.teams.includes(WORLD.userClub))box.appendChild(el('div','sub',WORLD.season+'赛季资格：'+qualificationSourceText(E.qualification?.find(r=>r.id===WORLD.userClub))+'。可在赛程中通过「继续」临场指挥。'));
-    box.appendChild(el('div','hint',code==='CWC'?'本游戏为年度简化世俱杯：上一赛季各洲冠军参加，最多4队；亚冠冠军从下一季参赛。':code==='SUP'?'上一赛季欧冠冠军对欧联冠军。':'本游戏采用16队简化赛制；资格来自上季联赛、国内杯及卫冕通道。'));
+    box.appendChild(el('div','hint',code==='CWC'?'本游戏为年度简化世俱杯：上一赛季各洲冠军参加，最多4队；亚冠冠军从下一季参赛。':code==='SUP'?'上一赛季欧冠冠军对欧联冠军。':'本游戏采用16队简化赛制；资格来自上季联赛、国内杯及卫冕通道。'+(E.formatVersion===3&&['LIB','CON'].includes(code)?'淘汰赛决赛前主客场两回合；解放者杯总分平直接点球，中北美先比常规时间客场进球，再加时及点球。':'')));
     if(E.groups.length){const grid=el('div');grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px';E.groups.forEach((g,i)=>{const card=el('div');card.innerHTML=`<h4>${String.fromCharCode(65+i)}组</h4><table class="tbl"><thead><tr><th>球队</th><th>场</th><th>分</th><th>净胜</th></tr></thead><tbody>${wclStandings(E,g).map(t=>`<tr><td>${clubLink(C(t.id))}</td><td>${t.p}</td><td>${t.pts}</td><td>${t.gd}</td></tr>`).join('')}</tbody></table>`;grid.appendChild(card)});box.appendChild(grid);}
     const matches=WORLD.fixtures.filter(f=>f.comp===code);for(const f of matches.filter(f=>f.stage==='K'||f.home===WORLD.userClub||f.away===WORLD.userClub))box.appendChild(fixtureRow(f));
   }
@@ -11175,7 +11280,7 @@ function wclDayEnd(day){
     wclScheduleKO(E,shuffle(qualified),0);return;
   }
   const r=E.ko.round, fx=WORLD.fixtures.filter(f=>f.comp==="WCL"&&f.stage==="K"&&f.round===r+1);
-  if(!fx.length||fx.some(f=>!f.played))return;
+  if(!fx.length||fx.some(f=>!f.played||winnerOf(f)==null))return;
   const results=fx.map(f=>({a:f.home,b:f.away,ga:f.hg,gb:f.ag,pens:f.pens||null,winner:winnerOf(f),day:f.day})),winners=results.map(r=>r.winner);
   E.knockout.push({name:E.ko.name,results});
   if(winners.length===1){
@@ -14034,7 +14139,7 @@ function vLeague(v){
     const wrap=el("div"); wrap.style.cssText="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:2px 14px";
     rd.matches.forEach(m=>wrap.appendChild(el("div","",`<div style="font-size:12px;padding:2px 0">
       ${crestHTML(C(m.h))}${clubLink(C(m.h))} <b>${m.hg} - ${m.ag}</b> ${crestHTML(C(m.a))}${clubLink(C(m.a))}
-      ${m.pens?`<span class="hint">(点球 ${m.pens[0]}-${m.pens[1]})</span>`:""}</div>`)));
+      ${m.leg?`<span class="hint">${m.leg===1?"首回合":"次回合"}</span>`:""}${m.pens?`<span class="hint">(点球 ${m.pens[0]}-${m.pens[1]})</span>`:""}</div>`)));
     cup.appendChild(wrap);
   });
   v.appendChild(cup);
@@ -14139,7 +14244,7 @@ function fixtureRow(f){
   const d=el("div","clickable");
   d.style.cssText="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--row-line);font-size:12px;cursor:pointer";
   const hw=f.hg>f.ag, aw=f.ag>f.hg;
-  d.innerHTML=`<span class="hint" style="width:38px">${fmtDateShort(dateOf(f.day))}</span>
+  d.innerHTML=`<span class="hint" style="width:38px;flex-shrink:0">${fmtDateShort(dateOf(f.day))}${f.leg&&(f.comp==='C'||Object.hasOwn(CLUB_CUP_CODES,f.comp))?`<small style="display:block">${f.leg===1?'首回合':'次回合'}</small>`:''}</span>
     <span style="flex:1;text-align:right;${hw?'font-weight:700':''}">${clubLink(C(f.home))}</span>
     ${crestHTML(C(f.home))}
     <b style="background:var(--bg);padding:1px 8px;border-radius:4px">${f.played?f.hg+" - "+f.ag:"vs"}</b>
@@ -14148,13 +14253,14 @@ function fixtureRow(f){
   if(f.played) d.onclick=()=>showMatchReport(f);
   return d;
 }
+function decisionLabel(f){return f.forfeit?'（判负）':f.ruleDecision?.reason==='seed'?'（按联赛排名晋级）':f.ruleDecision?.reason==='awayGoals'?'（按常规时间客场进球晋级）':'';}
 function showMatchReport(f){
   const s=f.stats||[blankStats(),blankStats()];
   const rowsHtml=[["控球率",s[0].poss+"%",s[1].poss+"%"],["射门",s[0].shots,s[1].shots],["射正",s[0].sot,s[1].sot],
     ["预期进球",s[0].xg?s[0].xg.toFixed(2):"-",s[1].xg?s[1].xg.toFixed(2):"-"],
     ["角球",s[0].corners,s[1].corners],["犯规",s[0].fouls,s[1].fouls],["黄牌",s[0].yellow,s[1].yellow],["红牌",s[0].red,s[1].red]]
     .map(([n,a,b])=>`<tr><td class="num" style="width:70px"><b>${a}</b></td><td class="ctr hint">${n}</td><td style="width:70px"><b>${b}</b></td></tr>`).join("");
-  openModal(`${esc(C(f.home).cn)} ${f.hg} - ${f.ag} ${esc(C(f.away).cn)}${f.extraTime?'（加时）':''}${Array.isArray(f.pens)?`（点球 ${f.pens.join("-")}）`:""}${f.derby?' 🔥':''}`,
+  openModal(`${esc(C(f.home).cn)} ${f.hg} - ${f.ag} ${esc(C(f.away).cn)}${f.extraTime?'（加时）':''}${Array.isArray(f.pens)?`（点球 ${f.pens.join("-")}）`:""}${decisionLabel(f)}${f.derby?' 🔥':''}`,
     `<div class="hint" style="margin-bottom:10px">${fmtDate(dateOf(f.day))} · ${compLabel(f)}${f.derby?' · <span class="tag t-b">死敌德比</span>':''}
       ${f.attendance?" · 观众 "+f.attendance.toLocaleString():""}
       ${f.motm&&P(f.motm)?" · 全场最佳 "+esc(P(f.motm).cn):""}</div>
@@ -14560,7 +14666,7 @@ function vMatch(v){
          <button class="pri" id="btn-play" style="min-width:88px">${ANIM.playing?"⏸ 暂停":M.frames.length?"▶ 继续":"▶ 开始"}</button>
          ${SPEEDS.map((s,i)=>`<button class="sm spd ${ANIM.speed===s[1]?"on":""}" data-s="${s[1]}">${s[0]}</button>`).join("")}
          <button class="sm" id="btn-skip">⏭ 直接看结果</button>
-         <button class="sm" id="btn-sub">🔁 换人 (${5-M.subsMade[M.userSide]})</button>
+         <button class="sm" id="btn-sub">🔁 换人 (${subLimit(M)-M.subsMade[M.userSide]})</button>
          <button class="sm" id="btn-tac">⚙ 临场战术</button>
          <span style="flex:1"></span>
          <button class="pri" id="btn-done" style="display:none">完成比赛 ▶</button>
@@ -14665,7 +14771,7 @@ function showPostMatch(M, seasonEnded){
     ["犯规",s[0].fouls,s[1].fouls],["黄牌",s[0].yellow,s[1].yellow],["红牌",s[0].red,s[1].red],
     ["传球成功",s[0].passOk+"/"+s[0].pass,s[1].passOk+"/"+s[1].pass]]
     .map(([n,a,b])=>`<tr><td class="num" style="width:80px"><b>${a}</b></td><td class="ctr hint">${n}</td><td style="width:80px"><b>${b}</b></td></tr>`).join("");
-  openModal(`${esc(H.cn)} ${M.score[0]} - ${M.score[1]} ${esc(A.cn)}${M.extraTime?'（加时）':''}${M.pens?`（点球 ${M.pens[0]}-${M.pens[1]}）`:""}`,
+  openModal(`${esc(H.cn)} ${M.score[0]} - ${M.score[1]} ${esc(A.cn)}${M.extraTime?'（加时）':''}${M.pens?`（点球 ${M.pens[0]}-${M.pens[1]}）`:""}${decisionLabel(M)}`,
    `<div class="hint" style="margin-bottom:8px">全场最佳：<b style="color:var(--gold)">${M.motm?esc(nm(M.motm)):"-"}</b>（${M.motm?M.motm.rating.toFixed(1):"-"} 分）</div>
     <div class="tw"><table style="max-width:340px;margin-bottom:14px">${stat}</table></div>
     <div class="row"><div class="col"><div class="hint" style="margin-bottom:4px">${esc(H.cn)}</div><div class="tw">${tbl(0)}</div></div>
@@ -14714,7 +14820,7 @@ function refreshMatchUI(force){
     }
     ANIM.evShown=M.events.length; fd.scrollTop=fd.scrollHeight;
   }
-  const bs=$("#btn-sub"); if(bs && M.userSide>=0){ const t=`🔁 换人 (${5-M.subsMade[M.userSide]})`; if(bs.textContent!==t) bs.textContent=t; }  // 只在变化时改，iOS 上每帧改文本会吞掉同一行按钮的点击
+  const bs=$("#btn-sub"); if(bs && M.userSide>=0){ const t=`🔁 换人 (${subLimit(M)-M.subsMade[M.userSide]})`; if(bs.textContent!==t) bs.textContent=t; }  // 只在变化时改，iOS 上每帧改文本会吞掉同一行按钮的点击
   const pl=$("#m-players");
   if(pl){
     const mk=side=>`<div class="col"><div class="hint" style="margin-bottom:3px">${esc(matchTeam(M,side).cn)}${side===M.userSide?' <span>（点球员可直接换人）</span>':''}</div>
@@ -14862,7 +14968,7 @@ function subDialog(preOut){
   SUBQ=[]; SUBOUT=(preOut!=null&&preOut>=0)? preOut : null;
   renderSubDialog();
 }
-function subLeft(){ const M=CURMATCH; return 5-M.subsMade[M.userSide]-SUBQ.length; }
+function subLeft(){ const M=CURMATCH; return canSub(M,M.userSide)?Math.max(0,subLimit(M)-M.subsMade[M.userSide]-SUBQ.length):0; }
 function subOuts(T){ return T.men.filter(m=>!m.off || (m.injured&&!m.red&&m.subDone!==2)); }
 function renderSubDialog(){
   const M=CURMATCH, side=M.userSide, T=M.teams[side], club=T.club;
@@ -14874,7 +14980,7 @@ function renderSubDialog(){
   const want = outM? slots[outM.slot][0] : null;
   const benchSorted=bench.slice().sort((a,b)=> want? playerScore(matchPlayer(M,b),want)-playerScore(matchPlayer(M,a),want) : ovr(matchPlayer(M,b))-ovr(matchPlayer(M,a)));
   const body=`
-   <div class="hint" style="margin-bottom:8px">点左侧要换下的球员，再点右侧替补，可连续配好几组后一并确认。本次还可换 <b style="color:var(--acc)">${subLeft()}</b> 人。</div>
+   <div class="hint" style="margin-bottom:8px">点左侧要换下的球员，再点右侧替补，可连续配好几组后一并确认。${M.rules?.windows!=null?`剩余换人窗口 ${subWindowsLeft(M,side)} 次（同批换人共用一次，中场休息不占窗口）。`:''}本次还可换 <b style="color:var(--acc)">${subLeft()}</b> 人。</div>
    <div class="row">
     <div class="col"><div class="hint" style="margin-bottom:5px">场上球员</div>
      ${on.map((m,i)=>{ const q=queuedOut.includes(m);
@@ -14893,7 +14999,7 @@ function renderSubDialog(){
    <div class="hint" style="margin-bottom:4px">待执行换人</div>
    <div id="subq" style="display:flex;flex-wrap:wrap;gap:4px">${SUBQ.length? SUBQ.map((q,i)=>`<span class="pill" style="border-color:var(--acc)">🔁 ${esc(matchPlayer(M,q.in).cn)} <span class="hint">换下</span> ${esc(nm(q.out))} <a onclick="unqueueSub(${i})" style="cursor:pointer;color:var(--bad);margin-left:4px">✕</a></span>`).join("") : '<span class="hint">暂无——也可以点「智能建议」自动配对体能不足的球员</span>'}</div>`;
   const sc=$("#modal-bd")? $("#modal-bd").scrollTop : 0;
-  openModal(`换人（剩余 ${5-M.subsMade[side]} 个名额）`, body,
+  openModal(`换人（剩余 ${subLimit(M)-M.subsMade[side]} 个名额）`, body,
     `<button onclick="autoSubSuggest()">🤖 智能建议</button><button onclick="cancelSubDialog()">取消</button>
      <button class="pri" onclick="applySubs()" ${SUBQ.length?'':'disabled'}>确认换人（${SUBQ.length}）</button>`);
   if($("#modal-bd")) $("#modal-bd").scrollTop=sc;
@@ -15470,7 +15576,7 @@ function vHelp(v){
     <div class="card"><h3>比赛日</h3>
       <div style="line-height:1.85">2D 俯视球场实时演绎每一次传球、突破与射门。<br>
       • <b>空格</b>暂停 / 继续，可切换 0.5× ~ 8× 倍速<br>
-      • <b>换人</b>：全场 5 个名额，先点场上球员再点替补，可一次配好几组再确认；打开换人面板会自动暂停，也可直接点球场下方的球员名<br>
+      • <b>换人</b>：常规时间 5 个名额，部分赛事加时增加第 6 人；有窗口限制的赛事会显示剩余窗口。同一次暂停可批量换人，中场与加时休息不消耗窗口。先点场上球员再点替补，可一次配好几组再确认；打开换人面板会自动暂停，也可直接点球场下方的球员名<br>
       • <b>临场战术</b>：随时调整心态、节奏、逼抢与宽度，立刻生效<br>
       • 体能低于 60% 的球员表现会明显下滑，注意轮换</div></div>
     <div class="card"><h3>战术</h3>
@@ -15503,7 +15609,7 @@ function vHelp(v){
       董事会的期望一半看声望、一半看你的<b>阵容实力</b>；赛事页积分榜的「阵容」列是阵容实力在本联赛的名次，和排名一比就知道谁在超额完成。<br>
       联赛转播分成一半按月到账、一半赛季末按名次结算，赛季中途余额为负很正常，别急着卖人。</div></div>
     <div class="card"><h3>杯赛与欧战</h3>
-      <div style="line-height:1.85">每个国家都有一项全体球队参加的<b>国内杯赛</b>（足总杯 / 国王杯 / 意大利杯 / 德国杯 / 法国杯），单场淘汰，周中进行，决赛在中立场地。<br>
+      <div style="line-height:1.85">每个国家都有一项全体球队参加的<b>国内杯赛</b>（足总杯 / 国王杯 / 意大利杯 / 德国杯 / 法国杯），周中进行；新赛季按赛事安排单场或两回合，平局按该轮规则决胜。决赛在中立场地。<br>
       顶级联赛前 4 名（法甲前 3）获得下赛季<b>欧冠</b>资格，其后 3 名与杯赛冠军进入<b>欧联</b>；余下名额由葡、荷、苏、土等国的豪门填补。
       欧战为 32 队小组赛（8 组 × 4，双循环）+ 主客场两回合淘汰赛，决赛单场定胜负。欧战奖金丰厚，是中小球队跨越阶层的捷径。</div></div>
   </div>
@@ -16093,7 +16199,7 @@ function migrateSecondRound(){
   WORLD.cups.forEach(cup=>{
     if(cup.bracketV2||cup.winner!=null) return;
     const games=WORLD.fixtures.filter(f=>f.comp==="C"&&f.nation===cup.nation);
-    const eliminated=new Set(games.filter(f=>f.played&&f.round<=cup.cur).map(f=>winnerOf(f)===f.home?f.away:f.home));
+    const eliminated=new Set(games.filter(f=>f.played&&f.round<=cup.cur&&winnerOf(f)!=null).map(f=>winnerOf(f)===f.home?f.away:f.home));
     cup.alive=WORLD.clubs.filter(c=>c.nation===cup.nation&&!eliminated.has(c.id)).map(c=>c.id);
     const current=games.filter(f=>f.round===cup.cur+1), playing=new Set(current.flatMap(f=>[f.home,f.away]));
     cup.byes=cup.alive.filter(id=>!playing.has(id));
@@ -16270,8 +16376,8 @@ function findAwardPlayer(entry){
   if(entry.pid!=null) return P(entry.pid)||null;
   return findPlayerByName(entry.n);
 }
-function cupFreeDay(cup,desired,ids,ignore){
-  const remaining=cup.days.length-cup.cur-1,min=Math.max(WORLD.day+(WORLD.day>0?1:0),cup.cur?cup.days[cup.cur-1]+1:0);
+function cupFreeDay(cup,desired,ids,ignore,minDay=0){
+  const remaining=cup.days.length-cup.cur-1,min=Math.max(minDay,WORLD.day+(WORLD.day>0?1:0),cup.cur?cup.days[cup.cur-1]+1:0);
   const max=SEASON_DAYS-1-remaining;
   const reserved=new Set(Object.values(WORLD.euro||{}).flatMap(E=>[...E.gdays,...E.kdays.flat(),E.finalDay]).concat(wclReservedDays(),clubCupReservedDays(),nationalReservedDays()));
   const free=d=>!reserved.has(d)&&!WORLD.fixtures.some(f=>!ignore?.has(f)&&f.day===d&&(ids.includes(f.home)||ids.includes(f.away)));
@@ -16282,7 +16388,7 @@ function cupFreeDay(cup,desired,ids,ignore){
 }
 function repairCupCalendar(){
   WORLD.cups.forEach(cup=>{
-    if(cup.calendarV3||cup.winner!=null)return;
+    if(cup.calendarV3||cup.formatVersion===3||cup.winner!=null)return;
     const current=WORLD.fixtures.filter(f=>f.comp==="C"&&f.nation===cup.nation&&f.round===cup.cur+1&&!f.played);
     if(current.length){
       const day=cupFreeDay(cup,Math.max(WORLD.day+1,cup.days[cup.cur]),cup.alive,new Set(current));
