@@ -56,6 +56,20 @@ if(process.env.PROMOTION_SAVE){
     fs.writeFileSync(path.join(out,'2030-played-fixtures.json'),played);
     assert.equal(sha(fs.readFileSync(file)),sha(raw));return {season:WORLD.season,day:WORLD.day,leagueCounts:counts.length,rank:UC().lastRank,balance:UC().finance.balance};
   });
+  test('旧档已到第399天仍可恢复跨季，不额外结算当天收支',()=>{
+    adoptWorld(input);SAVE_PAUSED=true;WORLD.day=399;
+    const tick=processDayEnd;let ticks=0;global.processDayEnd=d=>{ticks++;return tick(d);};
+    try{const r=advance();assert.equal(r.t,'season');assert.equal(WORLD.season,2031);assert.equal(WORLD.day,0);assert.equal(ticks,0);validateWorld(WORLD);}
+    finally{global.processDayEnd=tick;}
+  });
+  test('第399天仍有未赛场次时停止，资金和日期不变',()=>{
+    adoptWorld(input);SAVE_PAUSED=true;WORLD.day=399;WORLD.fixtures.find(f=>f.comp==='L').played=false;
+    const before=JSON.stringify([WORLD.clubs,WORLD.players,WORLD.history]);const r=advance();assert.equal(r.t,'day');assert.equal(WORLD.day,399);assert.equal(WORLD.season,2030);assert.equal(JSON.stringify([WORLD.clubs,WORLD.players,WORLD.history]),before);
+  });
+  test('第399天非法冠军仍拦截，不绕过结算校验',()=>{
+    adoptWorld(input);SAVE_PAUSED=true;WORLD.day=399;const p=WORLD.playoffs.find(p=>p.fmt==='GER');p.winner=p.byPos[1];
+    const before=JSON.stringify([WORLD.clubs,WORLD.players,WORLD.history]);assert.equal(advance().t,'day');assert.equal(WORLD.day,399);assert.equal(WORLD.season,2030);assert.equal(JSON.stringify([WORLD.clubs,WORLD.players,WORLD.history]),before);
+  });
 }
 fs.writeFileSync(path.join(out,'regression.json'),JSON.stringify({passed:true,sourceSha:crypto.createHash('sha256').update(fs.readFileSync(process.env.FMFILE||'index.html')).digest('hex'),results},null,2));
 clearTimeout(SAVE_TIMER);console.log('PASS',results.length+' checks');

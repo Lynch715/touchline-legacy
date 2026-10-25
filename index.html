@@ -12657,9 +12657,14 @@ function autoSellRound(){
 // 主「继续」入口，返回状态
 function* advanceSteps(){
   repairPromotionCalendar();
-  if(WORLD.day>=399){toast(WORLD.promotionBlocked||'赛季存在未解决的赛程，已保留进度并暂停跨季');return {t:"day"};}
   if(CURMATCH){const fx=currentMatchFixture();if(fx)return {t:"match",fx};resetMatchSession(false);}
   if(WORLD.gameOver) return {t:"over"};
+  if(WORLD.day>=399){
+    // 修复前反复点击可能已到日历上限；比赛全部结束后仍应允许重新校验并结算。
+    if(allFixturesDone()){if(endSeason()!==false){WORLD.youthDone=false;return {t:"season"};}}
+    else toast(WORLD.promotionBlocked||'赛季存在未解决的赛程，已保留进度并暂停跨季');
+    return {t:"day"};
+  }
   // 兼容停在截止日的旧档：先让玩家处理新报价，再继续当天。
   if(prepareDeadlineMarket()) return {t:"deadline"};
   const uf=userFixtureOn(WORLD.day);
