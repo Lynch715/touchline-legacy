@@ -6772,7 +6772,19 @@ function promotionSettlement(){
     if(!unique(promoted)||!unique(relegated)||promoted.some(id=>!lo.includes(id))||relegated.some(id=>!up.includes(id))||promoted.length-relegated.length!==delta||promoted.length>=lo.length||relegated.length>=up.length)return {ok:false,reason:po.name+'：升降级名单重复、越级或人数不守恒，暂停结算'};
     moves.push({nation:po.nation,tier:po.tier,promoted,relegated,poWin:po.winner,poWinners:po.winners||[po.winner]});
   }
-  const destinations=new Map();for(const m of moves){for(const id of m.promoted){if(destinations.has(id))return {ok:false,reason:'球队重复变更级别，暂停结算'};destinations.set(id,m.tier);}for(const id of m.relegated){if(destinations.has(id))return {ok:false,reason:'球队重复变更级别，暂停结算'};destinations.set(id,m.tier+1);}}
+  // 旧制小联赛可能让第6名既赢得升级附加赛，又落入后三名降级区。
+  // 已赛升级资格优先；仅旧制降级名单按原积分榜顺延，保持原定名额和所有比赛记录。
+  const promotedIds=new Set(moves.flatMap(m=>m.promoted));
+  for(const m of moves){
+    const po=WORLD.playoffs.find(p=>p.nation===m.nation&&p.tier===m.tier);
+    if(!po.rules&&m.relegated.some(id=>promotedIds.has(id))){
+      const up=leagueTable(lgIndex(m.nation,m.tier)).map(r=>r.id);
+      const candidates=up.filter(id=>!promotedIds.has(id));
+      if(candidates.length<m.relegated.length)return {ok:false,reason:po.name+'：可降级球队不足，暂停结算'};
+      m.relegated=candidates.slice(-m.relegated.length);
+    }
+  }
+  const destinations=new Map();for(const m of moves){for(const id of m.promoted){if(destinations.has(id))return {ok:false,reason:C(id).cn+'重复变更级别，暂停结算'};destinations.set(id,m.tier);}for(const id of m.relegated){if(destinations.has(id))return {ok:false,reason:C(id).cn+'重复变更级别，暂停结算'};destinations.set(id,m.tier+1);}}
   return {ok:true,moves};
 }
 function repairPromotionCalendar(){

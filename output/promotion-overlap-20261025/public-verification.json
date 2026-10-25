@@ -1,0 +1,23 @@
+{
+  "version": "20261025.2",
+  "passed": true,
+  "checks": 123,
+  "browser": {
+    "type": "Codex in-app browser",
+    "url": "http://127.0.0.1:8765/acceptance.html",
+    "originalSeason": 2030,
+    "originalDay": 300,
+    "seasonAfterContinue": 2031,
+    "dayAfterContinue": 0,
+    "blockedAfterContinue": null,
+    "savePaused": true
+  },
+  "preFixEngineImport": {
+    "engine": "20261025.1",
+    "passed": true,
+    "season": 2031,
+    "dayAfterContinue": 1
+  },
+  "sourceSha256": "5dae0c0598f88d345b8a5c69d72ce29e3be34275c113a47e33b35e8e6c73b2bf",
+  "webSha256": "48f918f39fd9dcd2d45874e05845b7eb60ed6c1de1ff5a93997f727fb9a8bb9e"
+}
