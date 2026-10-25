@@ -1,0 +1,50 @@
+{
+  "passed": true,
+  "version": "20261025.1",
+  "webSha256": "16c14a8e55a47ad62b4c206ed045365cfd01e4742601708a93fe8890bd6a1a1f",
+  "checks": 301,
+  "reports": [
+    {
+      "report": "regression.json",
+      "checks": 100,
+      "passed": true
+    },
+    {
+      "report": "core.json",
+      "checks": 16,
+      "passed": true
+    },
+    {
+      "report": "live-match/regression.json",
+      "checks": 63,
+      "passed": true
+    },
+    {
+      "report": "cup-regression/regression.json",
+      "checks": 49,
+      "passed": true
+    },
+    {
+      "report": "club-cups.json",
+      "checks": 21,
+      "passed": true
+    },
+    {
+      "report": "national-cups.json",
+      "checks": 26,
+      "passed": true
+    },
+    {
+      "report": "save.json",
+      "checks": 17,
+      "passed": true
+    },
+    {
+      "report": "cache.json",
+      "checks": 9,
+      "passed": true
+    }
+  ],
+  "seasonMatches": 40395,
+  "assetsUnchanged": 1321
+}

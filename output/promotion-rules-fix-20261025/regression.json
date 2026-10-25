@@ -1,0 +1,2428 @@
+{
+  "sourceSha256": "16c14a8e55a47ad62b4c206ed045365cfd01e4742601708a93fe8890bd6a1a1f",
+  "passed": true,
+  "total": 100,
+  "passes": 100,
+  "results": [
+    {
+      "name": "55个衔接均有级别策略，无国家兜底",
+      "pass": true,
+      "detail": [
+        {
+          "code": "ENG",
+          "tier": 0,
+          "auto": 2,
+          "fmt": "eng6"
+        },
+        {
+          "code": "ENG",
+          "tier": 1,
+          "auto": 2,
+          "fmt": "four"
+        },
+        {
+          "code": "ENG",
+          "tier": 2,
+          "auto": 3,
+          "fmt": "four"
+        },
+        {
+          "code": "ENG",
+          "tier": 3,
+          "auto": 1,
+          "fmt": "nat6"
+        },
+        {
+          "code": "ESP",
+          "tier": 0,
+          "auto": 2,
+          "fmt": "esp"
+        },
+        {
+          "code": "ESP",
+          "tier": 1,
+          "auto": 2,
+          "fmt": "spanishGroups"
+        },
+        {
+          "code": "ESP",
+          "tier": 2,
+          "auto": 4,
+          "fmt": "direct"
+        },
+        {
+          "code": "ITA",
+          "tier": 0,
+          "auto": 2,
+          "fmt": "ita"
+        },
+        {
+          "code": "ITA",
+          "tier": 1,
+          "auto": 4,
+          "fmt": "itaplayout"
+        },
+        {
+          "code": "ITA",
+          "tier": 2,
+          "auto": 3,
+          "fmt": "direct"
+        },
+        {
+          "code": "GER",
+          "tier": 0,
+          "auto": 2,
+          "fmt": "barrage"
+        },
+        {
+          "code": "GER",
+          "tier": 1,
+          "auto": 2,
+          "fmt": "barrage"
+        },
+        {
+          "code": "GER",
+          "tier": 2,
+          "auto": 4,
+          "fmt": "direct"
+        },
+        {
+          "code": "FRA",
+          "tier": 0,
+          "auto": 2,
+          "fmt": "fra"
+        },
+        {
+          "code": "FRA",
+          "tier": 1,
+          "auto": 2,
+          "fmt": "fra3"
+        },
+        {
+          "code": "FRA",
+          "tier": 2,
+          "auto": 3,
+          "fmt": "direct"
+        },
+        {
+          "code": "CHN",
+          "tier": 0,
+          "auto": 2,
+          "fmt": "direct"
+        },
+        {
+          "code": "CHN",
+          "tier": 1,
+          "auto": 2,
+          "fmt": "barrage"
+        },
+        {
+          "code": "CHN",
+          "tier": 2,
+          "auto": 3,
+          "fmt": "direct"
+        },
+        {
+          "code": "JPN",
+          "tier": 0,
+          "auto": 2,
+          "fmt": "jpn"
+        },
+        {
+          "code": "JPN",
+          "tier": 1,
+          "auto": 2,
+          "fmt": "jpn"
+        },
+        {
+          "code": "KSA",
+          "tier": 0,
+          "auto": 2,
+          "fmt": "saudi"
+        },
+        {
+          "code": "KSA",
+          "tier": 1,
+          "auto": 4,
+          "fmt": "direct"
+        },
+        {
+          "code": "USA",
+          "tier": 0,
+          "auto": 0,
+          "fmt": "closed"
+        },
+        {
+          "code": "USA",
+          "tier": 1,
+          "auto": 0,
+          "fmt": "closed"
+        },
+        {
+          "code": "RUS",
+          "tier": 0,
+          "auto": 2,
+          "fmt": "rus"
+        },
+        {
+          "code": "RUS",
+          "tier": 1,
+          "auto": 4,
+          "fmt": "direct"
+        },
+        {
+          "code": "POR",
+          "tier": 0,
+          "auto": 2,
+          "fmt": "barrage"
+        },
+        {
+          "code": "POR",
+          "tier": 1,
+          "auto": 2,
+          "fmt": "barrage"
+        },
+        {
+          "code": "NED",
+          "tier": 0,
+          "auto": 2,
+          "fmt": "ned"
+        },
+        {
+          "code": "NED",
+          "tier": 1,
+          "auto": 0,
+          "fmt": "closed"
+        },
+        {
+          "code": "SCO",
+          "tier": 0,
+          "auto": 1,
+          "fmt": "sco"
+        },
+        {
+          "code": "SCO",
+          "tier": 1,
+          "auto": 1,
+          "fmt": "scoLow"
+        },
+        {
+          "code": "SUI",
+          "tier": 0,
+          "auto": 1,
+          "fmt": "barrage"
+        },
+        {
+          "code": "SUI",
+          "tier": 1,
+          "auto": 1,
+          "fmt": "direct"
+        },
+        {
+          "code": "SUI",
+          "tier": 2,
+          "auto": 2,
+          "fmt": "direct"
+        },
+        {
+          "code": "FIN",
+          "tier": 0,
+          "auto": 1,
+          "fmt": "barrage"
+        },
+        {
+          "code": "FIN",
+          "tier": 1,
+          "auto": 1,
+          "fmt": "barrage"
+        },
+        {
+          "code": "BEL",
+          "tier": 0,
+          "auto": 1,
+          "fmt": "bel"
+        },
+        {
+          "code": "BEL",
+          "tier": 1,
+          "auto": 2,
+          "fmt": "direct"
+        },
+        {
+          "code": "BEL",
+          "tier": 2,
+          "auto": 3,
+          "fmt": "direct"
+        },
+        {
+          "code": "BRA",
+          "tier": 0,
+          "auto": 2,
+          "fmt": "bra"
+        },
+        {
+          "code": "BRA",
+          "tier": 1,
+          "auto": 4,
+          "fmt": "direct"
+        },
+        {
+          "code": "BRA",
+          "tier": 2,
+          "auto": 4,
+          "fmt": "direct"
+        },
+        {
+          "code": "KOR",
+          "tier": 0,
+          "auto": 2,
+          "fmt": "kor26"
+        },
+        {
+          "code": "KOR",
+          "tier": 1,
+          "auto": 0,
+          "fmt": "closed"
+        },
+        {
+          "code": "KOR",
+          "tier": 2,
+          "auto": 2,
+          "fmt": "direct"
+        },
+        {
+          "code": "AUS",
+          "tier": 0,
+          "auto": 0,
+          "fmt": "closed"
+        },
+        {
+          "code": "AUS",
+          "tier": 1,
+          "auto": 2,
+          "fmt": "direct"
+        },
+        {
+          "code": "ARG",
+          "tier": 0,
+          "auto": 0,
+          "fmt": "arg"
+        },
+        {
+          "code": "ARG",
+          "tier": 1,
+          "auto": 4,
+          "fmt": "direct"
+        },
+        {
+          "code": "ARG",
+          "tier": 2,
+          "auto": 2,
+          "fmt": "direct"
+        },
+        {
+          "code": "TUR",
+          "tier": 0,
+          "auto": 2,
+          "fmt": "tur"
+        },
+        {
+          "code": "TUR",
+          "tier": 1,
+          "auto": 4,
+          "fmt": "direct"
+        },
+        {
+          "code": "TUR",
+          "tier": 2,
+          "auto": 3,
+          "fmt": "direct"
+        }
+      ]
+    },
+    {
+      "name": "完整380场西乙同分升级分界：相互战绩纠正第二名",
+      "pass": true,
+      "detail": {
+        "status": "pass",
+        "a": 119,
+        "b": 120,
+        "completeLeagueResults": 380,
+        "headToHead": "A wins both 1-0",
+        "points": [
+          66,
+          66
+        ],
+        "overallGD": [
+          6,
+          50
+        ],
+        "actualSecondDirectPromoted": 119,
+        "expectedSecondDirectPromoted": 119
+      }
+    },
+    {
+      "name": "ENG/0 独立名额与模板",
+      "pass": true
+    },
+    {
+      "name": "ENG/1 独立名额与模板",
+      "pass": true
+    },
+    {
+      "name": "ENG/2 独立名额与模板",
+      "pass": true
+    },
+    {
+      "name": "ENG/3 独立名额与模板",
+      "pass": true
+    },
+    {
+      "name": "GER/2 独立名额与模板",
+      "pass": true
+    },
+    {
+      "name": "FRA/1 独立名额与模板",
+      "pass": true
+    },
+    {
+      "name": "BEL/0 独立名额与模板",
+      "pass": true
+    },
+    {
+      "name": "BRA/0 独立名额与模板",
+      "pass": true
+    },
+    {
+      "name": "USA/0 独立名额与模板",
+      "pass": true
+    },
+    {
+      "name": "USA/1 独立名额与模板",
+      "pass": true
+    },
+    {
+      "name": "AUS/0 独立名额与模板",
+      "pass": true
+    },
+    {
+      "name": "NED/1 独立名额与模板",
+      "pass": true
+    },
+    {
+      "name": "TUR/0 独立名额与模板",
+      "pass": true
+    },
+    {
+      "name": "西乙相互战绩优先于总净胜球，不改原比分",
+      "pass": true
+    },
+    {
+      "name": "荷乙Jong Ajax不能直升或进入附加赛",
+      "pass": true
+    },
+    {
+      "name": "德国二队不能升德乙，意丙二队可升意乙但不能与母队同级",
+      "pass": true
+    },
+    {
+      "name": "日本无牌照第3名不由第7名补入，三队缩减签表",
+      "pass": true
+    },
+    {
+      "name": "法L3缺资格不顺延第7名，三队签表含轮空",
+      "pass": true
+    },
+    {
+      "name": "实际比赛全程 ENG/0",
+      "pass": true,
+      "detail": {
+        "matches": 7,
+        "winners": [
+          27
+        ],
+        "direct": [
+          20,
+          21
+        ],
+        "down": [
+          17,
+          18,
+          19
+        ],
+        "lastDay": 284
+      }
+    },
+    {
+      "name": "实际比赛全程 ENG/1",
+      "pass": true,
+      "detail": {
+        "matches": 5,
+        "winners": [
+          44
+        ],
+        "direct": [
+          40,
+          41
+        ],
+        "down": [
+          37,
+          38,
+          39
+        ],
+        "lastDay": 281
+      }
+    },
+    {
+      "name": "实际比赛全程 ENG/2",
+      "pass": true,
+      "detail": {
+        "matches": 5,
+        "winners": [
+          63
+        ],
+        "direct": [
+          60,
+          61,
+          62
+        ],
+        "down": [
+          56,
+          57,
+          58,
+          59
+        ],
+        "lastDay": 281
+      }
+    },
+    {
+      "name": "实际比赛全程 ENG/3",
+      "pass": true,
+      "detail": {
+        "matches": 5,
+        "winners": [
+          85
+        ],
+        "direct": [
+          79
+        ],
+        "down": [
+          77,
+          78
+        ],
+        "lastDay": 281
+      }
+    },
+    {
+      "name": "实际比赛全程 ESP/0",
+      "pass": true,
+      "detail": {
+        "matches": 6,
+        "winners": [
+          124
+        ],
+        "direct": [
+          119,
+          120
+        ],
+        "down": [
+          116,
+          117,
+          118
+        ],
+        "lastDay": 284
+      }
+    },
+    {
+      "name": "实际比赛全程 ESP/1",
+      "pass": true,
+      "detail": {
+        "matches": 4,
+        "winners": [
+          141,
+          143
+        ],
+        "direct": [
+          139,
+          140
+        ],
+        "down": [
+          135,
+          136,
+          137,
+          138
+        ],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 ESP/2",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [
+          149,
+          150,
+          151,
+          152
+        ],
+        "down": [
+          145,
+          146,
+          147,
+          148
+        ],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 ITA/0",
+      "pass": true,
+      "detail": {
+        "matches": 8,
+        "winners": [
+          192
+        ],
+        "direct": [
+          187,
+          188
+        ],
+        "down": [
+          184,
+          185,
+          186
+        ],
+        "lastDay": 284
+      }
+    },
+    {
+      "name": "实际比赛全程 ITA/1",
+      "pass": true,
+      "detail": {
+        "matches": 2,
+        "winners": [
+          202
+        ],
+        "direct": [
+          207,
+          208,
+          209,
+          210
+        ],
+        "down": [
+          204,
+          205,
+          206
+        ],
+        "lastDay": 278
+      }
+    },
+    {
+      "name": "实际比赛全程 ITA/2",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [
+          221,
+          222,
+          223
+        ],
+        "down": [
+          218,
+          219,
+          220
+        ],
+        "lastDay": 278
+      }
+    },
+    {
+      "name": "实际比赛全程 GER/0",
+      "pass": true,
+      "detail": {
+        "matches": 2,
+        "winners": [
+          252
+        ],
+        "direct": [
+          255,
+          256
+        ],
+        "down": [
+          253,
+          254
+        ],
+        "lastDay": 278
+      }
+    },
+    {
+      "name": "实际比赛全程 GER/1",
+      "pass": true,
+      "detail": {
+        "matches": 2,
+        "winners": [
+          270
+        ],
+        "direct": [
+          273,
+          274
+        ],
+        "down": [
+          271,
+          272
+        ],
+        "lastDay": 278
+      }
+    },
+    {
+      "name": "实际比赛全程 GER/2",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [
+          291,
+          292,
+          293,
+          294
+        ],
+        "down": [
+          287,
+          288,
+          289,
+          290
+        ],
+        "lastDay": 278
+      }
+    },
+    {
+      "name": "实际比赛全程 FRA/0",
+      "pass": true,
+      "detail": {
+        "matches": 4,
+        "winners": [
+          325
+        ],
+        "direct": [
+          328,
+          329
+        ],
+        "down": [
+          326,
+          327
+        ],
+        "lastDay": 284
+      }
+    },
+    {
+      "name": "实际比赛全程 FRA/1",
+      "pass": true,
+      "detail": {
+        "matches": 5,
+        "winners": [
+          343
+        ],
+        "direct": [
+          346,
+          347
+        ],
+        "down": [
+          344,
+          345
+        ],
+        "lastDay": 282
+      }
+    },
+    {
+      "name": "实际比赛全程 FRA/2",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [
+          359,
+          360,
+          361
+        ],
+        "down": [
+          356,
+          357,
+          358
+        ],
+        "lastDay": 282
+      }
+    },
+    {
+      "name": "实际比赛全程 CHN/0",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [
+          393,
+          394
+        ],
+        "down": [
+          391,
+          392
+        ],
+        "lastDay": 282
+      }
+    },
+    {
+      "name": "实际比赛全程 CHN/1",
+      "pass": true,
+      "detail": {
+        "matches": 2,
+        "winners": [
+          405
+        ],
+        "direct": [
+          408,
+          409
+        ],
+        "down": [
+          406,
+          407
+        ],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 CHN/2",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [
+          424,
+          425,
+          426
+        ],
+        "down": [
+          421,
+          422,
+          423
+        ],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 JPN/0",
+      "pass": true,
+      "detail": {
+        "matches": 3,
+        "winners": [
+          458
+        ],
+        "direct": [
+          456,
+          457
+        ],
+        "down": [
+          453,
+          454,
+          455
+        ],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 JPN/1",
+      "pass": true,
+      "detail": {
+        "matches": 3,
+        "winners": [
+          473
+        ],
+        "direct": [
+          471,
+          472
+        ],
+        "down": [
+          468,
+          469,
+          470
+        ],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 KSA/0",
+      "pass": true,
+      "detail": {
+        "matches": 3,
+        "winners": [
+          508
+        ],
+        "direct": [
+          503,
+          504
+        ],
+        "down": [
+          500,
+          501,
+          502
+        ],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 KSA/1",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [
+          517,
+          518,
+          519,
+          520
+        ],
+        "down": [
+          513,
+          514,
+          515,
+          516
+        ],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 USA/0",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [],
+        "down": [],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 USA/1",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [],
+        "down": [],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 RUS/0",
+      "pass": true,
+      "detail": {
+        "matches": 4,
+        "winners": [
+          593,
+          594
+        ],
+        "direct": [
+          597,
+          598
+        ],
+        "down": [
+          595,
+          596
+        ],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 RUS/1",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [
+          613,
+          614,
+          615,
+          616
+        ],
+        "down": [
+          609,
+          610,
+          611,
+          612
+        ],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 POR/0",
+      "pass": true,
+      "detail": {
+        "matches": 2,
+        "winners": [
+          642
+        ],
+        "direct": [
+          645,
+          646
+        ],
+        "down": [
+          643,
+          644
+        ],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 POR/1",
+      "pass": true,
+      "detail": {
+        "matches": 2,
+        "winners": [
+          662
+        ],
+        "direct": [
+          660,
+          661
+        ],
+        "down": [
+          658,
+          659
+        ],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 NED/0",
+      "pass": true,
+      "detail": {
+        "matches": 12,
+        "winners": [
+          695
+        ],
+        "direct": [
+          692,
+          693
+        ],
+        "down": [
+          690,
+          691
+        ],
+        "lastDay": 287
+      }
+    },
+    {
+      "name": "实际比赛全程 NED/1",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [],
+        "down": [],
+        "lastDay": 287
+      }
+    },
+    {
+      "name": "实际比赛全程 SCO/0",
+      "pass": true,
+      "detail": {
+        "matches": 6,
+        "winners": [
+          734
+        ],
+        "direct": [
+          736
+        ],
+        "down": [
+          735
+        ],
+        "lastDay": 287
+      }
+    },
+    {
+      "name": "实际比赛全程 SCO/1",
+      "pass": true,
+      "detail": {
+        "matches": 6,
+        "winners": [
+          744
+        ],
+        "direct": [
+          746
+        ],
+        "down": [
+          745
+        ],
+        "lastDay": 281
+      }
+    },
+    {
+      "name": "实际比赛全程 SUI/0",
+      "pass": true,
+      "detail": {
+        "matches": 2,
+        "winners": [
+          771
+        ],
+        "direct": [
+          770
+        ],
+        "down": [
+          769
+        ],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 SUI/1",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [
+          780
+        ],
+        "down": [
+          779
+        ],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 SUI/2",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [
+          790,
+          791
+        ],
+        "down": [
+          788,
+          789
+        ],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 FIN/0",
+      "pass": true,
+      "detail": {
+        "matches": 2,
+        "winners": [
+          809
+        ],
+        "direct": [
+          811
+        ],
+        "down": [
+          810
+        ],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 FIN/1",
+      "pass": true,
+      "detail": {
+        "matches": 2,
+        "winners": [
+          821
+        ],
+        "direct": [
+          823
+        ],
+        "down": [
+          822
+        ],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 BEL/0",
+      "pass": true,
+      "detail": {
+        "matches": 6,
+        "winners": [
+          855
+        ],
+        "direct": [
+          851
+        ],
+        "down": [
+          849,
+          850
+        ],
+        "lastDay": 281
+      }
+    },
+    {
+      "name": "实际比赛全程 BEL/1",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [
+          859,
+          860
+        ],
+        "down": [
+          857,
+          858
+        ],
+        "lastDay": 281
+      }
+    },
+    {
+      "name": "实际比赛全程 BEL/2",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [
+          870,
+          871,
+          872
+        ],
+        "down": [
+          867,
+          868,
+          869
+        ],
+        "lastDay": 281
+      }
+    },
+    {
+      "name": "实际比赛全程 BRA/0",
+      "pass": true,
+      "detail": {
+        "matches": 4,
+        "winners": [
+          908,
+          910
+        ],
+        "direct": [
+          906,
+          907
+        ],
+        "down": [
+          902,
+          903,
+          904,
+          905
+        ],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 BRA/1",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [
+          926,
+          927,
+          928,
+          929
+        ],
+        "down": [
+          922,
+          923,
+          924,
+          925
+        ],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 BRA/2",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [
+          944,
+          945,
+          946,
+          947
+        ],
+        "down": [
+          940,
+          941,
+          942,
+          943
+        ],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 KOR/0",
+      "pass": true,
+      "detail": {
+        "matches": 3,
+        "winners": [
+          981
+        ],
+        "direct": [
+          976,
+          977
+        ],
+        "down": [
+          975
+        ],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 KOR/1",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [],
+        "down": [],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 KOR/2",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [
+          1004,
+          1005
+        ],
+        "down": [
+          1002,
+          1003
+        ],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 AUS/0",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [],
+        "down": [],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 AUS/1",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [
+          1044,
+          1045
+        ],
+        "down": [
+          1042,
+          1043
+        ],
+        "lastDay": 275
+      }
+    },
+    {
+      "name": "实际比赛全程 ARG/0",
+      "pass": true,
+      "detail": {
+        "matches": 22,
+        "winners": [
+          1077,
+          1076
+        ],
+        "direct": [],
+        "down": [
+          1074,
+          1075
+        ],
+        "lastDay": 290
+      }
+    },
+    {
+      "name": "实际比赛全程 ARG/1",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [
+          1096,
+          1097,
+          1098,
+          1099
+        ],
+        "down": [
+          1094,
+          1095,
+          1091,
+          1092
+        ],
+        "lastDay": 290
+      }
+    },
+    {
+      "name": "实际比赛全程 ARG/2",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [
+          1107,
+          1108
+        ],
+        "down": [
+          1105,
+          1106
+        ],
+        "lastDay": 290
+      }
+    },
+    {
+      "name": "实际比赛全程 TUR/0",
+      "pass": true,
+      "detail": {
+        "matches": 5,
+        "winners": [
+          1149
+        ],
+        "direct": [
+          1147,
+          1148
+        ],
+        "down": [
+          1144,
+          1145,
+          1146
+        ],
+        "lastDay": 284
+      }
+    },
+    {
+      "name": "实际比赛全程 TUR/1",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [
+          1165,
+          1166,
+          1167,
+          1168
+        ],
+        "down": [
+          1161,
+          1162,
+          1163,
+          1164
+        ],
+        "lastDay": 284
+      }
+    },
+    {
+      "name": "实际比赛全程 TUR/2",
+      "pass": true,
+      "detail": {
+        "matches": 0,
+        "winners": [],
+        "direct": [
+          1174,
+          1175,
+          1176
+        ],
+        "down": [
+          1171,
+          1172,
+          1173
+        ],
+        "lastDay": 284
+      }
+    },
+    {
+      "name": "临场平局决胜 ENG/0/0",
+      "pass": true
+    },
+    {
+      "name": "临场平局决胜 ESP/0/0",
+      "pass": true
+    },
+    {
+      "name": "临场平局决胜 ITA/0/0",
+      "pass": true
+    },
+    {
+      "name": "临场平局决胜 ITA/0/1",
+      "pass": true
+    },
+    {
+      "name": "临场平局决胜 FRA/0/0",
+      "pass": true
+    },
+    {
+      "name": "临场平局决胜 FRA/1/0",
+      "pass": true
+    },
+    {
+      "name": "临场平局决胜 JPN/0/0",
+      "pass": true
+    },
+    {
+      "name": "临场平局决胜 BRA/0/0",
+      "pass": true
+    },
+    {
+      "name": "临场平局决胜 SCO/0/0",
+      "pass": true
+    },
+    {
+      "name": "临场平局决胜 TUR/0/0",
+      "pass": true
+    },
+    {
+      "name": "临场平局决胜 ARG/0/0",
+      "pass": true
+    },
+    {
+      "name": "临场平局决胜 ARG/0/1",
+      "pass": true
+    },
+    {
+      "name": "临场平局决胜 ARG/0/3",
+      "pass": true
+    },
+    {
+      "name": "阿乙首席升级决赛中立场地、Reducido首轮在高种子主场",
+      "pass": true
+    },
+    {
+      "name": "巴乙两组赢家分别升级，无额外决赛",
+      "pass": true
+    },
+    {
+      "name": "意乙保级4分门槛：4分比赛，5分直接降级",
+      "pass": true
+    },
+    {
+      "name": "已完成所有附加赛：名单唯一、所属层级合法、人数守恒，韩国净扩2队",
+      "pass": true,
+      "detail": [
+        {
+          "nation": 0,
+          "tier": 0,
+          "promoted": [
+            20,
+            21,
+            27
+          ],
+          "relegated": [
+            17,
+            18,
+            19
+          ],
+          "poWin": 27,
+          "poWinners": [
+            27
+          ]
+        },
+        {
+          "nation": 0,
+          "tier": 1,
+          "promoted": [
+            40,
+            41,
+            44
+          ],
+          "relegated": [
+            37,
+            38,
+            39
+          ],
+          "poWin": 44,
+          "poWinners": [
+            44
+          ]
+        },
+        {
+          "nation": 0,
+          "tier": 2,
+          "promoted": [
+            60,
+            61,
+            62,
+            63
+          ],
+          "relegated": [
+            56,
+            57,
+            58,
+            59
+          ],
+          "poWin": 63,
+          "poWinners": [
+            63
+          ]
+        },
+        {
+          "nation": 0,
+          "tier": 3,
+          "promoted": [
+            79,
+            85
+          ],
+          "relegated": [
+            77,
+            78
+          ],
+          "poWin": 85,
+          "poWinners": [
+            85
+          ]
+        },
+        {
+          "nation": 1,
+          "tier": 0,
+          "promoted": [
+            119,
+            120,
+            124
+          ],
+          "relegated": [
+            116,
+            117,
+            118
+          ],
+          "poWin": 124,
+          "poWinners": [
+            124
+          ]
+        },
+        {
+          "nation": 1,
+          "tier": 1,
+          "promoted": [
+            139,
+            140,
+            141,
+            143
+          ],
+          "relegated": [
+            135,
+            136,
+            137,
+            138
+          ],
+          "poWin": 141,
+          "poWinners": [
+            141,
+            143
+          ]
+        },
+        {
+          "nation": 1,
+          "tier": 2,
+          "promoted": [
+            149,
+            150,
+            151,
+            152
+          ],
+          "relegated": [
+            145,
+            146,
+            147,
+            148
+          ],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 2,
+          "tier": 0,
+          "promoted": [
+            187,
+            188,
+            192
+          ],
+          "relegated": [
+            184,
+            185,
+            186
+          ],
+          "poWin": 192,
+          "poWinners": [
+            192
+          ]
+        },
+        {
+          "nation": 2,
+          "tier": 1,
+          "promoted": [
+            207,
+            208,
+            209,
+            210
+          ],
+          "relegated": [
+            204,
+            205,
+            206,
+            203
+          ],
+          "poWin": 202,
+          "poWinners": [
+            202
+          ]
+        },
+        {
+          "nation": 2,
+          "tier": 2,
+          "promoted": [
+            221,
+            222,
+            223
+          ],
+          "relegated": [
+            218,
+            219,
+            220
+          ],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 3,
+          "tier": 0,
+          "promoted": [
+            255,
+            256
+          ],
+          "relegated": [
+            253,
+            254
+          ],
+          "poWin": 252,
+          "poWinners": [
+            252
+          ]
+        },
+        {
+          "nation": 3,
+          "tier": 1,
+          "promoted": [
+            273,
+            274
+          ],
+          "relegated": [
+            271,
+            272
+          ],
+          "poWin": 270,
+          "poWinners": [
+            270
+          ]
+        },
+        {
+          "nation": 3,
+          "tier": 2,
+          "promoted": [
+            291,
+            292,
+            293,
+            294
+          ],
+          "relegated": [
+            287,
+            288,
+            289,
+            290
+          ],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 4,
+          "tier": 0,
+          "promoted": [
+            328,
+            329
+          ],
+          "relegated": [
+            326,
+            327
+          ],
+          "poWin": 325,
+          "poWinners": [
+            325
+          ]
+        },
+        {
+          "nation": 4,
+          "tier": 1,
+          "promoted": [
+            346,
+            347
+          ],
+          "relegated": [
+            344,
+            345
+          ],
+          "poWin": 343,
+          "poWinners": [
+            343
+          ]
+        },
+        {
+          "nation": 4,
+          "tier": 2,
+          "promoted": [
+            359,
+            360,
+            361
+          ],
+          "relegated": [
+            356,
+            357,
+            358
+          ],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 5,
+          "tier": 0,
+          "promoted": [
+            393,
+            394
+          ],
+          "relegated": [
+            391,
+            392
+          ],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 5,
+          "tier": 1,
+          "promoted": [
+            408,
+            409
+          ],
+          "relegated": [
+            406,
+            407
+          ],
+          "poWin": 405,
+          "poWinners": [
+            405
+          ]
+        },
+        {
+          "nation": 5,
+          "tier": 2,
+          "promoted": [
+            424,
+            425,
+            426
+          ],
+          "relegated": [
+            421,
+            422,
+            423
+          ],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 6,
+          "tier": 0,
+          "promoted": [
+            456,
+            457,
+            458
+          ],
+          "relegated": [
+            453,
+            454,
+            455
+          ],
+          "poWin": 458,
+          "poWinners": [
+            458
+          ]
+        },
+        {
+          "nation": 6,
+          "tier": 1,
+          "promoted": [
+            471,
+            472,
+            473
+          ],
+          "relegated": [
+            468,
+            469,
+            470
+          ],
+          "poWin": 473,
+          "poWinners": [
+            473
+          ]
+        },
+        {
+          "nation": 7,
+          "tier": 0,
+          "promoted": [
+            503,
+            504,
+            508
+          ],
+          "relegated": [
+            500,
+            501,
+            502
+          ],
+          "poWin": 508,
+          "poWinners": [
+            508
+          ]
+        },
+        {
+          "nation": 7,
+          "tier": 1,
+          "promoted": [
+            517,
+            518,
+            519,
+            520
+          ],
+          "relegated": [
+            513,
+            514,
+            515,
+            516
+          ],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 8,
+          "tier": 0,
+          "promoted": [],
+          "relegated": [],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 8,
+          "tier": 1,
+          "promoted": [],
+          "relegated": [],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 9,
+          "tier": 0,
+          "promoted": [
+            597,
+            598
+          ],
+          "relegated": [
+            595,
+            596
+          ],
+          "poWin": 593,
+          "poWinners": [
+            593,
+            594
+          ]
+        },
+        {
+          "nation": 9,
+          "tier": 1,
+          "promoted": [
+            613,
+            614,
+            615,
+            616
+          ],
+          "relegated": [
+            609,
+            610,
+            611,
+            612
+          ],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 10,
+          "tier": 0,
+          "promoted": [
+            645,
+            646
+          ],
+          "relegated": [
+            643,
+            644
+          ],
+          "poWin": 642,
+          "poWinners": [
+            642
+          ]
+        },
+        {
+          "nation": 10,
+          "tier": 1,
+          "promoted": [
+            660,
+            661,
+            662
+          ],
+          "relegated": [
+            658,
+            659,
+            657
+          ],
+          "poWin": 662,
+          "poWinners": [
+            662
+          ]
+        },
+        {
+          "nation": 11,
+          "tier": 0,
+          "promoted": [
+            692,
+            693,
+            695
+          ],
+          "relegated": [
+            690,
+            691,
+            689
+          ],
+          "poWin": 695,
+          "poWinners": [
+            695
+          ]
+        },
+        {
+          "nation": 11,
+          "tier": 1,
+          "promoted": [],
+          "relegated": [],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 12,
+          "tier": 0,
+          "promoted": [
+            736
+          ],
+          "relegated": [
+            735
+          ],
+          "poWin": 734,
+          "poWinners": [
+            734
+          ]
+        },
+        {
+          "nation": 12,
+          "tier": 1,
+          "promoted": [
+            746
+          ],
+          "relegated": [
+            745
+          ],
+          "poWin": 744,
+          "poWinners": [
+            744
+          ]
+        },
+        {
+          "nation": 13,
+          "tier": 0,
+          "promoted": [
+            770,
+            771
+          ],
+          "relegated": [
+            769,
+            768
+          ],
+          "poWin": 771,
+          "poWinners": [
+            771
+          ]
+        },
+        {
+          "nation": 13,
+          "tier": 1,
+          "promoted": [
+            780
+          ],
+          "relegated": [
+            779
+          ],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 13,
+          "tier": 2,
+          "promoted": [
+            790,
+            791
+          ],
+          "relegated": [
+            788,
+            789
+          ],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 14,
+          "tier": 0,
+          "promoted": [
+            811
+          ],
+          "relegated": [
+            810
+          ],
+          "poWin": 809,
+          "poWinners": [
+            809
+          ]
+        },
+        {
+          "nation": 14,
+          "tier": 1,
+          "promoted": [
+            823
+          ],
+          "relegated": [
+            822
+          ],
+          "poWin": 821,
+          "poWinners": [
+            821
+          ]
+        },
+        {
+          "nation": 15,
+          "tier": 0,
+          "promoted": [
+            851,
+            855
+          ],
+          "relegated": [
+            849,
+            850
+          ],
+          "poWin": 855,
+          "poWinners": [
+            855
+          ]
+        },
+        {
+          "nation": 15,
+          "tier": 1,
+          "promoted": [
+            859,
+            860
+          ],
+          "relegated": [
+            857,
+            858
+          ],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 15,
+          "tier": 2,
+          "promoted": [
+            870,
+            871,
+            872
+          ],
+          "relegated": [
+            867,
+            868,
+            869
+          ],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 16,
+          "tier": 0,
+          "promoted": [
+            906,
+            907,
+            908,
+            910
+          ],
+          "relegated": [
+            902,
+            903,
+            904,
+            905
+          ],
+          "poWin": 908,
+          "poWinners": [
+            908,
+            910
+          ]
+        },
+        {
+          "nation": 16,
+          "tier": 1,
+          "promoted": [
+            926,
+            927,
+            928,
+            929
+          ],
+          "relegated": [
+            922,
+            923,
+            924,
+            925
+          ],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 16,
+          "tier": 2,
+          "promoted": [
+            944,
+            945,
+            946,
+            947
+          ],
+          "relegated": [
+            940,
+            941,
+            942,
+            943
+          ],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 17,
+          "tier": 0,
+          "promoted": [
+            976,
+            977,
+            981
+          ],
+          "relegated": [
+            975
+          ],
+          "poWin": 981,
+          "poWinners": [
+            981
+          ]
+        },
+        {
+          "nation": 17,
+          "tier": 1,
+          "promoted": [],
+          "relegated": [],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 17,
+          "tier": 2,
+          "promoted": [
+            1004,
+            1005
+          ],
+          "relegated": [
+            1002,
+            1003
+          ],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 18,
+          "tier": 0,
+          "promoted": [],
+          "relegated": [],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 18,
+          "tier": 1,
+          "promoted": [
+            1044,
+            1045
+          ],
+          "relegated": [
+            1042,
+            1043
+          ],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 19,
+          "tier": 0,
+          "promoted": [
+            1077,
+            1076
+          ],
+          "relegated": [
+            1074,
+            1075
+          ],
+          "poWin": 1077,
+          "poWinners": [
+            1077,
+            1076
+          ]
+        },
+        {
+          "nation": 19,
+          "tier": 1,
+          "promoted": [
+            1096,
+            1097,
+            1098,
+            1099
+          ],
+          "relegated": [
+            1094,
+            1095,
+            1091,
+            1092
+          ],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 19,
+          "tier": 2,
+          "promoted": [
+            1107,
+            1108
+          ],
+          "relegated": [
+            1105,
+            1106
+          ],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 20,
+          "tier": 0,
+          "promoted": [
+            1147,
+            1148,
+            1149
+          ],
+          "relegated": [
+            1144,
+            1145,
+            1146
+          ],
+          "poWin": 1149,
+          "poWinners": [
+            1149
+          ]
+        },
+        {
+          "nation": 20,
+          "tier": 1,
+          "promoted": [
+            1165,
+            1166,
+            1167,
+            1168
+          ],
+          "relegated": [
+            1161,
+            1162,
+            1163,
+            1164
+          ],
+          "poWin": null,
+          "poWinners": []
+        },
+        {
+          "nation": 20,
+          "tier": 2,
+          "promoted": [
+            1174,
+            1175,
+            1176
+          ],
+          "relegated": [
+            1171,
+            1172,
+            1173
+          ],
+          "poWin": null,
+          "poWinners": []
+        }
+      ]
+    },
+    {
+      "name": "已完成签表保存重读幂等、比分与财政不变",
+      "pass": true
+    },
+    {
+      "name": "非法完成冠军：在贷款、财政、奖杯、历史发生改变前拦截",
+      "pass": true
+    },
+    {
+      "name": "缺次回合不产生胜者，且不能改动已赛首回合",
+      "pass": true
+    },
+    {
+      "name": "错过首回合时，将未赛次回合一起顺延，已赛比分不改",
+      "pass": true
+    },
+    {
+      "name": "季末排期在本季延期日历内，不随机替代附加赛",
+      "pass": true
+    },
+    {
+      "name": "所有附加赛最差种子全胜：升级与降级资格不重叠",
+      "pass": true,
+      "detail": {
+        "moves": 55
+      }
+    },
+    {
+      "name": "旧版已赛签表、财务、存档对象逐字保留",
+      "pass": true,
+      "detail": {
+        "sha": "bc10dcf11792d0fd51d06c982d0387c8fc8d0e055f63c856b07d172aa3a1e2cc"
+      }
+    },
+    {
+      "name": "旧版未完成季末不再调用随机poGame或发奖",
+      "pass": true
+    }
+  ]
+}

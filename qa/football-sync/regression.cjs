@@ -3,6 +3,16 @@ require('./shim.cjs');
 newWorld(4242,'Real Madrid');const baseline=JSON.stringify(WORLD), results=[];
 const reset=()=>{adoptWorld(JSON.parse(baseline));clearTimeout(SAVE_TIMER);global.toast=()=>{};global.closeModal=()=>{};return UC()};
 function test(name,fn){try{reset();fn();results.push({name,pass:true});console.log('PASS',name)}catch(e){results.push({name,pass:false,error:e.stack});console.log('FAIL',name,e.message)}finally{clearTimeout(SAVE_TIMER)}}
+// 合同专项也必须经过真实、完整的附加赛，不能再在季初强制跨季。
+function prepareContractSeasonEnd(){
+ WORLD.fixtures.filter(f=>f.comp!=='PO').forEach(f=>f.played=true);nationalFixtures().forEach(f=>f.played=true);playoffsDayEnd(230);
+ for(let n=0;n<500&&WORLD.playoffs.some(p=>!p.done);n++){
+  const f=WORLD.fixtures.find(f=>f.comp==='PO'&&!f.played);assert(f,'附加赛未正常排出');WORLD.day=f.day;
+  for(const id of [f.home,f.away]){C(id).squad.map(P).forEach(p=>{p.injury=0;p.susp=0;p.condition=100;});autoPickLineup(C(id));}
+  assert(applyResult(f,runMatch(createMatch(f.home,f.away,{comp:'PO',record:false,...knockoutOpts(f)}))));playoffsDayEnd(WORLD.day);
+ }
+ {const r=promotionSettlement();assert(r.ok,r.reason);}assert(WORLD.fixtures.every(f=>f.played));
+}
 const fund=c=>{c.finance.balance=1e12;c.finance.locked=0;c.finance.cap0=1e12};
 test('开赛不足七人安全判负，完场不能换人，结算无门票/虚假出场',()=>{
  const u=UC(),o=WORLD.clubs[0];u.squad.slice(6).map(P).forEach(p=>p.injury=30);
@@ -53,7 +63,7 @@ test('降级核心先挂牌，七天内AI不抢走，读档后仍挂牌，玩家
 });
 test('赛季交接保留租借归队超员，不代玩家补人/裁员/随机续约',()=>{
  const u=UC(),o=WORLD.clubs[0];while(u.squad.length<34){const p=makePlayer(45,'MC',24,u.id);WORLD.players[p.id]=p;u.squad.push(p.id)}
- u.squad.map(P).forEach(p=>{p.age=24;p.contract=WORLD.season+5});const ids=[...u.squad];for(const id of ids.slice(-6))assert(loanPlayer(id,o.id,{wageShare:1}));endSeason();assert.deepEqual(new Set(UC().squad),new Set(ids));assert(WORLD.inbox.some(x=>x.title.includes('超员')));
+ u.squad.map(P).forEach(p=>{p.age=24;p.contract=WORLD.season+5});const ids=[...u.squad];for(const id of ids.slice(-6))assert(loanPlayer(id,o.id,{wageShare:1}));prepareContractSeasonEnd();endSeason();assert.deepEqual(new Set(UC().squad),new Set(ids));assert(WORLD.inbox.some(x=>x.title.includes('超员')));
 });
 test('未上场不记出场，离场后评分不再受后续进球影响，关键传球/过人累计',()=>{
  const u=UC(),m=createMatch(u.id,WORLD.clubs[0].id),q=m.teams[0].men[2],scorer=m.teams[0].men[9];q.off=true;const r=q.rating;scoreGoal(m,0,scorer,'测试');assert.equal(q.rating,r);const before=q.p.apps;
@@ -66,7 +76,7 @@ test('周训练反馈记录实际单项变化，保留个人训练和传奇徽�
 test('合同到期执行玩家决定，人数不足也不自动补人',()=>{
  const u=UC();while(u.squad.length>18)toFreeAgent(P(u.squad.at(-1)),u);
  u.squad.map(P).forEach(p=>{p.age=24;p.contract=WORLD.season+5});const exp=P(u.squad[1]);exp.contract=WORLD.season;const keep=u.squad.filter(id=>id!==exp.id);
- endSeason();assert.deepEqual(new Set(UC().squad),new Set(keep));assert.equal(UC().squad.length,17);assert(P(exp.id).clubId!==UC().id);
+ prepareContractSeasonEnd();endSeason();assert.deepEqual(new Set(UC().squad),new Set(keep));assert.equal(UC().squad.length,17);assert(P(exp.id).clubId!==UC().id);
 });
 test('未完场不能提前结算，已结算重复完成不报错、不改日期或账本',()=>{
  const day=WORLD.day,finance=JSON.stringify(WORLD.clubs.map(c=>c.finance));CURMATCH=createMatch(UC().id,WORLD.clubs[0].id);assert.equal(finishUserMatch(),'ignored');completeMatch();assert.equal(WORLD.day,day);CURMATCH=null;assert.equal(finishUserMatch(),'ignored');completeMatch();assert.equal(WORLD.day,day);assert.equal(JSON.stringify(WORLD.clubs.map(c=>c.finance)),finance);

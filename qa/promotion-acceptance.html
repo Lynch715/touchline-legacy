@@ -1,0 +1,20 @@
+<!doctype html><meta charset="utf-8"><title>执掌绿茵 · 升降级验收</title>
+<script>
+(async()=>{
+const html=await(await fetch('../index.html',{cache:'no-store'})).text();
+function setup(){document.addEventListener('DOMContentLoaded',()=>{startMenu=async()=>{
+SAVE_PAUSED=true;storeSave=async()=>{throw Error('只读验收禁止保存');};healSave=async()=>[];
+const panel=document.createElement('div');panel.id='promotion-qa';panel.style.cssText='position:fixed;right:6px;top:6px;z-index:99999;max-width:90vw;background:var(--bg2);border:1px solid var(--line);padding:7px;max-height:35vh;overflow:auto';
+const line=document.createElement('div');line.id='promotion-status';line.textContent='独立测试世界；自动保存已关闭';panel.appendChild(line);
+function button(text,fn){const b=document.createElement('button');b.textContent=text;b.className='sm';b.style.margin='3px';b.onclick=()=>{try{fn();line.textContent=JSON.stringify({country:NATIONS[LGNATION].code,tier:LGTIER,savePaused:SAVE_PAUSED,season:WORLD.season,day:WORLD.day,view:VIEW});}catch(e){line.textContent=e.stack;}};panel.appendChild(b);}
+newWorld(6725,'Manchester City');SAVE_PAUSED=true;clearTimeout(SAVE_TIMER);enterGame();
+for(const [label,code,tier]of [['英冠','ENG',1],['英乙','ENG',3],['英议联','ENG',4],['法国第三级','FRA',2],['荷乙','NED',1],['巴乙','BRA',1],['阿乙','ARG',1],['美职联','USA',0]])button(label,()=>{LGNATION=NATIONS.findIndex(n=>n.code===code);LGTIER=tier;VIEW='league';render();});
+button('生成测试附加赛',()=>{WORLD.fixtures.filter(f=>f.comp==='L').forEach(f=>f.played=true);for(const lg of WORLD.leagues)lg.clubIds.forEach((id,i)=>C(id).seasonStats.pts=100-i*3);playoffsDayEnd(240);WORLD.day=260;VIEW='league';render();});
+button('测试下场比赛',()=>{const po=WORLD.playoffs.find(p=>p.nation===LGNATION&&p.tier===LGTIER-1),pi=WORLD.playoffs.indexOf(po),f=WORLD.fixtures.find(f=>f.comp==='PO'&&f.po===pi&&!f.played);if(!f)throw Error('当前无附加赛');WORLD.userClub=f.home;WORLD.day=f.day;autoPickLineup(C(f.home));autoPickLineup(C(f.away));startUserMatch(f);pauseMatchPlayback();});
+button('测试比赛快速结算',()=>{pauseMatchPlayback();runMatch(CURMATCH);finishUserMatch();VIEW='league';render();});
+button('验证存档结构',()=>{validateWorld(WORLD);line.textContent='结构验证通过';});
+document.body.appendChild(panel);document.getElementById('loadscr').style.display='none';
+};});}
+document.open();document.write(html.replace('</head>','<base href="../"><script>('+setup.toString()+')();<\/script></head>'));document.close();
+})();
+</script>

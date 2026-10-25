@@ -1,0 +1,55 @@
+{
+  "passed": true,
+  "scenario": "new",
+  "season": 2026,
+  "sha256": "16c14a8e55a47ad62b4c206ed045365cfd01e4742601708a93fe8890bd6a1a1f",
+  "counts": {
+    "clubMatches": 20053,
+    "nationalMatches": 30,
+    "userClubMatches": 42,
+    "userNationalMatches": 5,
+    "advances": 291,
+    "byCompetition": {
+      "L": 18100,
+      "C": 1207,
+      "WCL": 120,
+      "NAS": 15,
+      "NAF": 15,
+      "CON": 37,
+      "LIB": 37,
+      "AFC": 31,
+      "CL": 125,
+      "EL": 125,
+      "ECL": 125,
+      "PO": 146
+    },
+    "dailyTicks": 291
+  },
+  "completed": {
+    "NWC": {
+      "stage": "D",
+      "matches": 0
+    },
+    "NEU": {
+      "stage": "D",
+      "matches": 0
+    },
+    "NAM": {
+      "stage": "D",
+      "matches": 0
+    },
+    "NAS": {
+      "stage": "F",
+      "matches": 15,
+      "champion": "日本",
+      "runnerUp": "韩国"
+    },
+    "NAF": {
+      "stage": "F",
+      "matches": 15,
+      "champion": "科特迪瓦",
+      "runnerUp": "喀麦隆"
+    }
+  },
+  "elapsedSeconds": 267
+}

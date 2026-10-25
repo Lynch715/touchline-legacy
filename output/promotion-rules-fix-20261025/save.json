@@ -1,0 +1,75 @@
+{
+  "passed": true,
+  "checks": 17,
+  "sourceSha256": "16c14a8e55a47ad62b4c206ed045365cfd01e4742601708a93fe8890bd6a1a1f",
+  "results": [
+    {
+      "name": "Z0:及S1外层均能逐字节解码",
+      "pass": true
+    },
+    {
+      "name": "Z1:及S1外层均能逐字节解码",
+      "pass": true
+    },
+    {
+      "name": "Z2:及S1外层均能逐字节解码",
+      "pass": true
+    },
+    {
+      "name": "Z3:及S1外层均能逐字节解码",
+      "pass": true
+    },
+    {
+      "name": "旧裸JSON正文继续读取",
+      "pass": true
+    },
+    {
+      "name": "缺少换行拒绝读取",
+      "pass": true
+    },
+    {
+      "name": "损坏校验和拒绝读取",
+      "pass": true
+    },
+    {
+      "name": "非数字时间拒绝读取",
+      "pass": true
+    },
+    {
+      "name": "空封装拒绝读取",
+      "pass": true
+    },
+    {
+      "name": "S1不依赖独立索引即可继续游戏，读取不写盘",
+      "pass": true
+    },
+    {
+      "name": "S1损坏副本不会遮盖其他层有效旧档",
+      "pass": true
+    },
+    {
+      "name": "S1正文进度与封装不一致时拒绝并回退",
+      "pass": true
+    },
+    {
+      "name": "S1以正文封装时间排序，不采用更晚的外部假索引",
+      "pass": true
+    },
+    {
+      "name": "S1新封装覆盖继承的旧内层时间戳，完整校验以新封装为准",
+      "pass": true
+    },
+    {
+      "name": "无S1封装的内层校验损坏仍会拒绝",
+      "pass": true
+    },
+    {
+      "name": "新旧格式混存时按正文可信代次选最新",
+      "pass": true
+    },
+    {
+      "name": "时钟回拨或未来旧档时间不会让新保存被旧S1副本盖回",
+      "pass": true
+    }
+  ]
+}

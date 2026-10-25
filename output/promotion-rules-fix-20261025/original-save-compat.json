@@ -1,0 +1,72 @@
+{
+  "passed": true,
+  "originalSha": "0bed5708bf078f0694bfe1a2743466732576737cebd00bed9d4b96a6f140a06b",
+  "originalBytes": 8032007,
+  "checks": [
+    {
+      "key": "fixtures",
+      "unchanged": true
+    },
+    {
+      "key": "cups",
+      "unchanged": true
+    },
+    {
+      "key": "playoffs",
+      "unchanged": true
+    },
+    {
+      "key": "euro",
+      "unchanged": true
+    },
+    {
+      "key": "clubCups",
+      "unchanged": true
+    },
+    {
+      "key": "nationalCups",
+      "unchanged": true
+    },
+    {
+      "key": "wcl",
+      "unchanged": true
+    },
+    {
+      "key": "players",
+      "unchanged": true
+    },
+    {
+      "key": "clubs",
+      "unchanged": true
+    },
+    {
+      "key": "history",
+      "unchanged": true
+    },
+    {
+      "key": "wcHistory",
+      "unchanged": true
+    },
+    {
+      "key": "continentalHistory",
+      "unchanged": true
+    },
+    {
+      "key": "contClubHistory",
+      "unchanged": true
+    },
+    {
+      "key": "cwcHistory",
+      "unchanged": true
+    },
+    {
+      "key": "superCupHistory",
+      "unchanged": true
+    },
+    {
+      "key": "wclHistory",
+      "unchanged": true
+    }
+  ],
+  "ruleVersion": "legacy"
+}

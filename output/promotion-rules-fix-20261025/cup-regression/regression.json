@@ -1,0 +1,203 @@
+{
+  "sourceSha256": "16c14a8e55a47ad62b4c206ed045365cfd01e4742601708a93fe8890bd6a1a1f",
+  "passed": 49,
+  "total": 49,
+  "results": [
+    {
+      "name": "ENG 国内杯开局/半决赛/决赛决胜路径",
+      "pass": true
+    },
+    {
+      "name": "ESP 国内杯开局/半决赛/决赛决胜路径",
+      "pass": true
+    },
+    {
+      "name": "ITA 国内杯开局/半决赛/决赛决胜路径",
+      "pass": true
+    },
+    {
+      "name": "GER 国内杯开局/半决赛/决赛决胜路径",
+      "pass": true
+    },
+    {
+      "name": "FRA 国内杯开局/半决赛/决赛决胜路径",
+      "pass": true
+    },
+    {
+      "name": "CHN 国内杯开局/半决赛/决赛决胜路径",
+      "pass": true
+    },
+    {
+      "name": "JPN 国内杯开局/半决赛/决赛决胜路径",
+      "pass": true
+    },
+    {
+      "name": "KSA 国内杯开局/半决赛/决赛决胜路径",
+      "pass": true
+    },
+    {
+      "name": "USA 国内杯开局/半决赛/决赛决胜路径",
+      "pass": true
+    },
+    {
+      "name": "RUS 国内杯开局/半决赛/决赛决胜路径",
+      "pass": true
+    },
+    {
+      "name": "POR 国内杯开局/半决赛/决赛决胜路径",
+      "pass": true
+    },
+    {
+      "name": "NED 国内杯开局/半决赛/决赛决胜路径",
+      "pass": true
+    },
+    {
+      "name": "SCO 国内杯开局/半决赛/决赛决胜路径",
+      "pass": true
+    },
+    {
+      "name": "SUI 国内杯开局/半决赛/决赛决胜路径",
+      "pass": true
+    },
+    {
+      "name": "FIN 国内杯开局/半决赛/决赛决胜路径",
+      "pass": true
+    },
+    {
+      "name": "BEL 国内杯开局/半决赛/决赛决胜路径",
+      "pass": true
+    },
+    {
+      "name": "BRA 国内杯开局/半决赛/决赛决胜路径",
+      "pass": true
+    },
+    {
+      "name": "KOR 国内杯开局/半决赛/决赛决胜路径",
+      "pass": true
+    },
+    {
+      "name": "AUS 国内杯开局/半决赛/决赛决胜路径",
+      "pass": true
+    },
+    {
+      "name": "ARG 国内杯开局/半决赛/决赛决胜路径",
+      "pass": true
+    },
+    {
+      "name": "TUR 国内杯开局/半决赛/决赛决胜路径",
+      "pass": true
+    },
+    {
+      "name": "欧洲超级杯90分钟直接点球；联赛/所有小组和首回合可平",
+      "pass": true
+    },
+    {
+      "name": "ESP 附加赛轮1",
+      "pass": true
+    },
+    {
+      "name": "ESP 附加赛轮2",
+      "pass": true
+    },
+    {
+      "name": "ITA 附加赛轮1",
+      "pass": true
+    },
+    {
+      "name": "ITA 附加赛轮2",
+      "pass": true
+    },
+    {
+      "name": "ITA 附加赛轮3",
+      "pass": true
+    },
+    {
+      "name": "ITA 附加赛轮3同积分",
+      "pass": true
+    },
+    {
+      "name": "FRA 附加赛轮1",
+      "pass": true
+    },
+    {
+      "name": "FRA 附加赛轮2",
+      "pass": true
+    },
+    {
+      "name": "FRA 附加赛轮3",
+      "pass": true
+    },
+    {
+      "name": "ENG 附加赛轮1",
+      "pass": true
+    },
+    {
+      "name": "GER 附加赛轮1",
+      "pass": true
+    },
+    {
+      "name": "意乙冷门保持固定签表3v6/4v8",
+      "pass": true
+    },
+    {
+      "name": "点球3比0提前结束，突然死亡双方等次后判定",
+      "pass": true
+    },
+    {
+      "name": "欧战换人3窗口、同批共用、中场免费，加时第6人和新增窗口",
+      "pass": true
+    },
+    {
+      "name": "无合法胜者、缺首回合、判负总分平不默认客队晋级",
+      "pass": true
+    },
+    {
+      "name": "LIB 新赛制全程、首回合/总分、一次性奖金、保存重读",
+      "pass": true
+    },
+    {
+      "name": "CON 新赛制全程、首回合/总分、一次性奖金、保存重读",
+      "pass": true
+    },
+    {
+      "name": "AFC 新赛制全程、首回合/总分、一次性奖金、保存重读",
+      "pass": true
+    },
+    {
+      "name": "ESP 新国内杯两回合与全程不重复奖金",
+      "pass": true
+    },
+    {
+      "name": "ITA 新国内杯两回合与全程不重复奖金",
+      "pass": true
+    },
+    {
+      "name": "BEL 新国内杯两回合与全程不重复奖金",
+      "pass": true
+    },
+    {
+      "name": "TUR 新国内杯两回合与全程不重复奖金",
+      "pass": true
+    },
+    {
+      "name": "BRA 新国内杯两回合与全程不重复奖金",
+      "pass": true
+    },
+    {
+      "name": "中北美保留常规客场进球；加时客场进球不加权；解放者杯不计客场进球",
+      "pass": true
+    },
+    {
+      "name": "正确届次：世界杯2030、亚洲杯2027、非洲杯2027/2028后四年",
+      "pass": true
+    },
+    {
+      "name": "美洲杯非决赛直接点球、决赛加时；五国家队入口和届次可保存",
+      "pass": true
+    },
+    {
+      "name": "排名判定在无加时、无点球时也保存到比赛报告",
+      "pass": true
+    }
+  ]
+}
