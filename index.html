@@ -4508,7 +4508,7 @@ function nationalTeamModel(M,nat,side){
 }
 function applyNationalResult(f,M){
   if(f.played)return false;if(!M.done||M.national!==f.comp||M.h!==f.home||M.a!==f.away)throw new Error('国家队比赛结果不匹配');
-  const E=WORLD.nationalCups[f.comp];f.played=true;f.hg=M.score[0];f.ag=M.score[1];f.pens=M.pens||null;f.stats=structuredClone(M.stats);f.motm=M.motm?.id||null;f.events=M.events.map(e=>({t:Math.floor(e.t),x:e.text,c:e.cls||''}));f.ratings=[];
+  const E=WORLD.nationalCups[f.comp];f.played=true;f.hg=M.score[0];f.ag=M.score[1];f.pens=M.pens||null;f.extraTime=!!M.extraTime;f.stats=structuredClone(M.stats);f.motm=M.motm?.id||null;f.events=M.events.map(e=>({t:Math.floor(e.t),half:e.half,x:e.text,c:e.cls||''}));f.ratings=[];
   for(const [side,T]of M.teams.entries()){
     for(const id of T.club.squad)if(E.discipline[id]?.susp>0)E.discipline[id].susp--;
     for(const m of T.men){
@@ -4689,8 +4689,8 @@ function renderNationalTournaments(v,userOnly){
   }
 }
 function showNationalReport(f){
-  const score=f.home+' '+f.hg+'-'+f.ag+' '+f.away+(f.pens?'（点球 '+f.pens.join('-')+'）':''),s=f.stats||[blankStats(),blankStats()];
-  openModal(esc(score),`<p>${fmtDate(dateOf(f.day))} · ${esc(compLabel(f))}</p><div class="tw"><table><thead><tr><th>国家队</th><th>控球</th><th>射门</th><th>射正</th><th>xG</th></tr></thead><tbody>${[f.home,f.away].map((n,i)=>`<tr><td>${esc(n)}</td><td>${s[i].poss}%</td><td>${s[i].shots}</td><td>${s[i].sot}</td><td>${s[i].xg.toFixed(2)}</td></tr>`).join('')}</tbody></table></div><div>${(f.events||[]).map(e=>`<div class="hint">${e.t}' ${esc(e.x)}</div>`).join('')}</div>`);
+  const score=f.home+' '+f.hg+'-'+f.ag+' '+f.away+(f.extraTime?'（加时）':'')+(f.pens?'（点球 '+f.pens.join('-')+'）':''),s=f.stats||[blankStats(),blankStats()];
+  openModal(esc(score),`<p>${fmtDate(dateOf(f.day))} · ${esc(compLabel(f))}</p><div class="tw"><table><thead><tr><th>国家队</th><th>控球</th><th>射门</th><th>射正</th><th>xG</th></tr></thead><tbody>${[f.home,f.away].map((n,i)=>`<tr><td>${esc(n)}</td><td>${s[i].poss}%</td><td>${s[i].shots}</td><td>${s[i].sot}</td><td>${s[i].xg.toFixed(2)}</td></tr>`).join('')}</tbody></table></div><div>${(f.events||[]).map(e=>`<div class="hint">${matchMinute(e.t,e.half)} ${esc(e.x)}</div>`).join('')}</div>`);
 }
 function nationalPlayerSummary(p){
   const keys=Object.keys(POS_WEIGHTS[p.pos]).filter(k=>ALL_ATTRS[k]).sort((a,b)=>POS_WEIGHTS[p.pos][b]-POS_WEIGHTS[p.pos][a]).slice(0,3);
@@ -6455,7 +6455,7 @@ function buildSeason(){
 // ---------- 升级附加赛（2026-10 新增，按各国真实赛制）----------
 // po = {nation, tier(上级联赛层级), fmt, name, short, seed:{id:名次}, up16, rounds:[{name,legs,tb,neutral,ties:[{a,b,w,agg,legs}]}], cur, started, done, winner, skip}
 // a 永远是种子更好的一方（德法保级附加赛里上级联赛第 16 名种子记 0）。两回合时首回合在 b 主场、次回合在 a 主场。
-// tb：总比分 / 单场打平怎么分胜负。"pens" 踢点球；"seed" 种子高的晋级（西乙、意乙的真实规则）。
+// tb：总比分 / 单场打平怎么分胜负。"pens" 先加时、仍平踢点球；"seed" 种子高的晋级（西乙、意乙的真实规则）。
 const PO_ROUNDS={ENG:2, ESP:2, ITA:3, GER:1, FRA:3};
 function poFmtOf(ni){ const c=NATIONS[ni].code; return PO_ROUNDS[c]? c : "ENG"; }
 function makePlayoffs(){
@@ -6652,11 +6652,11 @@ function poKnockoutOpts(f){
 function poCard(po){
   const card=el("div","card"); card.innerHTML=`<h3>${po.name}</h3>`;
   const nm=id=>`${crestHTML(C(id))}<span style="${id===WORLD.userClub?'color:var(--acc);':''}">${esc(C(id).short)}</span>`;
-  const rule={ENG:"第 3–6 名参加。半决赛两回合，决赛在温布利一场定胜负，打平踢点球。",
+  const rule={ENG:"第 3–6 名参加。半决赛两回合，决赛在温布利一场定胜负，打平先踢加时赛，仍平局再踢点球。",
     ESP:"第 3–6 名参加。半决赛、决赛都是两回合，总比分打平时排名高的晋级。",
     ITA:"第 3–8 名参加。5v8、6v7 先打单场预选赛，胜者分别挑战第 4、第 3 名；之后半决赛、决赛都是两回合，打平时排名高的晋级。第 3 名领先第 4 名 15 分以上时取消附加赛。",
-    GER:"德乙第 3 名对德甲第 16 名，两回合，打平踢点球。",
-    FRA:"法乙第 4、5 名先打单场，胜者客场挑战第 3 名，最后的胜者和法甲第 16 名打两回合，打平踢点球。"}[po.fmt];
+    GER:"德乙第 3 名对德甲第 16 名，两回合，打平先踢加时赛，仍平局再踢点球。",
+    FRA:"法乙第 4、5 名先打单场，胜者客场挑战第 3 名，最后的胜者和法甲第 16 名打两回合，打平先踢加时赛，仍平局再踢点球。"}[po.fmt];
   if(!po.started){
     const lo=leagueTable(lgIndex(po.nation,po.tier+1)), up=leagueTable(lgIndex(po.nation,po.tier));
     const [s0,s1]=poSeedsRange(po.fmt);
@@ -7154,7 +7154,7 @@ function createMatch(homeId, awayId, opts){
   const M={
     h:homeId, a:awayId, comp:opts.comp||opts.national||"L", round:opts.round||0, neutral:!!opts.neutral,
     knockout:!!opts.knockout, record:!!opts.record, aggBase:opts.aggBase||null,
-    t:0, addedTime:0, half:1, done:false,
+    t:0, addedTime:0, half:1, extraTime:false, done:false,
     score:[0,0], events:[], frames:[], 
     stats:[blankStats(),blankStats()],
     teams:[], possTicks:[0,0], ballOwner:null, side:0,
@@ -7437,10 +7437,41 @@ function finPhase(M,dt){
       halftimeRecover(M); updatePositions(M); }
   } else if(M.half===2 && M.t>=90+M.addedTime){
     if(M.addedTime===0) M.addedTime=ri(2,6);
-    if(M.t>=90+M.addedTime) endMatch(M);
+    if(M.t>=90+M.addedTime){
+      if(matchAggregateTied(M)){
+        addEvent(M,"sys",`—— 常规时间结束 ${M.score.join(" : ")}，进入加时赛 ——`,"sys");
+        M.extraTime=true;
+        startExtraTimeHalf(M,3);
+      }else endMatch(M);
+    }
+  } else if(M.half>=3){
+    const limit=M.half===3?105:120;
+    if(M.t>=limit && M.addedTime===0) M.addedTime=ri(1,2);
+    if(M.t>=limit+M.addedTime){
+      if(M.half===3){
+        addEvent(M,"sys",`—— 加时赛中场 ${M.score.join(" : ")} ——`,"sys");
+        startExtraTimeHalf(M,4);
+      }else endMatch(M);
+    }
   }
   aiSubs(M);
   return M.events[M.events.length-1];
+}
+function matchAggregateTied(M){
+  return M.knockout && !M.forfeit && M.score[0]+(M.aggBase?.[0]||0)===M.score[1]+(M.aggBase?.[1]||0);
+}
+function startExtraTimeHalf(M,half){
+  M.half=half; M.t=half===3?90:105; M.addedTime=0;
+  M.side=half===3?0:1; M.lastTouch=null; M.counter=null;
+  M.ball={x:PW/2,y:PH/2};
+  const active=M.teams[M.side].men.filter(m=>!m.off);
+  M.ballOwner=active.find(m=>m.pos==="MC")||active[0];
+  addEvent(M,"sys",`—— 加时赛${half===3?"上":"下"}半场开始 ——`,"sys");
+  updatePositions(M);
+}
+function matchMinute(t,half){
+  const minute=Math.floor(t),limit=half===1?45:half===2?90:half===3?105:half===4?120:null;
+  return limit!=null && minute>limit?`${limit}+${minute-limit}'`:`${minute}'`;
 }
 function halftimeRecover(M){ M.teams.forEach(T=>T.men.forEach(m=>{ m.cond=clamp(m.cond+ri(3,7),0,100); })); }
 
@@ -7716,6 +7747,7 @@ function aiSubs(M){
 
 // ---------- 结束 ----------
 function endMatch(M){
+  if(M.done)return;
   M.done=true;
   const tot=M.possTicks[0]+M.possTicks[1]||1;
   M.stats[0].poss=Math.round(M.possTicks[0]/tot*100);
@@ -7735,8 +7767,7 @@ function endMatch(M){
   // 全场最佳
   let best=null; M.teams.forEach(T=>T.men.forEach(m=>{ if(m.mins>0 && (!best||m.rating>best.rating)) best=m; }));
   M.motm=best;
-  const agg0=M.score[0]+(M.aggBase?M.aggBase[0]:0), agg1=M.score[1]+(M.aggBase?M.aggBase[1]:0);
-  if(M.knockout && agg0===agg1){
+  if(matchAggregateTied(M)){
     // 点球大战
     let p=[0,0];
     for(let i=0;i<5;i++){ if(rnd()<0.75)p[0]++; if(rnd()<0.75)p[1]++; }
@@ -7744,7 +7775,7 @@ function endMatch(M){
     M.pens=p;
     addEvent(M,"sys",`点球大战 ${p[0]}-${p[1]}，${matchTeam(M,p[0]>p[1]?0:1).cn} 晋级`,"sys");
   }
-  addEvent(M,"sys",`—— 全场结束  ${matchTeam(M,0).short} ${M.score[0]} : ${M.score[1]} ${matchTeam(M,1).short} ——`,"sys");
+  addEvent(M,"sys",`—— ${M.extraTime?"加时赛结束":"全场结束"}  ${matchTeam(M,0).short} ${M.score[0]} : ${M.score[1]} ${matchTeam(M,1).short} ——`,"sys");
 }
 function runMatch(M){ let guard=0; while(!M.done && guard++<20000) stepMatch(M); return M; }
 /* =========================================================
@@ -7826,7 +7857,7 @@ function applyResult(fx, M){
   if(fx.played) return false;
   // 在标记赛果前初始化旧档的既有场次，再给实际在队球员增加这一次机会。
   [C(fx.home),C(fx.away)].forEach(c=>c.squad.forEach(id=>{const p=P(id);if(p)ensureDevelopment(p).games++;}));
-  fx.played=true; fx.hg=M.score[0]; fx.ag=M.score[1]; fx.pens=M.pens;
+  fx.played=true; fx.hg=M.score[0]; fx.ag=M.score[1]; fx.pens=M.pens; fx.extraTime=!!M.extraTime;
   fx.stats=[M.stats[0],M.stats[1]];
   fx.derby=!!M.derby;
   const H=C(fx.home), A=C(fx.away);
@@ -7901,7 +7932,7 @@ function applyResult(fx, M){
   [H,A].forEach(c=>{ c.squad.forEach(id=>{ const p=P(id);
     if(!M.teams.flatMap(t=>t.men).some(m=>m.id===id)) p.condition=clamp(p.condition+ri(2,6),0,100); }); });
   fx.motm = M.motm? M.motm.id : null;
-  fx.events = M.events.filter(e=>["goal","card","hurt","pen"].includes(e.type)||(M.forfeit&&e.type==="sys")).map(e=>({t:e.t,x:e.text,c:e.cls}));
+  fx.events = M.events.filter(e=>["goal","card","hurt","pen"].includes(e.type)||((M.forfeit||M.extraTime||M.pens)&&e.type==="sys")).map(e=>({t:e.t,half:e.half,x:e.text,c:e.cls}));
   return true;
 }
 
@@ -14123,13 +14154,13 @@ function showMatchReport(f){
     ["预期进球",s[0].xg?s[0].xg.toFixed(2):"-",s[1].xg?s[1].xg.toFixed(2):"-"],
     ["角球",s[0].corners,s[1].corners],["犯规",s[0].fouls,s[1].fouls],["黄牌",s[0].yellow,s[1].yellow],["红牌",s[0].red,s[1].red]]
     .map(([n,a,b])=>`<tr><td class="num" style="width:70px"><b>${a}</b></td><td class="ctr hint">${n}</td><td style="width:70px"><b>${b}</b></td></tr>`).join("");
-  openModal(`${esc(C(f.home).cn)} ${f.hg} - ${f.ag} ${esc(C(f.away).cn)}${Array.isArray(f.pens)?`（点球 ${f.pens.join("-")}）`:""}${f.derby?' 🔥':''}`,
+  openModal(`${esc(C(f.home).cn)} ${f.hg} - ${f.ag} ${esc(C(f.away).cn)}${f.extraTime?'（加时）':''}${Array.isArray(f.pens)?`（点球 ${f.pens.join("-")}）`:""}${f.derby?' 🔥':''}`,
     `<div class="hint" style="margin-bottom:10px">${fmtDate(dateOf(f.day))} · ${compLabel(f)}${f.derby?' · <span class="tag t-b">死敌德比</span>':''}
       ${f.attendance?" · 观众 "+f.attendance.toLocaleString():""}
       ${f.motm&&P(f.motm)?" · 全场最佳 "+esc(P(f.motm).cn):""}</div>
      <div class="row"><div class="col tw"><table>${rowsHtml}</table></div>
      <div class="col"><div class="hint" style="margin-bottom:5px">比赛事件</div>
-       ${(f.events||[]).map(e=>`<div style="font-size:12px;padding:2px 0" class="ev ${e.c}"><span class="m">${e.t}'</span>${esc(e.x)}</div>`).join("")||'<div class="hint">无关键事件</div>'}
+       ${(f.events||[]).map(e=>`<div style="font-size:12px;padding:2px 0" class="ev ${e.c}"><span class="m">${matchMinute(e.t,e.half)}</span>${esc(e.x)}</div>`).join("")||'<div class="hint">无关键事件</div>'}
      </div></div>`);
 }
 // 可点击的球队名 / 球员名链接（所有界面统一使用）
@@ -14634,7 +14665,7 @@ function showPostMatch(M, seasonEnded){
     ["犯规",s[0].fouls,s[1].fouls],["黄牌",s[0].yellow,s[1].yellow],["红牌",s[0].red,s[1].red],
     ["传球成功",s[0].passOk+"/"+s[0].pass,s[1].passOk+"/"+s[1].pass]]
     .map(([n,a,b])=>`<tr><td class="num" style="width:80px"><b>${a}</b></td><td class="ctr hint">${n}</td><td style="width:80px"><b>${b}</b></td></tr>`).join("");
-  openModal(`${esc(H.cn)} ${M.score[0]} - ${M.score[1]} ${esc(A.cn)}${M.pens?`（点球 ${M.pens[0]}-${M.pens[1]}）`:""}`,
+  openModal(`${esc(H.cn)} ${M.score[0]} - ${M.score[1]} ${esc(A.cn)}${M.extraTime?'（加时）':''}${M.pens?`（点球 ${M.pens[0]}-${M.pens[1]}）`:""}`,
    `<div class="hint" style="margin-bottom:8px">全场最佳：<b style="color:var(--gold)">${M.motm?esc(nm(M.motm)):"-"}</b>（${M.motm?M.motm.rating.toFixed(1):"-"} 分）</div>
     <div class="tw"><table style="max-width:340px;margin-bottom:14px">${stat}</table></div>
     <div class="row"><div class="col"><div class="hint" style="margin-bottom:4px">${esc(H.cn)}</div><div class="tw">${tbl(0)}</div></div>
@@ -14648,8 +14679,7 @@ function refreshMatchUI(force){
   const setT=(el,t)=>{ if(el && el.textContent!==t) el.textContent=t; };
   setT($("#m-sc"), `${M.score[0]} : ${M.score[1]}`);
   const ck=$("#mclock"); if(ck){
-    const mm=Math.min(Math.floor(M.t), M.half===1?45+M.addedTime:90+M.addedTime);
-    setT(ck, M.done? "全场结束" : (mm>=90? `90+${mm-90}'` : mm>=45&&M.half===1? `45+${mm-45}'` : mm+"'"));
+    setT(ck, M.done? (M.extraTime?"加时赛结束":"全场结束") : `${M.half>=3?"加时"+(M.half===3?"上半场":"下半场")+" · ":""}${matchMinute(M.t,M.half)}`);
   }
   // 重的 DOM 更新（统计/事件流/球员条）限频：高速播放时每帧重写会把手机主线程占满，点击被吞
   const now=performance.now();
@@ -14679,7 +14709,7 @@ function refreshMatchUI(force){
     for(let i=ANIM.evShown;i<M.events.length;i++){
       const e=M.events[i];
       if(["blk","off"].includes(e.type)&&rnd()<0.5) continue;
-      const d=el("div","ev "+(e.cls||""),`<span class="m">${Math.floor(e.t)}'</span><span>${esc(e.text)}</span>`);
+      const d=el("div","ev "+(e.cls||""),`<span class="m">${matchMinute(e.t,e.half)}</span><span>${esc(e.text)}</span>`);
       fd.appendChild(d);
     }
     ANIM.evShown=M.events.length; fd.scrollTop=fd.scrollHeight;

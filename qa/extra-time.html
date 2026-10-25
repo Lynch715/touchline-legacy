@@ -1,0 +1,20 @@
+<!doctype html><meta charset="utf-8"><title>杯赛加时赛独立验收</title>
+<script>
+(async()=>{
+ const html=await(await fetch('../index.html',{cache:'no-store'})).text();
+ const setup=()=>document.addEventListener('DOMContentLoaded',()=>{
+  const start=startMenu;startMenu=async function(){await start();try{
+   SAVE_PAUSED=true;storeSave=async()=>{throw Error('独立验收禁止写入存档');};healSave=async()=>[];newWorld(4242,'Manchester City');SAVE_PAUSED=true;clearTimeout(SAVE_TIMER);
+   const f=WORLD.fixtures.find(f=>f.comp==='C');WORLD.userClub=f.home;WORLD.day=f.day;
+   for(const id of [f.home,f.away]){for(const pid of C(id).squad){P(pid).injury=0;P(pid).susp=0;P(pid).condition=100;}autoPickLineup(C(id));}
+   VIEW='schedule';enterGame();startUserMatch(f);pauseMatchPlayback();clearTimeout(MATCH_START_TIMER);MATCH_START_TIMER=null;
+   function withoutGoals(fn){const goal=scoreGoal;scoreGoal=()=>{};try{fn();}finally{scoreGoal=goal;}}
+   withoutGoals(()=>{while(!CURMATCH.done&&CURMATCH.half<3)stepMatch(CURMATCH);});
+   const controls=el('div','card');controls.id='extra-time-qa';controls.innerHTML='<b>独立验收世界 · 暂停存档</b><p>常规时间0比0，已真实模拟至加时上半场。可测试换人、临场战术和直接看结果。</p>';
+   for(const [text,action]of [['推进至加时下半场',()=>withoutGoals(()=>{while(!CURMATCH.done&&CURMATCH.half<4)stepMatch(CURMATCH);})],['模拟加时结束平局',()=>withoutGoals(()=>runMatch(CURMATCH))],['查看本场报告',()=>{if(!CURMATCH.done)return;applyResult(f,CURMATCH);showMatchReport(f);}]]){const b=el('button','sm',text);b.onclick=()=>{pauseMatchPlayback();action();refreshMatchUI(true);};controls.appendChild(b);}
+   document.getElementById('view').prepend(controls);refreshMatchUI(true);fitAppHeight();
+  }catch(e){const x=document.createElement('pre');x.textContent=e.stack;document.body.appendChild(x);console.error(e);}};
+ });
+ document.open();document.write(html.replace('</head>','<base href="../"><script>('+setup.toString()+')();<\/script></head>'));document.close();
+})();
+</script>
