@@ -1,0 +1,26 @@
+<!doctype html><meta charset="utf-8"><title>战术预设 QA</title>
+<script>
+(async()=>{
+ const params=new URLSearchParams(location.search),source=params.get('standalone')?'../执掌绿茵.html':'../index.html';
+ const html=await(await fetch(source,{cache:'no-store'})).text();
+ const digest=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(html)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+ const setup=()=>document.addEventListener('DOMContentLoaded',()=>{
+  // 在开始菜单读档前隔离真实浏览器存档；本页仅使用固定种子测试世界。
+  idbGet=async()=>null;cacheGet=async()=>null;readSaveRecord=async()=>null;healSave=async()=>[];storeSave=async()=>null;
+  startMenu=async function(){try{
+   newWorld(4242,'Manchester City');SAVE_PAUSED=true;clearTimeout(SAVE_TIMER);
+   const controls=document.createElement('div');controls.style.cssText='position:fixed;right:8px;bottom:82px;z-index:9999;display:flex;gap:6px;flex-wrap:wrap;padding:4px;background:var(--bg2);';controls.id='tactics-qa';
+   function button(text,fn){const b=document.createElement('button');b.textContent=text;b.onclick=()=>{fn();update();};controls.appendChild(b);}
+   const report=document.createElement('pre');report.id='tactics-report';report.style.cssText='display:none';document.body.appendChild(report);
+   let roundtrip=false,roundtripDiff=[];
+   button('QA JSON读写',()=>{const raw=JSON.stringify(WORLD),input=JSON.parse(raw);adoptWorld(input);SAVE_PAUSED=true;roundtripDiff=[...new Set([...Object.keys(input),...Object.keys(WORLD)])].filter(k=>JSON.stringify(input[k])!==JSON.stringify(WORLD[k]));roundtrip=JSON.stringify(WORLD.clubs.map(c=>[c.id,c.presets,c.tactic,c.lineup,c.subs]))===JSON.stringify(input.clubs.map(c=>[c.id,c.presets,c.tactic,c.lineup,c.subs]))&&JSON.stringify(input)===raw;VIEW='tactics';render();});
+   button('QA 白色主题',()=>setTheme('light'));
+   button('QA 伤停',()=>{P(UC().lineup[1]).injury=7;render();});
+   VIEW='tactics';enterGame();fitAppHeight();if(!new URLSearchParams(location.search).has('clean'))document.body.appendChild(controls);
+   function update(){const c=UC();report.textContent=JSON.stringify({sourceSha256:document.querySelector('meta[name=qa-source-sha]').content,view:VIEW,formation:c.tactic.formation,lineup:c.lineup,subs:c.subs,tactic:c.tactic,presets:c.presets,roundtrip,roundtripDiff,savePaused:SAVE_PAUSED,overflow:document.documentElement.scrollWidth>innerWidth,width:innerWidth,slots:document.querySelectorAll('.tac-pitch .fmt-slot').length});}
+   setInterval(update,100);update();
+  }catch(e){console.error(e);const p=document.createElement('pre');p.id='tactics-error';p.textContent=e.stack;document.body.appendChild(p);}};
+ });
+ document.open();document.write(html.replace('</head>','<base href="../"><meta name="qa-source-sha" content="'+digest+'"><script>('+setup.toString()+')();<\/script></head>'));document.close();
+})();
+</script>

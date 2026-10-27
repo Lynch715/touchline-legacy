@@ -400,6 +400,17 @@ img.crest-plate{background:#f5f1e9;border-radius:50%;padding:2px;box-sizing:bord
   .fmt-slot .fs{font-size:10px}
 }
 
+.preset-bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:10px}
+.preset{display:flex;flex-direction:column;gap:4px;min-width:0}
+.preset-main{display:flex;flex-direction:column;align-items:flex-start;gap:1px;width:100%;min-width:0;text-align:left;padding:6px 8px}
+.preset-main .pn{font-weight:700;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.preset-main .pf{font-size:11px;color:var(--dim)}
+.preset-main.empty{opacity:.55;border-style:dashed}
+.preset-ops{display:flex;gap:4px}
+.preset-ops button{flex:1;padding:4px 0;font-size:12px;min-width:0}
+.preset-ops button[data-op="ren"]{flex:0 0 34px}
+.preset-main:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+
 /* 竖屏窄屏进一步压缩 */
 @media (max-width:360px){.tac-pitch{--tactics-min-height:440px}}
 
@@ -13001,6 +13012,7 @@ function vSquad(v){
   ap.onclick=()=>{showAutoPickMenu(ap);};
   bar.appendChild(ap);
   v.appendChild(bar);
+  v.appendChild(presetBar());
 
   let rows=c.squad.map(i=>P(i));
   if(SQUADFILTER==="inj") rows=rows.filter(p=>p.injury>0||p.susp>0);
@@ -13485,8 +13497,9 @@ function vTactics(v){
   if(NAT_SCOPE==='nation' && WORLD.userNation){ vNationTactics(v); return; }
   if(renderLiveTeamGuard(v,false))return;
   const c=UC(), t=c.tactic;
-  v.appendChild(el("div","",`<h1>战术</h1><div class="sub">点击场上位置，再点击右侧球员完成调整。常用首发自动保存；伤停仅在比赛中临时补位，恢复后回到原位置。</div>`));
+  v.appendChild(el("div","",`<h1>战术</h1><div class="sub">点击场上位置，再点击右侧球员完成调整。可预存三套阵型、首发、替补和战术指令，点击方案快速切换。换阵型尽量保留原首发；伤停仅在比赛中临时补位。</div>`));
   nationScopeBar(v);
+  v.appendChild(presetBar());
   const wrap=el("div","row");
 
   // ---- 球场 ----
@@ -13596,7 +13609,7 @@ function vTactics(v){
   wrap.appendChild(right);
   v.appendChild(wrap);
 
-  const fsel=$("#fmtsel"); if(fsel) fsel.onchange=e=>{ c.tactic.formation=e.target.value; autoPickLineup(c); SELSLOT=null; render(); };
+  const fsel=$("#fmtsel"); if(fsel) fsel.onchange=e=>{ remapLineup(c,e.target.value); SELSLOT=null; markDirty(); render(); };
   const off=$("#offs"); if(off) off.onchange=e=>{c.tactic.offside=e.target.checked;markDirty();};
   const cnt=$("#cntr"); if(cnt) cnt.onchange=e=>{c.tactic.counter=e.target.checked;markDirty();};
 }
@@ -13623,6 +13636,91 @@ function benchRemove(pid){
 function benchToggle(pid){
   const c=UC();
   if(c.subs.includes(pid)) benchRemove(pid); else benchAdd(pid);
+}
+
+/* ================= 阵容与战术预设（3 套，按俱乐部保存） ================= */
+const PRESET_N=3;
+function presetsOf(c){
+  if(!Array.isArray(c.presets))c.presets=[];
+  while(c.presets.length<PRESET_N)c.presets.push(null);
+  return c.presets.slice(0,PRESET_N);
+}
+function presetValid(pr){return !!pr&&typeof pr==='object'&&Array.isArray(pr.lineup)&&Array.isArray(pr.subs)&&Array.isArray(FORMATIONS[pr.tac?.formation||pr.form]);}
+function presetName(pr,i){return typeof pr?.name==='string'&&pr.name.trim()?pr.name.trim().slice(0,12):`方案${i+1}`;}
+function presetAllowed(i){return Number.isInteger(i)&&i>=0&&i<PRESET_N&&!liveTeamLocked(false,true);}
+function presetSave(i){
+  if(!presetAllowed(i))return false;
+  const c=UC(),old=presetsOf(c)[i];
+  c.presets[i]={name:presetName(old,i),form:c.tactic.formation,lineup:c.lineup.slice(),subs:c.subs.slice(),tac:structuredClone(c.tactic)};
+  SELSLOT=null;markDirty();closeModal();toast(`已存为「${c.presets[i].name}」（${c.presets[i].form}）`);render();return true;
+}
+function presetSaveAsk(i){
+  if(!presetAllowed(i))return false;
+  const cur=presetsOf(UC())[i];
+  if(!presetValid(cur))return presetSave(i);
+  openModal('覆盖预设',`<div>将当前阵型、首发、替补和战术指令存入「<b>${esc(presetName(cur,i))}</b>」？原方案将被覆盖。</div>`,
+    `<button onclick="closeModal()">取消</button><button class="pri" onclick="presetSave(${i})">覆盖</button>`);
+}
+function presetRenameAsk(i){
+  if(!presetAllowed(i))return false;
+  const cur=presetsOf(UC())[i];if(!presetValid(cur))return false;
+  openModal('预设改名',`<input id="ps-name" aria-label="方案名称" maxlength="12" value="${esc(presetName(cur,i))}" style="width:100%"><div class="hint">最多12个字，例如「主力433」「杯赛轮换」。</div>`,
+    `<button onclick="closeModal()">取消</button><button class="pri" onclick="presetRenameDo(${i})">确定</button>`);
+  const x=$('#ps-name');if(x){x.focus();x.select();}
+}
+function presetRenameDo(i){
+  if(!presetAllowed(i))return false;
+  const cur=presetsOf(UC())[i],x=$('#ps-name');if(!presetValid(cur)||!x)return false;
+  const name=x.value.trim().slice(0,12);if(!name){toast('请输入方案名称','warn');return false;}
+  cur.name=name;markDirty();closeModal();render();return true;
+}
+function presetApply(i){
+  if(!presetAllowed(i))return false;
+  const c=UC(),pr=presetsOf(c)[i];
+  if(!presetValid(pr)){toast('这个方案还是空的或已损坏，请先存入当前战术','warn');return false;}
+  const tac=defaultTactic(),saved=pr.tac||{},form=Array.isArray(FORMATIONS[saved.formation])?saved.formation:pr.form;
+  tac.formation=form;
+  for(const k of ['mentality','tempo','press','width'])if(Number.isFinite(saved[k]))tac[k]=clamp(Math.round(saved[k]),0,4);
+  for(const k of ['offside','counter'])if(typeof saved[k]==='boolean')tac[k]=saved[k];
+  tac.fmtV2=1;c.tactic=tac;
+  const squad=new Set(c.squad),used=new Set(),ok=id=>Number.isInteger(id)&&squad.has(id)&&!!P(id)&&!used.has(id);
+  c.lineup=FORMATIONS[form].map((_,k)=>{const id=pr.lineup[k];if(!ok(id))return null;used.add(id);return id;});
+  const subs=pr.subs.slice(0,BENCH_MAX).filter(id=>{if(!ok(id))return false;used.add(id);return true;});
+  c.subs=subs.slice();repairLineup(c);
+  // 保留手工设置的替补人数；仅在预存球员离队后补足原有名额。
+  const target=Math.min(BENCH_MAX,pr.subs.length),extra=c.subs.filter(id=>!subs.includes(id));
+  c.subs=subs.concat(extra).slice(0,target);
+  const changed=pr.lineup.slice(0,11).filter((id,k)=>id!=null&&c.lineup[k]!==id).length;
+  const unavailable=c.lineup.filter(id=>P(id)?.injury>0||P(id)?.susp>0).length;
+  SELSLOT=null;markDirty();
+  toast(`已套用「${presetName(pr,i)}」${changed?'；已为离队或重复球员补位':''}${unavailable?'；伤停首发将在比赛中临时补位':''}`,changed||unavailable?'warn':'');render();return true;
+}
+function presetBar(){
+  const ps=presetsOf(UC()),box=el('div','card');
+  box.innerHTML='<h3>战术预设 <span class="hint" style="font-weight:400">三套方案 · 点击套用</span></h3>';
+  const bar=el('div','preset-bar');
+  ps.forEach((pr,i)=>{
+    const valid=presetValid(pr),name=presetName(pr,i),form=valid?(pr.tac?.formation||pr.form):'空';
+    const col=el('div','preset');
+    col.innerHTML=`<button class="sm preset-main ${valid?'':'empty'}" ${valid?'':'disabled'} aria-label="套用${esc(name)}" title="${esc(name)} · ${esc(form)}"><span class="pn">${esc(name)}</span><span class="pf">${esc(form)}</span></button><div class="preset-ops"><button class="sm" data-op="save" aria-label="存入方案${i+1}">存当前</button><button class="sm" data-op="ren" aria-label="重命名方案${i+1}" ${valid?'':'disabled'}>✎</button></div>`;
+    col.querySelector('.preset-main').onclick=()=>presetApply(i);
+    col.querySelector('[data-op="save"]').onclick=()=>presetSaveAsk(i);
+    col.querySelector('[data-op="ren"]').onclick=()=>presetRenameAsk(i);bar.appendChild(col);
+  });
+  box.appendChild(bar);box.appendChild(el('div','hint','保存阵型、首发、替补与战术指令；修改后点「存当前」更新方案。伤停保留常用位置，比赛中临时补位。'));return box;
+}
+// 换阵型时先保留同位置球员，再按位置适配安排；同等条件优先保留左右侧。
+function remapLineup(c,newForm){
+  if(!Array.isArray(FORMATIONS[newForm]))return false;
+  const oldSlots=FORMATIONS[c.tactic.formation],slots=FORMATIONS[newForm];
+  const old=(c.lineup||[]).map((id,k)=>({id,slot:oldSlots?.[k]})).filter(o=>o.id!=null&&c.squad.includes(o.id)&&P(o.id));
+  const lineup=slots.map(()=>null),used=new Set(),pairs=[];
+  old.forEach(o=>slots.forEach((s,k)=>{const p=P(o.id),fit=posFit(p,s[0]);pairs.push({id:o.id,k,fit,key:(o.slot?.[0]===s[0]?2:0)+fit,distance:o.slot?Math.abs(o.slot[2]-s[2])+Math.abs(o.slot[1]-s[1]):100,score:playerScore(p,s[0])});}));
+  pairs.sort((a,b)=>b.key-a.key||a.distance-b.distance||b.score-a.score);
+  pairs.forEach(x=>{if(used.has(x.id)||lineup[x.k]!=null||x.key<2&&x.fit<0.6)return;lineup[x.k]=x.id;used.add(x.id);});
+  const dropped=old.map(o=>o.id).filter(id=>!used.has(id));
+  c.tactic.formation=newForm;c.lineup=lineup;c.subs=dropped.concat((c.subs||[]).filter(id=>!dropped.includes(id)));
+  repairLineup(c);c.subs=c.subs.slice(0,BENCH_MAX);return true;
 }
 
 /* ================= 训练 ================= */
