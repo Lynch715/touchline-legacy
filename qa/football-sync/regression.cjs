@@ -43,7 +43,7 @@ test('未知球探推荐和排序不泄露PA，95%才显示精确潜力，自有
 test('全市场先排序再分页，120人页不遗漏低薪球员',()=>{
  const full=Object.values(WORLD.players).filter(p=>ownerOf(p)!==WORLD.userClub&&p.clubId!==WORLD.userClub);SORT={k:'w',d:1};const rows=sortedRows([{k:'w',v:p=>wageDemand(p,UC())}],full);
  assert.equal(wageDemand(rows[0],UC()),Math.min(...full.map(p=>wageDemand(p,UC()))));assert.equal(new Set(rows.slice(0,240)).size,240);
- const html=fs.readFileSync(process.env.FMFILE||path.resolve(__dirname,'../../index.html'),'utf8');const fn=html.slice(html.indexOf('  function fillSearch(){'),html.indexOf('  fillSearch();',html.indexOf('  function fillSearch(){')));assert(fn.includes('pool=sortedRows(columns,pool)'));assert(fn.includes('pool.slice(searchPage*120'));
+ const html=fs.readFileSync(process.env.FMFILE||path.resolve(__dirname,'../../index.html'),'utf8');const fn=html.slice(html.indexOf('  function fillSearch(){'),html.indexOf('  fillSearch();',html.indexOf('  function fillSearch(){')));assert(fn.includes('pool=sortedRows(columns,pool)'));assert(fn.includes('pool.slice(searchPage*pageSize'));assert(fn.includes('window.innerWidth<=900?40:120'));
 });
 test('财政与总览的租借周薪按实际负担，薪资表包含外租',()=>{
  const u=UC(),o=WORLD.clubs[0],p=P(u.squad.at(-1)),wk=weeklyWages(u);assert(loanPlayer(p.id,o.id,{wageShare:.5}));assert.equal(wagePaidBy(u,p),p.wage*.5);assert.equal(wagePaidBy(o,p),p.wage*.5);assert.equal(weeklyWages(u),Math.round(wk-p.wage*.5));

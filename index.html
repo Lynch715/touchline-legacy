@@ -12775,7 +12775,7 @@ function renderNav(){
     });
   });
 }
-function go(v){ if(WORLD?.needJob&&!(WORLD.userNation&&(v==="nation"||NAT_SCOPE==="nation"&&["squad","tactics"].includes(v)))){render();return;} if(CURMATCH&&v!=="match")pauseMatchPlayback(); VIEW=v; SORT={k:null,d:1}; render(); }
+function go(v){ if(WORLD?.needJob&&!(WORLD.userNation&&(v==="nation"||NAT_SCOPE==="nation"&&["squad","tactics"].includes(v)))){render();return;} if(CURMATCH&&v!=="match")pauseMatchPlayback(); VIEW=v; SORT={k:null,d:1}; render(false); }
 
 function renderTop(){
   if(WORLD.needJob){
@@ -12800,8 +12800,8 @@ function renderTop(){
 /* 同一页面里的操作（筛选、排序、接受报价……）重画时保留滚动位置；只有换页才回顶部。
    原来每次 render 都 scrollTop=0，手机上筛完要再滑回去。 */
 let LAST_VIEW=null;
-function render(){
-  markDirty();
+function render(dirty=true){
+  if(dirty) markDirty();
   // 待业状态：显示应聘界面
   if(WORLD.needJob&&!(CURMATCH?.national&&VIEW==="match")&&VIEW!=="nation"&&!(WORLD.userNation&&NAT_SCOPE==="nation"&&["squad","tactics"].includes(VIEW))){ renderJobHunt(); return; }
   renderNav(); renderTop();
@@ -12874,7 +12874,7 @@ function makeTable(cols, rows, opts){
   cols.forEach(c=>{
     const th=el("th",(c.nos?"nos":"")+(c.mh?" mh":""),c.h);
     if(c.cls) th.style.textAlign=c.cls==="num"?"right":c.cls==="ctr"?"center":"left";
-    if(!c.nos) th.onclick=()=>{ if(SORT.k===c.k) SORT.d*=-1; else {SORT.k=c.k;SORT.d=c.desc===false?1:-1;} opts.rerender?opts.rerender():render(); };
+    if(!c.nos) th.onclick=()=>{ if(SORT.k===c.k) SORT.d*=-1; else {SORT.k=c.k;SORT.d=c.desc===false?1:-1;} opts.rerender?opts.rerender():render(false); };
     if(SORT.k===c.k) th.innerHTML=c.h+(SORT.d<0?" ▾":" ▴");
     tr.appendChild(th);
   });
@@ -12885,12 +12885,11 @@ function makeTable(cols, rows, opts){
   thead.appendChild(tr); t.appendChild(thead);
   const tb=el("tbody");
   const data=opts.presorted?rows:sortedRows(cols,rows);
-  data.forEach((r,i)=>{
-    const row=el("tr",opts.onRow?"clickable":"");
-    cols.forEach(c=>{ const td=el("td",(c.cls||"")+(c.mh?" mh":""),c.r(r,i)); row.appendChild(td); });
-    if(opts.onRow) row.onclick=()=>opts.onRow(r);
-    if(opts.rowStyle) opts.rowStyle(row,r,i);
-    tb.appendChild(row);
+  // 一次解析整页表格，避免每个单元格单独 innerHTML 带来的反复解析与节点分配。
+  tb.innerHTML=data.map((r,i)=>`<tr${opts.onRow?' class="clickable"':''}>${cols.map(c=>`<td class="${c.cls||""}${c.mh?" mh":""}">${c.r(r,i)}</td>`).join("")}</tr>`).join("");
+  [...tb.children].forEach((row,i)=>{
+    if(opts.onRow)row.onclick=()=>opts.onRow(data[i]);
+    if(opts.rowStyle)opts.rowStyle(row,data[i],i);
   });
   t.appendChild(tb);
   const wrap=el("div","tw"); wrap.appendChild(t);
@@ -13006,7 +13005,7 @@ function vSquad(v){
   const bar=el("div","chipgrid"); bar.style.cssText="margin-bottom:10px";
   [["all","全部"],["gk","门将"],["df","后卫"],["mf","中场"],["fw","前锋"],["inj","伤停"],["young","U21"],["exp","即将到期"]].forEach(([k,n])=>{
     const b=el("button","sm"+(SQUADFILTER===k?" on":""),n);
-    b.onclick=()=>{SQUADFILTER=k;render();}; bar.appendChild(b);
+    b.onclick=()=>{SQUADFILTER=k;render(false);}; bar.appendChild(b);
   });
   const ap=el("button","sm pri","自动排阵");
   ap.onclick=()=>{showAutoPickMenu(ap);};
@@ -13529,7 +13528,7 @@ function vTactics(v){
         c.lineup[SELSLOT]=b; c.lineup[i]=a;
         SELSLOT=null; render(); return;
       }
-      SELSLOT=SELSLOT===i?null:i; render();
+      SELSLOT=SELSLOT===i?null:i; render(false);
     };
     pit.appendChild(d);
   });
@@ -13960,9 +13959,10 @@ function vTransfer(v){
       {h:"",k:"z",nos:true,r:p=>(p.listed?'<span class="tag t-w">挂牌</span>':'')+perfTag(p)+(WORLD.shortlist.some(x=>x.id===p.id)?'<span class="tag t-i">关注中</span>':'')}
     ];
     pool=sortedRows(columns,pool);
-    const pages=Math.max(1,Math.ceil(total/120)); searchPage=clamp(searchPage,0,pages-1);
-    sr.appendChild(el("div","hint",`找到 ${total} 名球员 · 第 ${searchPage+1}/${pages} 页 · 显示 ${total?searchPage*120+1:0}–${Math.min(total,(searchPage+1)*120)} 人`));
-    sr.appendChild(makeTable(columns,pool.slice(searchPage*120,(searchPage+1)*120),{presorted:true,onRow:p=>showPlayer(p.id),rerender:()=>{searchPage=0;fillSearch();}}));
+    const pageSize=window.innerWidth<=900?40:120;
+    const pages=Math.max(1,Math.ceil(total/pageSize)); searchPage=clamp(searchPage,0,pages-1);
+    sr.appendChild(el("div","hint",`找到 ${total} 名球员 · 第 ${searchPage+1}/${pages} 页 · 显示 ${total?searchPage*pageSize+1:0}–${Math.min(total,(searchPage+1)*pageSize)} 人`));
+    sr.appendChild(makeTable(columns,pool.slice(searchPage*pageSize,(searchPage+1)*pageSize),{presorted:true,onRow:p=>showPlayer(p.id),rerender:()=>{searchPage=0;fillSearch();}}));
     const pager=el("div","btns");
     [["上一页",-1],["下一页",1]].forEach(([title,delta])=>{const b=el("button","",title); b.disabled=searchPage+delta<0||searchPage+delta>=pages; b.onclick=()=>{searchPage+=delta;fillSearch();};pager.appendChild(b);});
     sr.appendChild(pager);
@@ -14002,7 +14002,7 @@ function vTransfer(v){
     v.appendChild(foldCard(lm,"tr-loanmkt","租借市场",[[`${ltotal} 人可租`,"hot"]],true));
     v.appendChild(foldCard(log,"tr-log","转会动态",[[`本季 ${thisSeason.length} 笔`], thisSeason.length? [money(seasonFee)] : null],false));
   }
-  const bind=(id,fn)=>{const e=$(id); if(e) e.onchange=ev=>{fn(ev.target.value);render();};};
+  const bind=(id,fn)=>{const e=$(id); if(e) e.onchange=ev=>{fn(ev.target.value);render(false);};};
   bind("#f-pos",x=>TFILTER.pos=x); bind("#f-tier",x=>TFILTER.tier=x); bind("#f-nat",x=>TFILTER.nat=x);
   bind("#f-fee",x=>TFILTER.maxFee=+x*1e6); bind("#f-ca",x=>TFILTER.minCa=+x);
   bind("#f-age",x=>TFILTER.maxAge=+x);
@@ -14543,9 +14543,9 @@ function vLeague(v){
   // 国家页签
   const bar=el("div","segbar"); bar.style.cssText="margin-bottom:8px;display:flex;flex-wrap:wrap;gap:6px";
   NATIONS.forEach((n,i)=>{ const b=el("button","sm"+(LGNATION===i?" on":""),n.name);
-    b.onclick=()=>{LGNATION=i; LGTIER=Math.min(LGTIER,n.tiers.length-1); render();}; bar.appendChild(b); });
-  { const b=el("button","sm"+(LGNATION==="EU"?" on":""),"欧战"); b.onclick=()=>{LGNATION="EU";render();}; bar.appendChild(b); }
-  { const b=el("button","sm"+(LGNATION==="WORLD"?" on":""),"世界"); b.onclick=()=>{LGNATION="WORLD";render();}; bar.appendChild(b); }
+    b.onclick=()=>{LGNATION=i; LGTIER=Math.min(LGTIER,n.tiers.length-1); render(false);}; bar.appendChild(b); });
+  { const b=el("button","sm"+(LGNATION==="EU"?" on":""),"欧战"); b.onclick=()=>{LGNATION="EU";render(false);}; bar.appendChild(b); }
+  { const b=el("button","sm"+(LGNATION==="WORLD"?" on":""),"世界"); b.onclick=()=>{LGNATION="WORLD";render(false);}; bar.appendChild(b); }
   v.appendChild(bar);
   if(LGNATION==="EU"){ vEuro(v); return; }
   if(LGNATION==="WORLD"){ vWorld(v); return; }
@@ -14553,7 +14553,7 @@ function vLeague(v){
   const nat=NATIONS[LGNATION];
   const bar2=el("div","segbar"); bar2.style.cssText="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:6px";
   nat.tiers.forEach((t,i)=>{ const b=el("button","sm"+(LGTIER===i?" on":""),t.short);
-    b.onclick=()=>{LGTIER=i;render();}; bar2.appendChild(b); });
+    b.onclick=()=>{LGTIER=i;render(false);}; bar2.appendChild(b); });
   v.appendChild(bar2);
   const lgIdx=lgIndex(LGNATION,LGTIER), lg=WORLD.leagues[lgIdx];
   const tbl=leagueTable(lgIdx), n=tbl.length, top=LGTIER===0, bottom=LGTIER===nat.tiers.length-1;
@@ -14625,7 +14625,7 @@ function vLeague(v){
 function vEuro(v){
   const bar=el("div"); bar.style.cssText="margin-bottom:10px;display:flex;gap:6px";
   ["CL","EL","ECL"].forEach(code=>{ const b=el("button","sm"+(EUROTAB===code?" on":""),EURO_COMPS[code].short);
-    b.onclick=()=>{EUROTAB=code;render();}; bar.appendChild(b); });
+    b.onclick=()=>{EUROTAB=code;render(false);}; bar.appendChild(b); });
   v.appendChild(bar);
   const E=WORLD.euro&&WORLD.euro[EUROTAB]; if(!E){ v.appendChild(el("div","card",'<div class="empty">本赛季尚未安排</div>')); return; }
   const head=el("div","card");
@@ -14813,10 +14813,10 @@ function vStats(v){
   if(WORLD._statLg===undefined) WORLD._statLg = -1; // -1=全部
   const bar=el("div","segbar"); bar.style.cssText="margin:8px 0;display:flex;flex-wrap:wrap;gap:6px";
   const allBtn=el("button","sm"+(WORLD._statLg===-1?" on":""),"全部联赛");
-  allBtn.onclick=()=>{WORLD._statLg=-1; render();}; bar.appendChild(allBtn);
+  allBtn.onclick=()=>{WORLD._statLg=-1; render(false);}; bar.appendChild(allBtn);
   LEAGUE_DEFS.forEach(lg=>{
     const b=el("button","sm"+(WORLD._statLg===lg.lg?" on":""), lg.name);
-    b.onclick=()=>{WORLD._statLg=lg.lg; render();}; bar.appendChild(b);
+    b.onclick=()=>{WORLD._statLg=lg.lg; render(false);}; bar.appendChild(b);
   });
   v.appendChild(bar);
   // 按联赛过滤球员
@@ -15029,7 +15029,7 @@ function vCrests(v){
 
   const bar=el("div","segbar"); bar.style.cssText="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:6px";
   [...NATIONS.map(n=>n.name),"欧洲其他"].forEach((n,i)=>{ const b=el("button","sm"+(CRESTTIER===i?" on":""),n);
-    b.onclick=()=>{CRESTTIER=i;render();}; bar.appendChild(b); });
+    b.onclick=()=>{CRESTTIER=i;render(false);}; bar.appendChild(b); });
   v.appendChild(bar);
 
   const grid=el("div","grid4");
@@ -15641,6 +15641,113 @@ async function readFP(){
 /* ---------- 统一读写 ----------
    三层每次都写，不是「谁失败才轮到谁」。压缩后存档不到 1MB，localStorage 装得下，
    而它恰恰是这类浏览器最不爱清的一层——Cache Storage 名字里带 cache，清理缓存时第一个遭殃。 */
+/* 保存快照分片传入独立 Worker；沿用 Z0/Z1/Z2/Z3 与正文校验格式。 */
+let SAVE_WORKER=null, SAVE_WORKER_DISABLED=false, SAVE_TASK_ID=0;
+const SAVE_TASKS=new Map();
+function saveWorkerEnvironment(){
+  const noop=()=>{},element=()=>({style:{setProperty:noop},dataset:{},classList:{add:noop,remove:noop,contains:()=>false},appendChild:noop,querySelector:()=>null,querySelectorAll:()=>[],setAttribute:noop});
+  self.window=self;self.document={addEventListener:noop,querySelector:()=>null,querySelectorAll:()=>[],getElementById:()=>null,createElement:element,documentElement:element(),body:element()};
+  self.localStorage={getItem:()=>null,setItem:noop};self.matchMedia=()=>({matches:false});
+}
+function saveWorkerLoop(){
+  const chunks=new Map();
+  self.onmessage=async({data:d})=>{
+    if(d.op==='begin'){chunks.set(d.id,[]);return;}
+    if(d.op==='chunk'){chunks.get(d.id)?.push(d.text);return;}
+    if(d.op==='cancel'){chunks.delete(d.id);return;}
+    try{
+      if(d.op==='finish'){const parts=chunks.get(d.id);chunks.delete(d.id);d.raw=parts.join('');parts.length=0;d.op='pack';d.canonical=true;}
+      const result=await processSaveTask(d);self.postMessage({id:d.id,result});
+    }catch(e){self.postMessage({id:d.id,error:e.message||String(e)});}
+  };
+}
+function getSaveWorker(){
+  if(SAVE_WORKER_DISABLED || typeof Worker==='undefined')return null;
+  if(SAVE_WORKER)return SAVE_WORKER;
+  try{
+    const engine=[...document.querySelectorAll('script')].find(s=>s.textContent.includes('function validateWorld(w)'));
+    if(!engine)return null;
+    const url=URL.createObjectURL(new Blob(['('+saveWorkerEnvironment.toString()+')();\n',engine.textContent.replace(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g,''),'\n('+saveWorkerLoop.toString()+')();'],{type:'text/javascript'}));
+    const w=new Worker(url);URL.revokeObjectURL(url);
+    w.onmessage=({data:d})=>{const task=SAVE_TASKS.get(d.id);if(!task)return;clearTimeout(task.timer);SAVE_TASKS.delete(d.id);d.error?task.reject(new Error(d.error)):task.resolve(d.result);};
+    w.onerror=()=>{SAVE_WORKER_DISABLED=true;w.terminate();SAVE_WORKER=null;for(const task of SAVE_TASKS.values()){clearTimeout(task.timer);task.reject(new Error('save-worker-unavailable'));}SAVE_TASKS.clear();};
+    SAVE_WORKER=w;return w;
+  }catch(e){SAVE_WORKER_DISABLED=true;return null;}
+}
+function pendingSaveTask(id,w){
+  let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});
+  const timer=setTimeout(()=>{SAVE_TASKS.delete(id);w.terminate();SAVE_WORKER=null;SAVE_WORKER_DISABLED=true;reject(new Error('save-worker-timeout'));},120000);
+  SAVE_TASKS.set(id,{resolve,reject,timer});return promise;
+}
+async function runSaveTask(task){
+  const w=getSaveWorker();if(!w)return processSaveTask(task);
+  const id=++SAVE_TASK_ID,p=pendingSaveTask(id,w);w.postMessage({...task,id});
+  try{return await p;}catch(e){if(!SAVE_WORKER_DISABLED)throw e;return processSaveTask(task);}
+}
+function inspectOwnedSave(obj,runtime=null){
+  validateWorld(obj);
+  const saved={world:WORLD,rng:RNGSTATE,pid:PID,revR:REV_R,revS:REV_S,clk:FIN_CLK};
+  try{if(runtime){RNGSTATE=runtime.rng;PID=runtime.pid;FIN_CLK=runtime.clk;}REV_R={key:''};REV_S={key:''};adoptCandidate(obj);return {rng:RNGSTATE,pid:PID,clk:FIN_CLK};}
+  finally{WORLD=saved.world;RNGSTATE=saved.rng;PID=saved.pid;REV_R=saved.revR;REV_S=saved.revS;FIN_CLK=saved.clk;}
+}
+async function processSaveTask(task){
+  if(task.op==='pack'){
+      let raw=task.raw,obj=JSON.parse(raw);task.raw=null;
+      if(!task.canonical||Object.hasOwn(obj,'_saveStamp')){delete obj._saveStamp;raw=JSON.stringify(obj);}
+      inspectOwnedSave(obj,task.runtime);obj=null;
+      const stamp={at:task.at,checksum:hashStr(raw)},body=raw.slice(0,-1)+',"_saveStamp":'+JSON.stringify(stamp)+'}';raw=null;
+      return {payload:await zipSave(body),chars:body.length};
+  }
+  const envelope=unpackSaveEnvelope(task.payload),str=await unzipSave(envelope.packed);let obj=JSON.parse(str);
+    const season=obj.season,day=obj.day,club=obj.clubs?.[obj.userClub]?.cn,embedded=Number(obj._saveStamp?.at);
+    if(envelope.header&&(envelope.header.season!==season||envelope.header.day!==day))throw new Error('存档封装进度不匹配');
+    if(!envelope.header&&obj._saveStamp&&Object.hasOwn(obj._saveStamp,'checksum')){
+      const unstamped={...obj};delete unstamped._saveStamp;
+      if(!Number.isFinite(obj._saveStamp.at)||obj._saveStamp.checksum!==hashStr(JSON.stringify(unstamped)))throw new Error('存档正文校验失败');
+    }
+    const runtime=inspectOwnedSave(obj,task.runtime),info={header:envelope.header,embedded,season,day,club,chars:str.length};
+    if(task.mode==='inspect')return info;
+    if(task.mode==='adopt')return {...info,obj,runtime,prepared:true};
+    obj=null;return {...info,str,obj:JSON.parse(str)};
+}
+function* worldSnapshotParts(world){
+  yield '{';let first=true;
+  for(const key of Object.keys(world)){
+    if(key==='_saveStamp'||world[key]===undefined)continue;
+    if(!first)yield ',';first=false;yield JSON.stringify(key)+':';const value=world[key];
+    if(Array.isArray(value)){
+      yield '[';for(let i=0;i<value.length;i++){if(i)yield ',';yield JSON.stringify(value[i])??'null';}yield ']';
+    }else if(value&&typeof value==='object'){
+      yield '{';let entryFirst=true;for(const k of Object.keys(value)){const text=JSON.stringify(value[k]);if(text===undefined)continue;if(!entryFirst)yield ',';entryFirst=false;yield JSON.stringify(k)+':'+text;}yield '}';
+    }else yield JSON.stringify(value);
+  }
+  yield '}';
+}
+function snapshotObsolete(){return new Error('save-snapshot-obsolete');}
+async function packWorldSnapshot(world,at,epoch,seq){
+  const valid=()=>!SAVE_PAUSED&&SAVE_EPOCH===epoch&&WORLD===world&&SAVE_CHANGE_SEQ===seq&&!BUSY&&!(CURMATCH&&!CURMATCH.done);
+  const w=getSaveWorker(),id=++SAVE_TASK_ID,parts=[];
+  let response=null;
+  if(w){response=pendingSaveTask(id,w);response.catch(()=>{});w.postMessage({op:'begin',id});}
+  let buffer='',last=performance.now();
+  const send=text=>{if(w)w.postMessage({op:'chunk',id,text});else parts.push(text);};
+  try{
+    for(const part of worldSnapshotParts(world)){
+      if(!valid())throw snapshotObsolete();buffer+=part;
+      if(buffer.length>=131072){send(buffer);buffer='';}
+      if(performance.now()-last>=4){await new Promise(r=>setTimeout(r,0));last=performance.now();}
+    }
+    if(!valid())throw snapshotObsolete();if(buffer)send(buffer);
+    const runtime={rng:RNGSTATE,pid:PID,clk:FIN_CLK};
+    if(w){w.postMessage({op:'finish',id,at,runtime});return await response;}
+    return await processSaveTask({op:'pack',raw:parts.join(''),at,runtime,canonical:true});
+  }catch(e){
+    if(w){w.postMessage({op:'cancel',id});const task=SAVE_TASKS.get(id);if(task){clearTimeout(task.timer);SAVE_TASKS.delete(id);task.resolve(null);}}
+    if(SAVE_WORKER_DISABLED&&valid())return packWorldSnapshot(world,at,epoch,seq);
+    throw e;
+  }
+}
+
 let META_CACHE=null;
 let SAVE_QUEUE=Promise.resolve(), SAVE_EPOCH=0, SAVE_PAUSED=false, SAVE_WRITE_AT=0;
 function queueSaveWork(work){
@@ -15648,99 +15755,71 @@ function queueSaveWork(work){
   SAVE_QUEUE=result.catch(()=>{});
   return result;
 }
-function storeSave(str, meta){
-  const epoch=SAVE_EPOCH;
+function storeSave(str, meta, snapshot=null){
+  const epoch=SAVE_EPOCH,seq=SAVE_CHANGE_SEQ;
   const at=SAVE_WRITE_AT=Math.max(Date.now(),SAVE_WRITE_AT+1);
   return queueSaveWork(async()=>{
     if(epoch!==SAVE_EPOCH || SAVE_PAUSED) return null;
-    // 时间戳跟随正文一起压缩，不能由可能写入失败的独立索引替正文证明新旧。
-    const obj=JSON.parse(str);
-    assertLoadable(obj);
-    delete obj._saveStamp;
-    obj._saveStamp={at,checksum:hashStr(JSON.stringify(obj))};
-    const body=JSON.stringify(obj), payload=await zipSave(body);
-    if(epoch!==SAVE_EPOCH || SAVE_PAUSED) return null;
-    const mj=JSON.stringify({...meta,mb:(body.length/1048576).toFixed(2),
-      zmb:(payload.length/1048576).toFixed(2),at});
+    let packed;
+    try{packed=snapshot?await packWorldSnapshot(snapshot,at,epoch,seq):await runSaveTask({op:'pack',raw:str,at,runtime:{rng:RNGSTATE,pid:PID,clk:FIN_CLK}});}
+    catch(e){if(e.message==='save-snapshot-obsolete'){if(epoch===SAVE_EPOCH&&!SAVE_PAUSED)SAVE_DIRTY=true;return null;}throw e;}
+    if(!packed||epoch!==SAVE_EPOCH || SAVE_PAUSED) return null;
+    const {payload,chars}=packed;
+    const mj=JSON.stringify({...meta,mb:(chars/1048576).toFixed(2),zmb:(payload.length/1048576).toFixed(2),at});
     const tiers=[]; let lastErr=null;
-    // 正文成功即为一份可恢复副本；索引失败不能把有效正文删掉。
-    for(const [name,put] of [
-      ["IndexedDB",idbSet],
-      ["localStorage",async(k,v)=>localStorage.setItem(k,v)],
-      ["Cache",cacheSet]
-    ]){
+    for(const [name,put] of [["IndexedDB",idbSet],["localStorage",async(k,v)=>localStorage.setItem(k,v)],["Cache",cacheSet]]){
       try{ await put(SAVEKEY,payload); tiers.push(name);
         try{ await put(METAKEY,mj); }catch(e){ lastErr=e; }
       }catch(e){ lastErr=e; }
     }
     if(!tiers.length) throw new Error("三层存储全部写入失败"+(lastErr&&lastErr.message?"："+lastErr.message:""));
-    if(epoch===SAVE_EPOCH && !SAVE_PAUSED){
-      META_CACHE=JSON.parse(mj); STORE_TIER=tiers.join(" + ");
-      await writeFP(meta,payload.length);
-    }
+    if(epoch===SAVE_EPOCH && !SAVE_PAUSED){META_CACHE=JSON.parse(mj);STORE_TIER=tiers.join(" + ");await writeFP(meta,payload.length);}
     return tiers.join(" + ");
   });
 }
-async function readSaveRecord(){
+async function readSaveRecord(mode='raw'){
   const rows=await Promise.all([
-    ["IndexedDB",idbGet],["Cache",cacheGet],
-    ["localStorage",async k=>localStorage.getItem(k)]
+    ["IndexedDB",idbGet],["Cache",cacheGet],["localStorage",async k=>localStorage.getItem(k)]
   ].map(async([name,get])=>{
-    let payload=null,meta=null;
-    const values=await Promise.all([
-      within(Promise.resolve().then(()=>get(SAVEKEY)),4000),
-      within(Promise.resolve().then(()=>get(METAKEY)),4000)
-    ]);
-    payload=values[0]?.v||null;
-    try{meta=JSON.parse(values[1]?.v||"null");}catch(e){}
-    return {name,payload,meta};
+    const values=await Promise.all([within(Promise.resolve().then(()=>get(SAVEKEY)),4000),within(Promise.resolve().then(()=>get(METAKEY)),4000)]);
+    let meta=null;try{meta=JSON.parse(values[1]?.v||"null");}catch(e){}
+    return {name,payload:values[0]?.v||null,meta};
   }));
-  const decoded=new Map(), valid=[];
+  const decoded=new Map();let best=null;
   for(const row of rows){
-    if(!row.payload) continue;
-    if(!decoded.has(row.payload)) decoded.set(row.payload,(async()=>{
-      const envelope=unpackSaveEnvelope(row.payload),str=await unzipSave(envelope.packed),obj=JSON.parse(str);
-      if(envelope.header&&(envelope.header.season!==obj.season||envelope.header.day!==obj.day))throw new Error('存档封装进度不匹配');
-      // 沿用正文内时间戳格式，加上上游的完整性校验；旧档无 checksum 仍兼容。
-      if(!envelope.header && obj._saveStamp && Object.hasOwn(obj._saveStamp,"checksum")){
-        const unstamped={...obj};delete unstamped._saveStamp;
-        if(!Number.isFinite(obj._saveStamp.at) || obj._saveStamp.checksum!==hashStr(JSON.stringify(unstamped))) throw new Error("存档正文校验失败");
-      }
-      assertLoadable(obj);
-      return {str,obj,header:envelope.header};
-    })());
+    if(!row.payload)continue;
+    if(!decoded.has(row.payload))decoded.set(row.payload,runSaveTask({op:'decode',payload:row.payload,mode,runtime:{rng:RNGSTATE,pid:PID,clk:FIN_CLK}}));
     try{
-      const {str,obj,header}=await decoded.get(row.payload);
-      const embedded=Number(obj._saveStamp&&obj._saveStamp.at),sourceMeta=header||row.meta;
-      // S1 的校验封装时间属于正文；独立索引仍须与正文进度一致。
-      const matched=sourceMeta && sourceMeta.season===obj.season && sourceMeta.day===obj.day;
-      const at=header?header.at:Number.isFinite(embedded)&&embedded>0?embedded:(matched?Number(sourceMeta.at)||0:0);
-      const club=obj.clubs[obj.userClub];
-      const meta={...(matched?sourceMeta:{}),club:club.cn,season:obj.season,day:obj.day,
-        at,mb:(str.length/1048576).toFixed(2),zmb:(row.payload.length/1048576).toFixed(2)};
-      valid.push({...row,str,obj,at,meta});
-    }catch(e){} // 损坏或无法解压的副本不能盖过另一层的有效存档。
+      const data=await decoded.get(row.payload),sourceMeta=data.header||row.meta;
+      const matched=sourceMeta&&sourceMeta.season===data.season&&sourceMeta.day===data.day;
+      const at=data.header?data.header.at:Number.isFinite(data.embedded)&&data.embedded>0?data.embedded:matched?Number(sourceMeta.at)||0:0;
+      const meta={...(matched?sourceMeta:{}),club:data.club,season:data.season,day:data.day,at,mb:(data.chars/1048576).toFixed(2),zmb:(row.payload.length/1048576).toFixed(2)};
+      const current={...row,...data,at,meta};
+      if(!best||at>best.at||at===best.at&&(data.season>best.season||data.season===best.season&&data.day>best.day))best=current;
+    }catch(e){} // 损坏副本仍不能遮盖其他层的有效旧档。
   }
-  valid.sort((a,b)=>b.at-a.at || b.obj.season-a.obj.season || b.obj.day-a.obj.day);
-  const best=valid[0]||null;if(best)SAVE_WRITE_AT=Math.max(SAVE_WRITE_AT,best.at);
-  return best;
+  if(best)SAVE_WRITE_AT=Math.max(SAVE_WRITE_AT,best.at);return best;
 }
-async function healSave(){
-  const epoch=SAVE_EPOCH, best=await readSaveRecord();
-  if(!best || SAVE_PAUSED || epoch!==SAVE_EPOCH) return [];
+async function healSave(record=null){
+  const epoch=SAVE_EPOCH,writeAt=SAVE_WRITE_AT;
+  if(SAVE_PAUSED)return [];
   return queueSaveWork(async()=>{
-    if(SAVE_PAUSED || epoch!==SAVE_EPOCH) return [];
-    // 读取候选期间可能已有一次更新的保存入队；此处重新读取，绝不回写旧快照。
-    const current=await readSaveRecord(); if(!current) return [];
-    const mj=JSON.stringify(current.meta), fixed=[];
-    for(const [name,get,put] of [
-      ["IndexedDB",idbGet,idbSet], ["Cache",cacheGet,cacheSet],
-      ["localStorage",async k=>localStorage.getItem(k),async(k,v)=>localStorage.setItem(k,v)]
-    ]){
+    if(SAVE_PAUSED||epoch!==SAVE_EPOCH)return [];
+    const stores=[["IndexedDB",idbGet,idbSet],["Cache",cacheGet,cacheSet],["localStorage",async k=>localStorage.getItem(k),async(k,v)=>localStorage.setItem(k,v)]];
+    // 同页更新按队列顺序处理；出现其他页面的新正文时重新比较可信代次。
+    const copies=await Promise.all(stores.map(async([name,get])=>{try{return await get(SAVEKEY);}catch(e){return null;}}));
+    const unchanged=record&&writeAt===SAVE_WRITE_AT&&copies.every(p=>!p||p===record.payload);
+    const current=unchanged?record:await readSaveRecord('inspect');
+    if(!current||SAVE_PAUSED||epoch!==SAVE_EPOCH)return [];
+    const mj=JSON.stringify(current.meta),fixed=[];
+    for(let i=0;i<stores.length;i++){
+      if(SAVE_PAUSED||epoch!==SAVE_EPOCH)return fixed;
+      const [name,get,put]=stores[i];
       try{
-        if(await get(SAVEKEY)!==current.payload){
-          await put(SAVEKEY,current.payload); fixed.push(name);
-        }
+        const payload=unchanged?copies[i]:await get(SAVEKEY);
+        if(SAVE_PAUSED||epoch!==SAVE_EPOCH)return fixed;
+        if(payload!==current.payload){await put(SAVEKEY,current.payload);fixed.push(name);}
+        if(SAVE_PAUSED||epoch!==SAVE_EPOCH)return fixed;
         await put(METAKEY,mj);
       }catch(e){}
     }
@@ -15751,15 +15830,13 @@ async function healSave(){
 async function readSave(){ const best=await readSaveRecord(); return best?best.str:null; }
 
 async function readMeta(){
-  const best=await readSaveRecord();
-  if(best){ META_CACHE=best.meta; return META_CACHE; }
-  // 只剩索引时仍保留恢复入口；继续游戏会引导导入文件存档。
-  const metas=[];
-  for(const get of [async k=>localStorage.getItem(k),idbGet,cacheGet]){
-    try{ const m=JSON.parse(await get(METAKEY)||"null"); if(m) metas.push(m); }catch(e){}
-  }
+  // 菜单只读小索引；正文完整性在继续游戏时验证，索引全丢时才扫描正文恢复。
+  const metas=(await Promise.all([async k=>localStorage.getItem(k),idbGet,cacheGet].map(async get=>{
+    try{const r=await within(Promise.resolve().then(()=>get(METAKEY)),1200);return r?.v?JSON.parse(r.v):null;}catch(e){return null;}
+  }))).filter(m=>m&&Number.isFinite(m.season)&&Number.isFinite(m.day));
   metas.sort((a,b)=>(b.at||0)-(a.at||0));
-  META_CACHE=metas[0]||null; return META_CACHE;
+  if(metas.length){META_CACHE=metas[0];return META_CACHE;}
+  const best=await readSaveRecord('inspect');META_CACHE=best?.meta||null;return META_CACHE;
 }
 async function deleteSave(){
   SAVE_PAUSED=true; SAVE_EPOCH++; SAVE_DIRTY=false;
@@ -16021,18 +16098,11 @@ async function downloadStandalone(event){
 }
 function saveGame(){
   SAVE_PAUSED=false;
-  const s=JSON.stringify(WORLD), changeSeq=SAVE_CHANGE_SEQ;
-  storeSave(s,{club:UC().cn,season:WORLD.season,day:WORLD.day})
-    .then(saved=>{ if(!saved || SAVE_PAUSED) return;  LAST_SAVE_AT=new Date(); SAVE_DIRTY=SAVE_CHANGE_SEQ!==changeSeq; toast(`已保存（${(s.length/1048576).toFixed(2)} MB）`); if(VIEW==="save") render(); })
-    .catch(err=>toast("保存失败："+((err&&err.message)||"浏览器存储不可用")+"，请改用导出文件","bad"));
+  if(SAVE_INFLIGHT){markDirty();toast("正在保存，稍后自动保存最新改动");return;}
+  markDirty();flushAutosave(true);toast("正在保存进度…");
 }
 function loadGame(){
-  readSave().then(s=>{
-    if(!s){ toast("没有找到存档","bad"); return; }
-    try{ adoptWorld(JSON.parse(s)); render(); toast("存档已载入"); }
-    catch(e){ toast(loadErrMsg(e),"bad"); return; }
-    healSave().then(fx=>{ if(fx.length) toast("已把存档补写回 "+fx.join("、")); }).catch(()=>{});
-  }).catch(()=>toast("读取失败","bad"));
+  restoreBrowserSave(false).then(ok=>toast(ok?"存档已载入":"没有可读取的存档",ok?undefined:"bad")).catch(()=>toast("读取失败","bad"));
 }
 function exportSave(){
   const blob=new Blob([JSON.stringify(WORLD)],{type:"application/json"});
@@ -16110,8 +16180,8 @@ function copyWx(){
 const SCR_PAD="padding:calc(20px + var(--sat)) calc(20px + var(--sar)) calc(20px + var(--sab)) calc(20px + var(--sal))";
 
 /* ---------- 自动保存：任何操作后 1.5 秒内落盘 ----------
-   render() 会在每次界面状态变化后调用，在那里打脏标记；比赛动画播放中不落盘，
-   等结算后再存。切后台 / 关页面时如果还有未落盘的改动，立刻同步写一次。 */
+   仅真实进度操作标记改动；浏览导航/筛选/排序不落盘。快照分片后在 Worker 校验、压缩；
+   比赛播放中等待结算，后台仍尽早启动异步保存，不承诺关闭进程后完成写入。 */
 let SAVE_DIRTY=false, SAVE_TIMER=null, LAST_SAVE_AT=null, SAVE_INFLIGHT=false, SAVE_CHANGE_SEQ=0;
 function markDirty(){
   if(SAVE_PAUSED||!WORLD||!WORLD.clubs) return;
@@ -16121,10 +16191,10 @@ function markDirty(){
 function flushAutosave(force){
   if(SAVE_PAUSED||!SAVE_DIRTY||!WORLD?.clubs) return;
   clearTimeout(SAVE_TIMER); SAVE_TIMER=null;
-  if(BUSY||(CURMATCH&&!CURMATCH.done&&!force)||SAVE_INFLIGHT){ SAVE_TIMER=setTimeout(flushAutosave,1000); return; }
+  if(BUSY||(CURMATCH&&!CURMATCH.done)||SAVE_INFLIGHT){ SAVE_TIMER=setTimeout(flushAutosave,1000); return; }
   const epoch=SAVE_EPOCH, seq=SAVE_CHANGE_SEQ;
   SAVE_DIRTY=false; SAVE_INFLIGHT=true;
-  Promise.resolve().then(()=>storeSave(JSON.stringify(WORLD),{club:UC().cn,season:WORLD.season,day:WORLD.day,auto:1}))
+  Promise.resolve().then(()=>storeSave(null,{club:UC().cn,season:WORLD.season,day:WORLD.day,auto:1},WORLD))
     .then(saved=>{
       if(!saved||SAVE_PAUSED||epoch!==SAVE_EPOCH) return;
       SAVE_FAILS=0; SAVE_ERR=""; LAST_SAVE_AT=new Date();
@@ -16159,22 +16229,32 @@ function enterGame(){
   document.getElementById("loadscr").style.display="none";
   document.getElementById("app").style.display="flex";
   prepareDeadlineMarket();
-  render();
+  render(false);
   startResourceCache();
 }
-function continueGame(){
-  toast("正在读取存档…");
-  readSave().then(async s=>{
-    if(!s){                                  // 索引在但正文没了 = 被浏览器清过
-      const fp=await readFP();
-      if(fp) return wipedScreen(fp);
-      toast("没有找到存档","bad"); newGameScreen(); return;
-    }
-    try{ adoptWorld(JSON.parse(s)); enterGame(); toast("已载入存档"); }
-    catch(e){ toast(loadErrMsg(e),"bad"); newGameScreen(); return; }
-    healSave().then(fx=>{ if(fx.length) toast("已把存档补写回 "+fx.join("、")); }).catch(()=>{});
-  }).catch(()=>{ toast("存档无法读取","bad"); newGameScreen(); });
+function adoptPreparedSave(record){
+  WORLD=record.obj;RNGSTATE=record.runtime.rng;PID=record.runtime.pid;FIN_CLK=record.runtime.clk;REV_R={key:""};REV_S={key:""};
+  SAVE_EPOCH++;clearTimeout(SAVE_TIMER);SAVE_TIMER=null;SAVE_DIRTY=false;SAVE_PAUSED=false;resetMatchSession(true);VIEW="home";LGNATION=null;
 }
+async function restoreBrowserSave(enter){
+  const epoch=SAVE_EPOCH,seq=SAVE_CHANGE_SEQ,record=await readSaveRecord('adopt');
+  if(epoch!==SAVE_EPOCH||seq!==SAVE_CHANGE_SEQ)return false;
+  if(!record)return false;
+  adoptPreparedSave(record);if(enter)enterGame();else render(false);
+  // 补写只比较压缩正文，复用刚选出的有效副本；排队后若有新保存则改取最新记录。
+  healSave(record).then(fx=>{if(fx.length)toast("已把存档补写回 "+fx.join("、"));}).catch(()=>{});
+  return true;
+}
+async function continueGame(){
+  if(CONTINUE_LOADING)return;CONTINUE_LOADING=true;toast("正在读取存档…");
+  try{
+    if(await restoreBrowserSave(true)){toast("已载入存档");return;}
+    if(WORLD)return;
+    const fp=await readFP();if(fp)return wipedScreen(fp);toast("没有找到存档","bad");newGameScreen();
+  }catch(e){toast("存档无法读取","bad");if(!WORLD)newGameScreen();}
+  finally{CONTINUE_LOADING=false;}
+}
+let CONTINUE_LOADING=false;
 function wipedScreen(fp){
   document.getElementById("app").style.display="none";
   const ls=document.getElementById("loadscr");
@@ -16437,10 +16517,7 @@ function lockZoom(){
   // iOS Safari 会忽略 user-scalable=no，需拦截 gesture 事件
   ["gesturestart","gesturechange","gestureend"].forEach(t=>
     document.addEventListener(t, e=>e.preventDefault(), {passive:false}));
-  // 双指 touchmove 兜底（不影响单指滚动）
-  document.addEventListener("touchmove", e=>{
-    if(e.touches && e.touches.length>1) e.preventDefault();
-  }, {passive:false});
+  // 由 touch-action 与 gesture 处理缩放，避免非被动 touchmove 阻塞单指滚动。
   // 万一被浏览器缩放过，切回前台时复位
   document.addEventListener("visibilitychange",()=>{
     if(!document.hidden && window.visualViewport && window.visualViewport.scale>1.01)
@@ -16529,7 +16606,7 @@ function watchOrientation(){
     _oriT=setTimeout(()=>{
       const s=document.getElementById("side"); if(s){ s.scrollLeft=0; s.scrollTop=0; }
       const v=document.getElementById("view"); if(v) v.scrollTop=0;
-      try{ render(); }catch(e){}
+      try{ render(false); }catch(e){}
     },260);
   };
   window.addEventListener("orientationchange",on);
