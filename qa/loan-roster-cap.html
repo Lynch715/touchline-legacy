@@ -1,0 +1,32 @@
+<!doctype html><meta charset="utf-8"><title>外租名额与旧档兼容 QA</title>
+<script>
+(async()=>{
+ const standalone=new URLSearchParams(location.search).has('standalone');
+ const html=await(await fetch(standalone?'../执掌绿茵.html':'../index.html',{cache:'no-store'})).text();
+ const sha=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(html)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+ const setup=()=>document.addEventListener('DOMContentLoaded',()=>{
+  // 仅在内存生成兼容旧格式的合成测试档；禁用三层存储读写，不访问玩家存档。
+  idbGet=async()=>null;cacheGet=async()=>null;readSaveRecord=async()=>null;healSave=async()=>[];storeSave=async()=>{throw Error('QA禁止保存');};
+  startMenu=async()=>{try{
+   SAVE_PAUSED=true;newWorld(4242,'Manchester City');adoptWorld(structuredClone(WORLD));SAVE_PAUSED=true;clearTimeout(SAVE_TIMER);
+   const owner=UC(),host=WORLD.clubs.find(c=>c.id!==owner.id);
+   while(owner.squad.length<31){const p=makePlayer(45,'MC',24,owner.id);WORLD.players[p.id]=p;owner.squad.push(p.id);}
+   while(owner.squad.length>31)toFreeAgent(P(owner.squad.at(-1)),owner);
+   for(const id of owner.squad.slice(-8))if(!loanPlayer(id,host.id,{wageShare:.5}))throw Error('QA外租失败');
+   const raw=JSON.stringify(WORLD),input=JSON.parse(raw);adoptWorld(input);SAVE_PAUSED=true;clearTimeout(SAVE_TIMER);
+   const inputUnchanged=JSON.stringify(input)===raw,c=UC();Object.assign(c.finance,{balance:1e12,locked:0,cap0:1e12,rev0:1e12});FIN_CLK++;
+   const originalLoans=JSON.stringify(c.loanedOut.map(id=>[id,P(id).loan])),target=P(WORLD.freeAgents[0]);let roundtrip=null;
+   VIEW='squad';enterGame();fitAppHeight();
+   const panel=document.createElement('div');panel.id='loan-cap-qa';panel.style.cssText='position:fixed;z-index:9999;top:3px;right:3px;width:min(350px,94vw);padding:8px;background:var(--bg2);border:1px solid var(--line);border-radius:8px;box-sizing:border-box';
+   const status=document.createElement('div');status.id='loan-cap-status';panel.appendChild(status);
+   const report=document.createElement('script');report.type='application/json';report.id='loan-cap-report';document.body.appendChild(report);
+   function button(text,fn){const b=document.createElement('button');b.textContent=text;b.style.cssText='margin:4px 4px 0 0';b.onclick=async()=>{await fn();update();};panel.appendChild(b);}
+   button('QA 签入第24人',()=>makeBid(target.id));
+   button('QA 存档压缩重读',async()=>{const expected=JSON.stringify(WORLD),runtime={rng:RNGSTATE,pid:PID,clk:FIN_CLK};const packed=await processSaveTask({op:'pack',raw:expected,at:100,runtime});const restored=await processSaveTask({op:'decode',payload:packed.payload,mode:'adopt',runtime});roundtrip=JSON.stringify(restored.obj)===expected;});
+   function update(){const club=UC(),r={sourceSha256:document.querySelector('meta[name=qa-source-sha]').content,standalone:document.querySelector('meta[name=touchline-distribution]').content,inSquad:club.squad.length,loanedOut:club.loanedOut.length,counted:reservedSquadSize(club),signed:target.clubId===club.id,inputUnchanged,loansUnchanged:JSON.stringify(club.loanedOut.map(id=>[id,P(id).loan]))===originalLoans,roundtrip,savePaused:SAVE_PAUSED,overflow:document.documentElement.scrollWidth>innerWidth,width:innerWidth};status.textContent=`在队 ${r.inSquad} 人 · 外租 ${r.loanedOut} 人 · 引援计数 ${r.counted}/30\n旧档保留：${inputUnchanged&&r.loansUnchanged?'通过':'失败'}${r.signed?' · 签约成功':''}${roundtrip===true?' · 压缩重读通过':''}`;report.textContent=JSON.stringify(r);}
+   document.body.appendChild(panel);setInterval(update,200);update();
+  }catch(e){console.error(e);document.body.innerHTML='<pre id="qa-error"></pre>';document.getElementById('qa-error').textContent=e.stack;}};
+ });
+ document.open();document.write(html.replace('</head>','<base href="../"><meta name="qa-source-sha" content="'+sha+'"><script>('+setup.toString()+')();<\/script></head>'));document.close();
+})();
+</script>

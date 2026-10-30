@@ -16889,7 +16889,8 @@ function pendingArrivals(c){
   return (WORLD.precontracts||[]).map(P).filter(p=>p?.precontract?.to===c.id);
 }
 function reservedSquadSize(c){
-  return c.squad.length+(c.loanedOut||[]).length+pendingArrivals(c).length;
+  // 外租已移出 squad，不占引援名额；已预签到队的球员仍预留名额。无需迁移旧存档。
+  return c.squad.length+pendingArrivals(c).length;
 }
 function signPrecontract(p,c,wage,years,opts){
   if(p.precontract||p.loan||p.clubId<0||p.clubId===c.id||p.contract!==WORLD.season||WORLD.day<=winterDay()) return false;

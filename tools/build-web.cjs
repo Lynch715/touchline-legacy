@@ -13,8 +13,8 @@ web=web.replace('<meta name="touchline-distribution" content="standalone">','<me
 if(!web.includes('content="web"'))throw Error('缺少发行形式标识');
 fs.writeFileSync(path.join(root,'index.html'),web);
 const sha=s=>crypto.createHash('sha256').update(s).digest('hex');
-const worker=fs.readFileSync(path.join(__dirname,'resource-worker.js'),'utf8').replace('__BUILD__','20261029.1').replace('__WEB_SHA__',sha(web)).replace('__ASSETS__',JSON.stringify(files));
+const worker=fs.readFileSync(path.join(__dirname,'resource-worker.js'),'utf8').replace('__BUILD__','20261030.1').replace('__WEB_SHA__',sha(web)).replace('__ASSETS__',JSON.stringify(files));
 fs.writeFileSync(path.join(root,'sw.js'),worker);
-const manifest={version:'20261029.1',source:'执掌绿茵.html',sourceSha256:sha(source),sourceBytes:Buffer.byteLength(source),webBytes:Buffer.byteLength(web),sourceGzipBytes:zlib.gzipSync(source).length,webGzipBytes:zlib.gzipSync(web).length,images:files.length,imageBytes:files.reduce((n,f)=>n+f.bytes,0),files:[{path:'sw.js',bytes:Buffer.byteLength(worker),sha256:sha(worker)},{path:'index.html',bytes:Buffer.byteLength(web),sha256:sha(web)},{path:'执掌绿茵.html',bytes:Buffer.byteLength(source),sha256:sha(source)},...files]};
+const manifest={version:'20261030.1',source:'执掌绿茵.html',sourceSha256:sha(source),sourceBytes:Buffer.byteLength(source),webBytes:Buffer.byteLength(web),sourceGzipBytes:zlib.gzipSync(source).length,webGzipBytes:zlib.gzipSync(web).length,images:files.length,imageBytes:files.reduce((n,f)=>n+f.bytes,0),files:[{path:'sw.js',bytes:Buffer.byteLength(worker),sha256:sha(worker)},{path:'index.html',bytes:Buffer.byteLength(web),sha256:sha(web)},{path:'执掌绿茵.html',bytes:Buffer.byteLength(source),sha256:sha(source)},...files]};
 fs.writeFileSync(path.join(root,'assets','manifest.json'),JSON.stringify(manifest,null,2)+'\n');
 console.log(JSON.stringify({webBytes:manifest.webBytes,webGzipBytes:manifest.webGzipBytes,standaloneBytes:manifest.sourceBytes,images:manifest.images,imageBytes:manifest.imageBytes}));
