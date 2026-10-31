@@ -8848,8 +8848,13 @@ function bumpAttr(p,focusList,dir,club){
     for(const k in w) for(let i=0;i<w[k];i++) pool.push(k);
     if(focusList) focusList.forEach(k=>{ for(let i=0;i<7;i++) pool.push(k); });
     if(p.pos==="GK") for(const k in ATTRS_GK) for(let i=0;i<3;i++) pool.push(k);
-    const cap=Math.min(p.pa,devCap(p)),eligible=new Set([...new Set(pool)].filter(k=>ALL_ATTRS[k]&&p.a[k]<20&&calcCA({...p.a,[k]:p.a[k]+1},p.pos)<=cap));
+    const cap=Math.min(p.pa,devCap(p));
+    const canGrow=k=>ALL_ATTRS[k]&&p.a[k]<20&&calcCA({...p.a,[k]:p.a[k]+1},p.pos)<=cap;
+    const eligible=new Set([...new Set(pool)].filter(canGrow));
     pool=pool.filter(k=>eligible.has(k));
+    // 核心/专项属性练满后，继续培养同样计入 CA 的其余属性。
+    // 仅在原训练池无法提升时补入，保留正常培养的优先级与计费。
+    if(!pool.length) pool=ATTR_KEYS.filter(k=>(k in w || !(k in ATTRS_GK))&&canGrow(k));
   } else {
     // 衰退优先身体属性
     ["pace","accel","agility","stamina","jumping","strength"].forEach(k=>{ for(let i=0;i<4;i++) pool.push(k); });
