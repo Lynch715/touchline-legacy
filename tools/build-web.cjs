@@ -1,7 +1,7 @@
 // 完整离线版为源文件；网页版替换图片表示，并生成独立于存档的资源缓存。
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),zlib=require('node:zlib');
 const root=path.resolve(__dirname,'..'),sourcePath=path.join(root,'执掌绿茵.html');
-const build='20261031.1';
+const build='20261102.1';
 const source=fs.readFileSync(sourcePath,'utf8'),out=path.join(root,'assets','images');fs.mkdirSync(out,{recursive:true});
 const seen=new Map(),files=[];
 let web=source.replace(/data:image\/([a-zA-Z0-9.+-]+);base64,([A-Za-z0-9+/=]+)/g,(uri,type,b64)=>{
@@ -11,11 +11,13 @@ let web=source.replace(/data:image\/([a-zA-Z0-9.+-]+);base64,([A-Za-z0-9+/=]+)/g
  fs.writeFileSync(path.join(root,file),data);seen.set(uri,file);files.push({path:file,bytes:data.length,sha256:hash});return file;
 });
 web=web.replace('<meta name="touchline-distribution" content="standalone">','<meta name="touchline-distribution" content="web">');
+web=web.replace('<meta name="touchline-distribution" content="web">','<meta name="touchline-distribution" content="web">\n<meta name="touchline-standalone-bytes" content="'+Buffer.byteLength(source)+'">\n<link rel="manifest" href="manifest.webmanifest">\n<link rel="apple-touch-icon" href="assets/pwa/icon-192.png">\n<link rel="icon" type="image/png" href="assets/pwa/icon-192.png">');
 if(!web.includes('content="web"'))throw Error('缺少发行形式标识');
 fs.writeFileSync(path.join(root,'index.html'),web);
 const sha=s=>crypto.createHash('sha256').update(s).digest('hex');
-const worker=fs.readFileSync(path.join(__dirname,'resource-worker.js'),'utf8').replace('__BUILD__',build).replace('__WEB_SHA__',sha(web)).replace('__ASSETS__',JSON.stringify(files));
+const appFiles=['manifest.webmanifest','assets/pwa/icon-192.png','assets/pwa/icon-512.png','assets/pwa/icon-maskable-512.png'].map(file=>{const data=fs.readFileSync(path.join(root,file));return {path:file,bytes:data.length,sha256:sha(data)};});
+const worker=fs.readFileSync(path.join(__dirname,'resource-worker.js'),'utf8').replace('__BUILD__',build).replace('__WEB_SHA__',sha(web)).replace('__ASSETS__',JSON.stringify(files)).replace('__APP_FILES__',JSON.stringify(appFiles));
 fs.writeFileSync(path.join(root,'sw.js'),worker);
-const manifest={version:build,source:'执掌绿茵.html',sourceSha256:sha(source),sourceBytes:Buffer.byteLength(source),webBytes:Buffer.byteLength(web),sourceGzipBytes:zlib.gzipSync(source).length,webGzipBytes:zlib.gzipSync(web).length,images:files.length,imageBytes:files.reduce((n,f)=>n+f.bytes,0),files:[{path:'sw.js',bytes:Buffer.byteLength(worker),sha256:sha(worker)},{path:'index.html',bytes:Buffer.byteLength(web),sha256:sha(web)},{path:'执掌绿茵.html',bytes:Buffer.byteLength(source),sha256:sha(source)},...files]};
+const manifest={version:build,source:'执掌绿茵.html',sourceSha256:sha(source),sourceBytes:Buffer.byteLength(source),webBytes:Buffer.byteLength(web),sourceGzipBytes:zlib.gzipSync(source).length,webGzipBytes:zlib.gzipSync(web).length,images:files.length,imageBytes:files.reduce((n,f)=>n+f.bytes,0),files:[{path:'sw.js',bytes:Buffer.byteLength(worker),sha256:sha(worker)},{path:'index.html',bytes:Buffer.byteLength(web),sha256:sha(web)},{path:'执掌绿茵.html',bytes:Buffer.byteLength(source),sha256:sha(source)},...appFiles,...files]};
 fs.writeFileSync(path.join(root,'assets','manifest.json'),JSON.stringify(manifest,null,2)+'\n');
 console.log(JSON.stringify({webBytes:manifest.webBytes,webGzipBytes:manifest.webGzipBytes,standaloneBytes:manifest.sourceBytes,images:manifest.images,imageBytes:manifest.imageBytes}));

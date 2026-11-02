@@ -1,28 +1,48 @@
 {
-  "version": "20261031.1",
+  "version": "20261102.1",
   "source": "执掌绿茵.html",
-  "sourceSha256": "79ef590df11026f62a735b571e7f8d504989d4d28f28575e1dfd73b4d5d07f90",
-  "sourceBytes": 15082115,
-  "webBytes": 2620528,
-  "sourceGzipBytes": 10226736,
-  "webGzipBytes": 817564,
+  "sourceSha256": "46788f77c0a2242be761f023d4260be839211bf5366c64cbd0d4af2e6c9c15d6",
+  "sourceBytes": 15091606,
+  "webBytes": 2630256,
+  "sourceGzipBytes": 10229708,
+  "webGzipBytes": 820635,
   "images": 1321,
   "imageBytes": 9364670,
   "files": [
     {
       "path": "sw.js",
-      "bytes": 195644,
-      "sha256": "5e9741191537ca0a39e47c5d1edb99cf413b4d8741a60081c818257d621ac8f3"
+      "bytes": 196726,
+      "sha256": "7e1bc616a1a8049d530951cec6e47820d95e221344dad475a3bbf38bdcba4f4d"
     },
     {
       "path": "index.html",
-      "bytes": 2620528,
-      "sha256": "3025ec613bb31cb601e2fbdbaf217c22738881894bed2ef9ded206b0154394f9"
+      "bytes": 2630256,
+      "sha256": "af7ca782e33c31897ccc6750cddf9374957862fb0ae6e587ddb76a730d04d074"
     },
     {
       "path": "执掌绿茵.html",
-      "bytes": 15082115,
-      "sha256": "79ef590df11026f62a735b571e7f8d504989d4d28f28575e1dfd73b4d5d07f90"
+      "bytes": 15091606,
+      "sha256": "46788f77c0a2242be761f023d4260be839211bf5366c64cbd0d4af2e6c9c15d6"
+    },
+    {
+      "path": "manifest.webmanifest",
+      "bytes": 752,
+      "sha256": "e61b70b1cb070f59888ad141e5a75ef0127e712912d4f567901c90643c986a5e"
+    },
+    {
+      "path": "assets/pwa/icon-192.png",
+      "bytes": 8178,
+      "sha256": "5d7c4739b53b1f296d580cce456562793a1f3a0b2ce718376c93c602fc4c284a"
+    },
+    {
+      "path": "assets/pwa/icon-512.png",
+      "bytes": 22739,
+      "sha256": "78391d6882504b92ce299dad0271675daa7c0d001cb8cb1bfb8fcf21a8556dba"
+    },
+    {
+      "path": "assets/pwa/icon-maskable-512.png",
+      "bytes": 18512,
+      "sha256": "d4ac1e21de9e370bc281e426edfc7e4ae88ba020c2f783abbb2aa757429dc49d"
     },
     {
       "path": "assets/images/0b544ee5e6d7a18cb95cb8fa.webp",

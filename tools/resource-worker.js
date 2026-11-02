@@ -3,10 +3,13 @@
 const BUILD = '__BUILD__';
 const WEB_SHA = '__WEB_SHA__';
 const ASSETS = __ASSETS__;
+const APP_FILES = __APP_FILES__;
+const RESOURCES = [...ASSETS, ...APP_FILES];
 const BASE = new URL(self.registration.scope);
 const CACHE = 'touchline-resources-v1:' + BASE.href;
 const SHELL = new URL('index.html', BASE).href;
-const FILES = new Map(ASSETS.map(f => [new URL(f.path, BASE).href, f]));
+const FILES = new Map(RESOURCES.map(f => [new URL(f.path, BASE).href, f]));
+const APP_URLS = new Set(APP_FILES.map(f => new URL(f.path, BASE).href));
 const inflight = new Map();
 let warming = null, latestStatus = null;
 const watchers = new Map();
@@ -19,7 +22,10 @@ async function verified(response, sha, size) {
 }
 async function image(url) {
   const cache = await caches.open(CACHE).catch(() => null), hit = await cache?.match(url).catch(() => null);
-  if (hit) return hit;
+  if (hit) {
+    if (!APP_URLS.has(url)) return hit;
+    try { return await verified(hit, FILES.get(url).sha256, FILES.get(url).bytes); } catch (_) {}
+  }
   if (!inflight.has(url)) {
     const work = (async () => {
       const f = FILES.get(url);
@@ -70,9 +76,9 @@ async function warm(source) {
     try { await saveShell(await fetch(SHELL, { cache: 'no-cache' })); } catch (_) {}
   }
   const present = new Set((await cache.keys()).map(r => r.url));
-  const pending = ASSETS.filter(f => !present.has(new URL(f.path, BASE).href));
-  let cursor = 0, done = ASSETS.length - pending.length, failed = 0;
-  const report = async phase => notify(source, { phase, done, total: ASSETS.length, failed, shell: !!(await cache.match(SHELL)) });
+  const pending = RESOURCES.filter(f => !present.has(new URL(f.path, BASE).href));
+  let cursor = 0, done = RESOURCES.length - pending.length, failed = 0;
+  const report = async phase => notify(source, { phase, done, total: RESOURCES.length, failed, shell: !!(await cache.match(SHELL)) });
   await report('warming');
   await Promise.all(Array.from({ length: 3 }, async () => {
     while (cursor < pending.length) {
@@ -84,9 +90,13 @@ async function warm(source) {
       await new Promise(resolve => setTimeout(resolve, 20));
     }
   }));
-  await report(failed ? 'partial' : 'ready');
+  await report(failed || !await cache.match(SHELL) ? 'partial' : 'ready');
 }
-self.addEventListener('install', event => { event.waitUntil(self.skipWaiting()); });
+self.addEventListener('install', event => { event.waitUntil((async () => {
+  // 启动页先保存入口和安装图标；整套游戏图片仍在进入游戏后准备。
+  await Promise.allSettled([fetch(SHELL, { cache: 'no-cache' }).then(saveShell), ...APP_FILES.map(f => image(new URL(f.path, BASE).href))]);
+  await self.skipWaiting();
+})()); });
 self.addEventListener('activate', event => { event.waitUntil(self.clients.claim()); });
 self.addEventListener('message', event => {
   if (event.data?.type !== 'TOUCHLINE_WARM') return;

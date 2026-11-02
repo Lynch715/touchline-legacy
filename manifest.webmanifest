@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "执掌绿茵 · Touchline Legacy",
+  "short_name": "执掌绿茵",
+  "description": "足球俱乐部经营模拟：排兵布阵、转会引援、青训培养与长期执教生涯。",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
+  "categories": ["games", "sports"],
+  "icons": [
+    { "src": "assets/pwa/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/pwa/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/pwa/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

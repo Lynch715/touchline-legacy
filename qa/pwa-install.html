@@ -1,0 +1,50 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>安装提示与离线下载验收</title>
+<style>body{font:14px system-ui;background:#eef3f0;color:#17382d;margin:16px}button{padding:12px}pre{white-space:pre-wrap}iframe{width:100%;height:650px;border:1px solid #8da89b}</style>
+<h1>安装提示与离线下载验收</h1><p>仅在本机运行。模拟安装事件和设备标识；不触发系统安装，不改写游戏存档。</p>
+<button id="run" disabled>运行安装分支检查</button><pre id="report">正在加载游戏</pre><iframe id="game" title="游戏验收窗口" src="../index.html"></iframe>
+<script>
+const frame=document.getElementById('game'),button=document.getElementById('run'),out=document.getElementById('report'),checks=[];
+const hash=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s||'')))].map(b=>b.toString(16).padStart(2,'0')).join('');
+const assert=(ok,message)=>{if(!ok)throw Error(message);checks.push({name:message,passed:true});};
+frame.onload=()=>{button.disabled=false;out.textContent='已加载，可运行';};
+async function saveDigest(w){const result={};for(const k of ['fmweb_save_v2','fmweb_save_v2_meta'])result[k]={local:await hash(localStorage.getItem(k)),idb:await hash(await w.idbGet(k)),cache:await hash(await w.cacheGet(k))};return JSON.stringify(result);}
+button.onclick=async()=>{
+ button.disabled=true;const w=frame.contentWindow;let originalAgent,originalPlatform,originalTouches,originalStandalone;
+ try{
+  if(!['127.0.0.1','localhost'].includes(location.hostname))throw Error('本验收页仅允许本机运行');
+  const before=await saveDigest(w),manifest=await(await fetch('../manifest.webmanifest')).json();
+  assert(manifest.name.startsWith('执掌绿茵')&&manifest.scope==='./'&&manifest.start_url==='./'&&manifest.display==='standalone','安装清单名称、启动目录与独立窗口模式正确');
+  for(const icon of manifest.icons){const blob=await(await fetch(new URL(icon.src,new URL('../',location.href)))).blob(),image=await createImageBitmap(blob);assert(icon.sizes===image.width+'x'+image.height,'安装图标尺寸 '+icon.sizes+' '+icon.purpose);image.close();}
+  const card=w.offlineAppCard();w.document.body.appendChild(card);
+  let calls=0;const event=new w.Event('beforeinstallprompt',{cancelable:true});event.prompt=async()=>{calls++;};event.userChoice=Promise.resolve({outcome:'dismissed'});w.dispatchEvent(event);
+  assert(event.defaultPrevented&&card.querySelector('[data-pwa-install]').textContent==='安装到桌面','收到安装事件后显示原生安装入口');
+  await w.requestAppInstall();assert(calls===1&&card.querySelector('[data-pwa-install]').textContent==='查看安装步骤','取消原生安装后清理事件并恢复手动步骤');
+  await w.requestAppInstall();assert(calls===1&&w.document.getElementById('modal').classList.contains('pwa-guide'),'同一安装事件只用一次，启动页手动说明可置顶显示');w.closeModal();
+  const reject=new w.Event('beforeinstallprompt',{cancelable:true});reject.prompt=async()=>{throw Error('test unavailable');};w.dispatchEvent(reject);await w.requestAppInstall();assert(card.querySelector('[data-pwa-install]').textContent==='查看安装步骤','原生安装失败后可继续查看手动步骤');
+  originalAgent=Object.getOwnPropertyDescriptor(w.navigator,'userAgent');originalPlatform=Object.getOwnPropertyDescriptor(w.navigator,'platform');originalTouches=Object.getOwnPropertyDescriptor(w.navigator,'maxTouchPoints');originalStandalone=Object.getOwnPropertyDescriptor(w.navigator,'standalone');
+  Object.defineProperty(w.navigator,'userAgent',{configurable:true,value:'Mozilla/5.0 (iPhone) AppleWebKit Safari'});assert(w.installInstructions().includes('添加到主屏幕'),'iPhone 显示分享与添加到主屏幕步骤');
+  Object.defineProperty(w.navigator,'userAgent',{configurable:true,value:'Mozilla/5.0 (Macintosh) Safari'});Object.defineProperty(w.navigator,'platform',{configurable:true,value:'MacIntel'});Object.defineProperty(w.navigator,'maxTouchPoints',{configurable:true,value:5});assert(w.installInstructions().includes('添加到主屏幕'),'桌面标识的 iPad 仍显示主屏幕步骤');
+  Object.defineProperty(w.navigator,'platform',{configurable:true,value:'Linux armv8l'});Object.defineProperty(w.navigator,'maxTouchPoints',{configurable:true,value:5});Object.defineProperty(w.navigator,'userAgent',{configurable:true,value:'Android Chrome'});assert(w.installInstructions().includes('安装应用'),'Android 提供浏览器菜单安装步骤');
+  Object.defineProperty(w.navigator,'userAgent',{configurable:true,value:'iPhone MicroMessenger'});assert(w.installInstructions().includes('系统浏览器'),'微信内置浏览器提示在系统浏览器中打开');
+  Object.defineProperty(w.navigator,'standalone',{configurable:true,value:true});w.refreshInstallUI();w.offlineHint();assert(card.querySelector('[data-pwa-install]').disabled&&!w.document.getElementById('pwa-install-hint'),'已从主屏幕启动时隐藏自动提示并禁用重复安装');
+  Object.defineProperty(w.navigator,'standalone',{configurable:true,value:false});w.dispatchEvent(new w.Event('appinstalled'));assert(card.querySelector('[data-pwa-install]').disabled,'安装成功事件隐藏提示并更新常驻入口');
+  assert(card.querySelector('[data-standalone-download]').type==='button'&&card.querySelector('[data-standalone-save]').download==='执掌绿茵.html'&&card.querySelector('a[target="_blank"]'),'下载提供文件准备按钮、可再次点击保存与新窗口备用入口');
+  const nativeFetch=w.fetch;let release,callsToFetch=0;
+  try{
+   w.fetch=()=>{callsToFetch++;return new Promise(resolve=>{release=resolve;});};const first=w.downloadStandalone(),second=w.downloadStandalone();
+   assert(callsToFetch===1&&card.querySelector('[data-standalone-download]').disabled,'准备文件时阻止重复下载并显示忙碌状态');
+   release(new w.Response('',{status:404}));await Promise.all([first,second]);
+   assert(card.querySelector('#standalone-download-status').textContent.includes('HTTP 404')&&!card.querySelector('[data-standalone-download]').disabled,'下载失败显示原因和备用入口，并允许重试');
+   w.fetch=async()=>new w.Response('not a game',{status:200});await w.downloadStandalone();
+   assert(card.querySelector('#standalone-download-status').textContent.includes('文件不完整')&&card.querySelector('[data-standalone-save]').hidden,'不把错误网页或残缺文件当作下载成功');
+  }finally{w.fetch=nativeFetch;}
+  assert(w.resourceCacheText({phase:'ready',done:10,total:10,shell:false}).includes('尚未保存'),'入口未保存时不误报离线已准备好');
+  assert(await saveDigest(w)===before,'安装、提示和下载处理均未改写三层游戏存档');
+  card.remove();out.textContent=JSON.stringify({passed:true,checks:checks.length,results:checks},null,2);
+ }catch(e){out.textContent=JSON.stringify({passed:false,results:checks,error:e.stack},null,2);}
+ finally{
+  for(const [key,descriptor] of [['userAgent',originalAgent],['platform',originalPlatform],['maxTouchPoints',originalTouches],['standalone',originalStandalone]]){if(descriptor)Object.defineProperty(w.navigator,key,descriptor);else delete w.navigator[key];}
+ }
+};
+</script>

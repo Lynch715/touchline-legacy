@@ -9,6 +9,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="执掌绿茵">
 <meta name="touchline-distribution" content="web">
+<meta name="touchline-standalone-bytes" content="15091606">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/pwa/icon-192.png">
+<link rel="icon" type="image/png" href="assets/pwa/icon-192.png">
 
 
 
@@ -247,6 +251,7 @@ img.crest-plate{background:#f5f1e9;border-radius:50%;padding:2px;box-sizing:bord
   align-items:center;justify-content:center;backdrop-filter:blur(2px);
   padding:calc(24px + var(--sat)) calc(24px + var(--sar)) calc(24px + var(--sab)) calc(24px + var(--sal))}
 #modal.on{display:flex}
+#modal.pwa-guide{z-index:360}
 #modal-box{background:var(--bg2);border:1px solid var(--line);border-radius:10px;
   /* 宽度贴合内容，短表单不再飘在一个 900px 的空盒子里 */
   width:max-content;min-width:min(440px,100%);max-width:min(900px,100%);
@@ -272,6 +277,16 @@ img.crest-plate{background:#f5f1e9;border-radius:50%;padding:2px;box-sizing:bord
 @keyframes tin{from{opacity:0;transform:translateY(10px)}}
 
 /* ---------- 比赛日 ---------- */
+#pwa-install-hint{position:fixed;z-index:350;top:calc(62px + var(--sat));right:calc(12px + var(--sar));
+  width:min(390px,calc(100% - 24px - var(--sal) - var(--sar)));max-height:calc(var(--app-height,100dvh) - 90px - var(--sat));
+  overflow:auto;background:var(--bg2);color:var(--txt);border:1px solid var(--acc);border-radius:12px;
+  padding:16px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+#pwa-install-hint h3{margin:0 0 8px;font-size:17px}
+.pwa-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.pwa-actions .btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;white-space:normal}
+.pwa-actions [hidden]{display:none}
+.pwa-actions button{white-space:normal}
+
 #pitchwrap{background:#0a1410;border:1px solid var(--line);border-radius:8px;overflow:hidden;position:relative}
 #pitch{display:block;width:100%;height:auto;background:#12331f}
 #mscore{display:flex;align-items:center;justify-content:center;gap:16px;padding:11px;
@@ -12759,7 +12774,7 @@ function openModal(title, html, footer){
   $("#modal-ft").innerHTML=footer||'<button onclick="closeModal()">关闭</button>';
   $("#modal").classList.add("on");
 }
-function closeModal(){ $("#modal").classList.remove("on");
+function closeModal(){ $("#modal").classList.remove("on","pwa-guide");
   if($("#modal-t").textContent==="赛季回顾") setTimeout(processLoanBuyouts,0);
   // 临场换人/战术面板关闭时，按打开前的播放状态恢复比赛
   if(typeof SUBRESUME!=="undefined" && SUBRESUME && CURMATCH && VIEW==="match" && !CURMATCH.done){ SUBRESUME=false; SUBQ=[]; SUBOUT=null; toggleplay(true); }
@@ -16178,11 +16193,7 @@ function vSave(v){
   g.appendChild(c2);
   v.appendChild(g);
 
-  const up=el("div","card");
-  const webEdition=document.querySelector('meta[name="touchline-distribution"]')?.content==="web";
-  up.innerHTML=webEdition?'<h3>完整离线版</h3><div class="hint"><span id="resource-cache-status"></span><br>进入主界面后会后台保存队徽、国旗和网页入口，之后优先复用本地图片。缓存与存档分开，浏览器清理空间时可能回收缓存。需要长期保留完整离线文件，可下载单文件版，并导出存档后导入。</div><div class="hr"></div><a class="btn" href="执掌绿茵.html" download="执掌绿茵.html" onclick="downloadStandalone(event)">下载完整单文件版</a>':"<h3>单文件 v3</h3><div class=hint>资源已内嵌。下载并保留此 HTML，可用支持本地 HTML 的浏览器离线打开；在线地址添加到主屏幕不能保证离线可用。升级时请先导出存档，再打开新文件并导入。</div>";
-  v.appendChild(up);
-  if(webEdition)up.querySelector("#resource-cache-status").textContent=RESOURCE_CACHE_STATUS;
+  v.appendChild(offlineAppCard());
 
   const st=el("div","card");
   st.innerHTML="<h3>存储自检</h3><div class='hint'>存档莫名丢失时点这里，把结果截图发出来即可定位是哪一层存储被浏览器拦掉了</div><div class='hr'></div>";
@@ -16209,43 +16220,69 @@ function vSave(v){
   v.appendChild(credits);
 }
 // 网页资源与存档分别存放；单文件版无需注册，失败不阻断游戏。
-let RESOURCE_CACHE_STARTED=false, RESOURCE_CACHE_STATUS="进入主界面后自动准备本地资源。";
+let RESOURCE_CACHE_REGISTRATION=null, RESOURCE_CACHE_STATUS="进入主界面后自动准备离线资源。";
 function resourceCacheText(s){
-  if(s.phase==="ready")return `图片已保存在本地（${s.done}/${s.total}），页面切换和再次打开可直接复用。`;
-  if(s.phase==="warming")return `正在后台保存图片（${s.done}/${s.total}），可继续游戏。`;
-  if(s.phase==="partial")return `已保存 ${s.done}/${s.total} 张图片，下次进入主界面将继续补齐。`;
+  if(s.phase==="ready"&&s.shell)return `离线资源已准备好（${s.done}/${s.total}），可从桌面图标或原网址断网打开。`;
+  if(s.phase==="warming")return `正在后台准备离线资源（${s.done}/${s.total}），可继续游戏。`;
+  if(s.phase==="partial"||s.phase==="ready")return `已保存 ${s.done}/${s.total} 项资源${s.shell?"":"，网页入口尚未保存"}；联网后点击「重新准备离线资源」继续补齐。`;
   return "当前浏览器暂不能保存离线资源，联网时可正常游玩。";
 }
-function startResourceCache(){
-  if(RESOURCE_CACHE_STARTED||document.querySelector('meta[name="touchline-distribution"]')?.content!=="web")return;
-  RESOURCE_CACHE_STARTED=true;
+function registerResourceCache(){
+  if(RESOURCE_CACHE_REGISTRATION)return RESOURCE_CACHE_REGISTRATION;
+  if(!isWebEdition())return Promise.resolve(null);
   const update=s=>{RESOURCE_CACHE_STATUS=resourceCacheText(s);const node=document.getElementById("resource-cache-status");if(node)node.textContent=RESOURCE_CACHE_STATUS;};
-  if(!navigator.serviceWorker||!window.isSecureContext){update({phase:"unavailable"});return;}
+  if(!navigator.serviceWorker||!window.isSecureContext){update({phase:"unavailable"});return Promise.resolve(null);}
   navigator.serviceWorker.addEventListener("message",e=>{if(e.data?.type==="TOUCHLINE_CACHE")update(e.data);});
-  navigator.serviceWorker.addEventListener("controllerchange",()=>navigator.serviceWorker.controller?.postMessage({type:"TOUCHLINE_WARM"}));
-  const boot=async()=>{try{
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{if(WORLD)navigator.serviceWorker.controller?.postMessage({type:"TOUCHLINE_WARM"});});
+  window.addEventListener("online",()=>{if(WORLD)startResourceCache();});
+  RESOURCE_CACHE_REGISTRATION=(async()=>{try{
     const base=new URL("./",document.baseURI);
     const reg=await navigator.serviceWorker.register(new URL("sw.js",base).href,{scope:base.href,updateViaCache:"none"});
     if(!reg.active){const worker=reg.installing||reg.waiting;if(worker)await new Promise((resolve,reject)=>{worker.addEventListener("statechange",()=>{if(worker.state==="activated")resolve();if(worker.state==="redundant")reject(Error("cache-worker"));});if(worker.state==="activated")resolve();});}
-    reg.active?.postMessage({type:"TOUCHLINE_WARM"});
-  }catch(e){update({phase:"unavailable"});}};
-  if(window.requestIdleCallback)window.requestIdleCallback(boot,{timeout:2000});else setTimeout(boot,1000);
-  window.addEventListener("online",()=>{navigator.serviceWorker.getRegistration(new URL("./",document.baseURI).href).then(reg=>reg?.active?.postMessage({type:"TOUCHLINE_WARM"})).catch(()=>{});});
+    return reg;
+  }catch(e){update({phase:"unavailable"});RESOURCE_CACHE_REGISTRATION=null;return null;}})();
+  return RESOURCE_CACHE_REGISTRATION;
 }
-// 按需下载完整离线版；Blob下载兼容不会直接保存HTML链接的内嵌浏览器。
-async function downloadStandalone(event){
-  event.preventDefault();
-  const button=event.currentTarget;
-  if(button.dataset.busy)return;
-  button.dataset.busy="1";button.textContent="正在下载…";
+function startResourceCache(){registerResourceCache().then(reg=>reg?.active?.postMessage({type:"TOUCHLINE_WARM"}));}
+// 先准备 Blob 以兼容内嵌浏览器；保留可再次真实点击的保存链接，兼容限制异步下载的浏览器。
+let STANDALONE_BLOB_URL="", STANDALONE_DOWNLOADING=false;
+async function downloadStandalone(){
+  if(STANDALONE_DOWNLOADING)return;
+  const button=document.querySelector("[data-standalone-download]"),save=document.querySelector("[data-standalone-save]");
+  const status=document.getElementById("standalone-download-status");
+  if(!button||!save||!status)return;
+  STANDALONE_DOWNLOADING=true;button.disabled=true;button.textContent="正在准备下载…";
+  const controller=new AbortController();let timer;
+  const renew=()=>{clearTimeout(timer);timer=setTimeout(()=>controller.abort(),30000);};
   try{
-    const response=await fetch(button.href,{cache:"no-cache"});
-    if(!response.ok)throw Error("HTTP "+response.status);
-    const url=URL.createObjectURL(await response.blob()),a=document.createElement("a");
-    a.href=url;a.download="执掌绿茵.html";a.click();
-    setTimeout(()=>URL.revokeObjectURL(url),30000);
-  }catch(e){toast("下载未完成，请稍后重试："+(e.message||e),"bad");}
-  finally{delete button.dataset.busy;button.textContent="下载完整单文件版";}
+    if(!STANDALONE_BLOB_URL){
+      status.textContent="正在下载完整离线文件，约 15 MB，请保持联网…";renew();
+      const response=await fetch(new URL("执掌绿茵.html",document.baseURI),{cache:"no-cache",signal:controller.signal});
+      if(!response.ok)throw Error("HTTP "+response.status);
+      const total=Number(document.querySelector('meta[name="touchline-standalone-bytes"]')?.content)||0;
+      let blob;
+      if(response.body?.getReader){
+        const reader=response.body.getReader(),chunks=[];let received=0;
+        while(true){const {done,value}=await reader.read();if(done)break;chunks.push(value);received+=value.length;renew();
+          status.textContent=`正在下载 ${(received/1048576).toFixed(1)}${total?" / "+(total/1048576).toFixed(1):""} MB…`;}
+        blob=new Blob(chunks,{type:"text/html;charset=utf-8"});
+      }else blob=new Blob([await response.blob()],{type:"text/html;charset=utf-8"});
+      if(total&&blob.size!==total)throw Error("文件不完整，请刷新页面后重试");
+      const head=await blob.slice(0,3000).text(),tail=await blob.slice(-128).text();
+      if(!head.includes('name="touchline-distribution" content="standalone"')||!tail.includes('</html>'))throw Error("未取得完整离线版，请稍后重试");
+      STANDALONE_BLOB_URL=URL.createObjectURL(blob);
+    }
+    save.href=STANDALONE_BLOB_URL;save.hidden=false;
+    // 使用挂载到页面上的链接；用户也可在准备完成后亲自再点一次。
+    const link=document.createElement("a");link.href=STANDALONE_BLOB_URL;link.download="执掌绿茵.html";link.hidden=true;document.body.appendChild(link);link.click();setTimeout(()=>link.remove(),1000);
+    status.textContent="文件已准备好，已请求浏览器保存。若下载列表里没有文件，请点「点击保存已准备好的文件」；也可新窗口打开后，通过浏览器菜单保存。微信等内置浏览器请先在系统浏览器中打开。";
+  }catch(e){status.textContent="下载未完成："+(e.name==="AbortError"?"网络等待超时，请重试":e.message||e)+"。可重试下载，或点击「新窗口打开离线版」后保存。";}
+  finally{
+    clearTimeout(timer);STANDALONE_DOWNLOADING=false;
+    for(const b of new Set([button,...document.querySelectorAll("[data-standalone-download]")])){b.disabled=false;b.textContent="下载完整单文件版";}
+    const currentStatus=document.getElementById("standalone-download-status");if(currentStatus)currentStatus.textContent=status.textContent;
+    if(STANDALONE_BLOB_URL)document.querySelectorAll("[data-standalone-save]").forEach(a=>{a.href=STANDALONE_BLOB_URL;a.hidden=false;});
+  }
 }
 function saveGame(){
   SAVE_PAUSED=false;
@@ -16657,13 +16694,76 @@ async function onContinue(){
 
 /* ---------- 启动 ---------- */
 /* ---------- PWA：可安装 + 离线 ---------- */
-
-
-// 全屏模式下没有地址栏也没有下拉刷新，这里提供手动更新出口
-
-// 离线可用提示（仅首次）
-
-
+let PWA_INSTALL_PROMPT=null, PWA_INSTALLED=false;
+const PWA_HINT_KEY="touchline-install-hint-until";
+function isWebEdition(){return document.querySelector('meta[name="touchline-distribution"]')?.content==="web"&&/^https?:$/.test(location.protocol);}
+function pwaInstalled(){return PWA_INSTALLED||isStandaloneApp();}
+function installInstructions(){
+  const ua=navigator.userAgent;
+  if(/MicroMessenger|QQ\//i.test(ua))return "请先用右上角菜单在系统浏览器中打开本页，再选择「添加到主屏幕」或「安装应用」。";
+  if(/iPad|iPhone|iPod/i.test(ua)||navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1)return "在 Safari 打开本页，点击「分享」，选择「添加到主屏幕」，再点「添加」。";
+  if(/Android/i.test(ua))return "打开浏览器菜单，选择「安装应用」或「添加到主屏幕」。若当前浏览器没有此选项，可用 Chrome 或 Edge 打开。";
+  if(/Safari/i.test(ua)&&!/Chrome|Chromium|Edg/i.test(ua))return "在 Safari 的「文件」或「分享」菜单中选择「添加到程序坞」。";
+  return "在 Chrome 或 Edge 的地址栏或菜单中选择「安装执掌绿茵」或「将此页面作为应用安装」。若当前浏览器没有安装入口，请换用支持安装的浏览器。";
+}
+function installButtonText(){return pwaInstalled()?"已从桌面启动 / 已安装":PWA_INSTALL_PROMPT?"安装到桌面":"查看安装步骤";}
+function refreshInstallUI(){
+  document.querySelectorAll("[data-pwa-install]").forEach(b=>{b.textContent=installButtonText();b.disabled=pwaInstalled();});
+  document.querySelectorAll("[data-pwa-instructions]").forEach(n=>{n.textContent=pwaInstalled()?"可直接从桌面图标打开游戏。":installInstructions();});
+  if(pwaInstalled())document.getElementById("pwa-install-hint")?.remove();
+}
+function dismissInstallHint(){
+  document.getElementById("pwa-install-hint")?.remove();
+  try{localStorage.setItem(PWA_HINT_KEY,String(Date.now()+7*86400000));}catch(e){}
+}
+async function requestAppInstall(){
+  if(pwaInstalled()){refreshInstallUI();return;}
+  if(!PWA_INSTALL_PROMPT){
+    openModal("安装到桌面",`<p>${esc(installInstructions())}</p><p class="hint">首次联网进入游戏，等「存档」页显示离线资源已准备好后，可断网打开。安装前请导出存档文件；若桌面应用未显示原进度，可导入继续。</p>`);
+    document.getElementById("modal").classList.add("pwa-guide");
+    dismissInstallHint();return;
+  }
+  const prompt=PWA_INSTALL_PROMPT;PWA_INSTALL_PROMPT=null;refreshInstallUI();
+  try{
+    // prompt 必须直接在点击事件中调用，不等待资源下载或其他异步操作。
+    await prompt.prompt();
+    const choice=await prompt.userChoice;
+    if(choice?.outcome==="accepted"){dismissInstallHint();toast("已提交安装，请按浏览器提示完成");}
+  }catch(e){toast("请通过浏览器菜单安装，或查看安装步骤","warn");}
+  refreshInstallUI();
+}
+function offlineHint(){
+  if(!isWebEdition()||pwaInstalled()||document.getElementById("pwa-install-hint"))return;
+  try{if(Number(localStorage.getItem(PWA_HINT_KEY))>Date.now())return;}catch(e){}
+  const hint=el("section");hint.id="pwa-install-hint";hint.setAttribute("aria-label","安装到桌面提示");
+  hint.innerHTML='<h3>把执掌绿茵装到桌面</h3><div class="hint">下次从图标直接打开，全屏游玩更方便。</div><p class="hint" data-pwa-instructions></p><div class="pwa-actions"><button type="button" class="pri" data-pwa-install>查看安装步骤</button><button type="button" data-pwa-later>以后再说</button></div><div class="hint" style="margin-top:10px">离线资源准备完成后，可断网打开。安装入口也在「存档」页。</div>';
+  hint.querySelector("[data-pwa-install]").onclick=requestAppInstall;
+  hint.querySelector("[data-pwa-later]").onclick=dismissInstallHint;
+  document.body.appendChild(hint);refreshInstallUI();
+}
+function setupPWAInstall(){
+  if(!isWebEdition())return;
+  window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();PWA_INSTALL_PROMPT=e;refreshInstallUI();});
+  window.addEventListener("appinstalled",()=>{PWA_INSTALL_PROMPT=null;PWA_INSTALLED=true;dismissInstallHint();refreshInstallUI();toast("执掌绿茵已安装到桌面");});
+  const mode=window.matchMedia?.("(display-mode: standalone)");mode?.addEventListener?.("change",refreshInstallUI);
+  // 启动页即可安装；整套图片仍等进入主界面后再准备，避免拖慢首次打开。
+  if(window.requestIdleCallback)window.requestIdleCallback(()=>registerResourceCache(),{timeout:2000});else setTimeout(()=>registerResourceCache(),1000);
+  setTimeout(offlineHint,2200);
+}
+function offlineAppCard(){
+  const card=el("div","card");
+  if(!isWebEdition()){
+    card.innerHTML='<h3>完整单文件离线版</h3><div class="hint">图片和游戏已内嵌。请保留此 HTML 文件，用支持本地 HTML 的浏览器打开；进度仍建议定期导出。升级时先导出存档，再打开新文件并导入。</div>';return card;
+  }
+  card.innerHTML='<h3>安装到桌面与离线游玩</h3><div class="hint" data-pwa-instructions></div><div class="pwa-actions"><button type="button" class="pri" data-pwa-install>查看安装步骤</button><button type="button" data-pwa-retry>重新准备离线资源</button></div><p class="hint" id="resource-cache-status" role="status"></p><div class="hint">首次请联网进入游戏，等资源准备完成后再断网。浏览器清理空间时可能回收缓存；安装前请导出存档，若桌面应用未显示原进度，可导入继续。</div><div class="hr"></div><h3>下载完整单文件版</h3><div class="hint">约 15 MB，包含全部图片。先导出存档，再到离线文件中导入。iPhone/iPad 若打开文件预览，请通过「分享 → 储存到文件」保存；需使用支持本地 HTML 的浏览器游玩。</div><div class="pwa-actions"><button type="button" data-standalone-download onclick="downloadStandalone()">下载完整单文件版</button><a class="btn" data-standalone-save download="执掌绿茵.html" hidden>点击保存已准备好的文件</a><a class="btn" href="执掌绿茵.html" target="_blank" rel="noopener">新窗口打开离线版</a></div><p class="hint" id="standalone-download-status" role="status"></p>';
+  const button=card.querySelector("[data-pwa-install]");button.textContent=installButtonText();button.disabled=pwaInstalled();button.onclick=requestAppInstall;
+  card.querySelector("[data-pwa-instructions]").textContent=pwaInstalled()?"可直接从桌面图标打开游戏。":installInstructions();
+  card.querySelector("#resource-cache-status").textContent=RESOURCE_CACHE_STATUS;
+  if(STANDALONE_BLOB_URL){const save=card.querySelector("[data-standalone-save]");save.href=STANDALONE_BLOB_URL;save.hidden=false;}
+  if(STANDALONE_DOWNLOADING){const download=card.querySelector("[data-standalone-download]");download.disabled=true;download.textContent="正在准备下载…";}
+  card.querySelector("[data-pwa-retry]").onclick=()=>{startResourceCache();toast("正在重新检查并准备离线资源…");};
+  return card;
+}
 /* ---------- 移动端手势：彻底关掉缩放 ---------- */
 function lockZoom(){
   // iOS Safari 会忽略 user-scalable=no，需拦截 gesture 事件
@@ -16771,12 +16871,13 @@ window.addEventListener("unhandledrejection",e=>{ if(_errShown++<3){ try{ toast(
 window.addEventListener("DOMContentLoaded",()=>{
   lockZoom();
   watchOrientation();
+  setupPWAInstall();
   loadCustomCrests();
   document.getElementById("tb-go").onclick=onContinue;
   document.addEventListener("keydown",e=>{
     if(e.key==="Escape"){ closeModal(); return; }
     if(e.defaultPrevented || e.isComposing || e.keyCode===229 || e.repeat ||
-       (e.target&&e.target.closest&&e.target.closest("input,textarea,select,button,[contenteditable='true']"))) return;
+       (e.target&&e.target.closest&&e.target.closest("input,textarea,select,button,a[href],[contenteditable='true']"))) return;
     if(e.code==="Space" && VIEW==="match" && CURMATCH && !CURMATCH.done){ e.preventDefault(); toggleplay(); }
     if(e.key==="Enter" && WORLD && $("#app").style.display!=="none" && $("#loadscr").style.display==="none" && !$("#modal").classList.contains("on")
        && (VIEW!=="match" || (CURMATCH && CURMATCH.done))) onContinue();
