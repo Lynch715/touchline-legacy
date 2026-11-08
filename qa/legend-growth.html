@@ -1,0 +1,36 @@
+<!doctype html><meta charset="utf-8"><title>传奇连续成长与旧档只读 QA</title>
+<script>
+(async()=>{
+ const standalone=new URLSearchParams(location.search).has('standalone');
+ const html=await(await fetch(standalone?'../执掌绿茵.html':'../index.html',{cache:'no-store'})).text();
+ const setup=()=>document.addEventListener('DOMContentLoaded',()=>{
+  idbGet=async()=>null;cacheGet=async()=>null;readSaveRecord=async()=>null;healSave=async()=>[];
+  storeSave=async()=>{throw Error('QA禁止写入存档');};
+  startMenu=async()=>{try{
+   SAVE_PAUSED=true;newWorld(4242,'Manchester City');SAVE_PAUSED=true;clearTimeout(SAVE_TIMER);
+   const c=UC(),p=P(c.squad[0]);Object.assign(p,{cn:'年轻传奇成长测试',pos:'MR',age:20,legend:true,pa:200,ca0:70,dev:1,injury:0,loan:null,prof:17,trainPlan:[],a:Object.fromEntries(ATTR_KEYS.map(k=>[k,k in POS_WEIGHTS.MR?20:5]))});
+   p.ca=calcCA(p.a,p.pos);p.development={season:WORLD.season,games:40,apps:40,weeks:26,startCA:p.ca};c.coachRating=15;c.trainIntensity=2;
+   let pid=p.id,weeks=0,initial=p.ca,inputUnchanged=null,roundtrip=null,trace=[],source='生成测试球员';
+   const panel=document.createElement('div');panel.style.cssText='position:fixed;z-index:99999;right:4px;bottom:4px;width:min(370px,96vw);padding:8px;background:var(--bg2);border:1px solid var(--line);box-sizing:border-box';
+   const status=document.createElement('div');status.id='legend-status';panel.appendChild(status);
+   const report=document.createElement('script');report.id='legend-report';report.type='application/json';document.body.appendChild(report);
+   function update(){const p=P(pid),r={source,inputUnchanged,savePaused:SAVE_PAUSED,weeks,initial:Math.round(initial/2),current:ovr(p),age:p.age,potential:Math.round(p.pa/2),roundtrip,trace,overflow:document.documentElement.scrollWidth>innerWidth,width:innerWidth};report.textContent=JSON.stringify(r);status.textContent=`${source} · ${p.age}岁 · ${Math.round(initial/2)}→${ovr(p)} · 已训练${weeks}周 · 禁止保存${inputUnchanged===true?' · 读取原样保留':''}${roundtrip===true?' · 压缩重读通过':''}`;}
+   function refresh(){VIEW='training';render();update();}
+   function button(label,fn,redraw=true){const b=document.createElement('button');b.textContent=label;b.onclick=async()=>{try{await fn();if(redraw)refresh();else update();}catch(e){status.textContent=e.stack;}};panel.appendChild(b);}
+   const input=document.createElement('input');input.type='file';input.accept='.json';input.style.display='none';panel.appendChild(input);
+   button('选择只读测试存档',()=>input.click());
+   input.onchange=async()=>{try{
+    const raw=await input.files[0].text(),obj=JSON.parse(raw),before=JSON.stringify(obj);adoptWorld(obj);SAVE_PAUSED=true;clearTimeout(SAVE_TIMER);
+    inputUnchanged=JSON.stringify(obj)===before&&JSON.stringify(WORLD)===before;
+    pid=Object.values(WORLD.players).find(p=>p.cn==='菲戈').id;weeks=0;initial=P(pid).ca;roundtrip=null;trace=[];source='菲戈旧档';seedRng(4242);refresh();
+   }catch(e){status.textContent=e.stack;}};
+   // 只推进周训练，不推进日历或赛季；季末旧档也能在合法日期下验证压缩重读。
+   button('训练4周',()=>{for(let n=0;n<4;n++)trainClub(UC());weeks+=4;trace.push({weeks,ability:ovr(P(pid)),age:P(pid).age});});
+   button('查看个人训练',()=>openTrainPlan(pid),false);
+   button('压缩重读',async()=>{const expected=JSON.stringify(WORLD),runtime={rng:RNGSTATE,pid:PID,clk:FIN_CLK},packed=await processSaveTask({op:'pack',raw:expected,at:100,runtime}),restored=await processSaveTask({op:'decode',payload:packed.payload,mode:'adopt',runtime});roundtrip=JSON.stringify(restored.obj)===expected;adoptPreparedSave(restored);SAVE_PAUSED=true;});
+   VIEW='training';enterGame();fitAppHeight();document.body.appendChild(panel);update();
+  }catch(e){document.body.innerHTML='<pre id="qa-error"></pre>';document.getElementById('qa-error').textContent=e.stack;}};
+ });
+ document.open();document.write(html.replace('</head>','<base href="../"><script>('+setup.toString()+')();<\/script></head>'));document.close();
+})();
+</script>

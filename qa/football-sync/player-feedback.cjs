@@ -48,7 +48,7 @@ await test('相同训练、出场、联赛条件下，自练和外租成长逐�
  const base=structuredClone(P(id));Object.assign(base,{age:20,ca0:40,pa:200,injury:0,dev:0,apps:20,trainPlan:['pace']});c.seasonStats.p=20;
  const states=[];for(const loan of [null,{owner:owner.id,wageShare:1}]){WORLD.players[id]=structuredClone(base);P(id).loan=loan;seedRng(100);for(let w=0;w<40;w++)trainClub(c);states.push([P(id).ca,P(id).dev,P(id).a]);}assert.deepEqual(states[0],states[1]);
 });
-await test('传奇1.8倍成长且22岁释放成长上限，已有传奇立即生效',()=>{
+await test('传奇1.8倍成长且不受年龄硬封顶，已有传奇立即生效',()=>{
  const c=UC(),id=c.squad[0];c.squad=[id];const base=structuredClone(P(id));Object.assign(base,{age:20,ca0:45,pa:195,injury:0,dev:0,apps:20,legend:false,a:Object.fromEntries(ATTR_KEYS.map(k=>[k,8]))});base.ca=calcCA(base.a,base.pos);c.seasonStats.p=20;
  const states=[];for(const legend of [false,true]){WORLD.players[id]=structuredClone(base);P(id).legend=legend;seedRng(34);for(let w=0;w<40;w++)trainClub(c);states.push({ca:P(id).ca,gain:P(id).ca-base.ca,cap:devCap(P(id))});}
  assert(states[1].gain>states[0].gain);assert(states[1].cap>states[0].cap);P(id).age=22;assert(devCap(P(id))>=P(id).pa);metrics.legend=states;
