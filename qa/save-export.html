@@ -17,6 +17,7 @@
    document.getElementById('qa-run').onclick=async()=>{
     const checks=[],before=JSON.stringify(WORLD),player=P(UC().squad[0]),originalCA=player.ca;
     const shareDescriptor=Object.getOwnPropertyDescriptor(navigator,'share'),canShareDescriptor=Object.getOwnPropertyDescriptor(navigator,'canShare');
+    const deviceDescriptors=Object.fromEntries(['userAgent','platform','maxTouchPoints','standalone'].map(k=>[k,Object.getOwnPropertyDescriptor(navigator,k)]));
     const blockDownload=e=>{if(e.target.closest('a[download]'))e.preventDefault();};
     const assert=(ok,name)=>{if(!ok)throw Error(name);checks.push({name,passed:true});};
     const mock=(share,canShare)=>{Object.defineProperty(navigator,'share',{configurable:true,value:share});Object.defineProperty(navigator,'canShare',{configurable:true,value:canShare});};
@@ -51,14 +52,50 @@
      const candidate=JSON.parse(await(await fetch(actions().querySelector('a').href)).text());adoptWorld(candidate);SAVE_PAUSED=true;clearTimeout(SAVE_TIMER);
      assert(JSON.stringify(WORLD)===before,'导出 JSON 可通过现有读档流程原样读回');
      assert(SAVE_PAUSED&&JSON.stringify(WORLD)===before,'导出、分享、取消和重试没有推进游戏或改写球员');
+     Object.defineProperty(navigator,'userAgent',{configurable:true,value:'Mozilla/5.0 (iPhone) AppleWebKit Safari'});
+     Object.defineProperty(navigator,'platform',{configurable:true,value:'iPhone'});
+     Object.defineProperty(navigator,'standalone',{configurable:true,value:true});
+     const address=location.href;shared=null;mock(data=>{shared=data;return Promise.resolve();},()=>true);exportSave();
+     assert(!actions().querySelector('a')&&actions().querySelector('button').textContent==='保存到文件','iPhone 主屏幕版只提供系统保存按钮，不生成跳转链接');
+     actions().querySelector('button').click();assert(shared!==null,'真实点击中同步调用系统文件保存，不等待异步准备');await pause(0);
+     assert(shared.files[0].name.endsWith('.json')&&await shared.files[0].text()===before&&location.href===address,'iPhone 直接传递完整 JSON File，游戏地址不变');
+     mock(data=>{shared=data;return Promise.resolve();},data=>data.files[0].type==='text/plain');exportSave();
+     share=actions().querySelector('button');share.click();await pause(0);
+     const textFile=shared.files[0];
+     assert(textFile.name.endsWith('.txt')&&textFile.type==='text/plain'&&await textFile.text()===before,'系统不接受 JSON 分享时改用同正文 TXT 兼容存档');
+     assert(document.getElementById('modal-bd').textContent.includes('无需改名')&&!actions().querySelector('a'),'TXT 说明可直接导入，且不退回出错的 Blob 链接');
+     const readText=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsText(textFile);});
+     adoptOwnedWorld(JSON.parse(readText));SAVE_PAUSED=true;clearTimeout(SAVE_TIMER);
+     assert(JSON.stringify(WORLD)===before,'TXT 通过 FileReader 和既有文件导入路径原样读回');
+     mock(async()=>{throw new DOMException('cancelled','AbortError');},()=>true);exportSave();share=actions().querySelector('button');share.click();await pause(0);
+     assert(!share.disabled&&status().includes('已取消')&&!actions().querySelector('a'),'iPhone 取消保存可重试，不自动打开下载页');
+     mock(async()=>{throw new DOMException('blocked','NotAllowedError');},()=>true);exportSave();share=actions().querySelector('button');share.click();await pause(0);
+     assert(!share.disabled&&status().includes('未完成')&&!actions().querySelector('a'),'iPhone 系统拒绝时保留游戏和重试入口');
+     mock(async()=>{},()=>false);exportSave();
+     assert(!actions().querySelector('a')&&status().includes('保存进度'),'系统保存不可用时不再生成错误的跳转入口');
+     Object.defineProperty(navigator,'userAgent',{configurable:true,value:'Mozilla/5.0 (Macintosh) AppleWebKit Safari'});
+     Object.defineProperty(navigator,'platform',{configurable:true,value:'MacIntel'});Object.defineProperty(navigator,'maxTouchPoints',{configurable:true,value:5});
+     mock(async()=>{},()=>true);exportSave();assert(!actions().querySelector('a'),'桌面标识的 iPad 主屏幕版也使用系统保存');
+     WORLD.qaExportPadding='x'.repeat(24*1048576);shared=null;
+     mock(data=>{shared=data;return Promise.resolve();},data=>data.files[0].type==='text/plain');exportSave();actions().querySelector('button').click();await pause(0);
+     assert(shared.files[0].size>60*1048576&&JSON.parse(await shared.files[0].text()).qaExportPadding.length===24*1048576,'超过60MB的大存档仍以完整 File 交给系统，兼容录屏中的存档大小');
+     delete WORLD.qaExportPadding;
+     assert(JSON.stringify(WORLD)===before&&SAVE_PAUSED,'主屏幕保存、取消、失败和大文件测试均保留原世界');
+     assert(document.querySelector('#view input[type=file]').accept.includes('.txt')&&document.getElementById('game-build-version').textContent==='20261110.3','文件导入允许TXT且存档页显示当前代码版本');
      report.textContent=JSON.stringify({passed:true,checks:checks.length,results:checks});document.getElementById('qa-result').textContent=' '+checks.length+'项通过 · 禁止保存';
     }catch(e){report.textContent=JSON.stringify({passed:false,results:checks,error:e.stack});document.getElementById('qa-result').textContent=' 失败：'+e.message;}
     finally{
      player.ca=originalCA;document.removeEventListener('click',blockDownload);
      for(const [key,descriptor] of [['share',shareDescriptor],['canShare',canShareDescriptor]]){if(descriptor)Object.defineProperty(navigator,key,descriptor);else delete navigator[key];}
+     for(const [key,descriptor] of Object.entries(deviceDescriptors)){if(descriptor)Object.defineProperty(navigator,key,descriptor);else delete navigator[key];}
      closeModal();document.getElementById('qa-run').disabled=false;
     }
    };
+   if(new URLSearchParams(location.search).has('ios')){
+    for(const [key,value] of Object.entries({userAgent:'Mozilla/5.0 (iPhone) AppleWebKit Safari',platform:'iPhone',standalone:true,canShare:data=>data.files[0].type==='text/plain',share:async()=>{throw new DOMException('QA preview','AbortError');}}))Object.defineProperty(navigator,key,{configurable:true,value});
+    document.getElementById('qa-run').textContent='模拟主屏幕导出';document.getElementById('qa-run').onclick=exportSave;
+    document.getElementById('qa-result').textContent='iPhone 分支模拟 · 不代表实机 · 禁止保存';
+   }
   }catch(e){document.body.innerHTML='<pre id="qa-error"></pre>';document.getElementById('qa-error').textContent=e.stack;}};
  });
  document.open();document.write(html.replace('</head>','<base href="../"><script>('+setup.toString()+')();<\/script></head>'));document.close();
