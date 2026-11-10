@@ -5919,7 +5919,8 @@ function prospectFate(p){
   const sh=clamp(d.apps/d.games,0,1),progress=p.ca-d.startCA;
   const struggling=progress<2&&(sh<0.3||pr<8);
   const stallP=struggling?0.04*(1.6-pr*0.06)*(sh<0.3?1.5:1):0;
-  const bloomP=progress>=4?0.03*(0.4+pr*0.06)*(sh>0.6?1.4:sh<0.3?0.5:1):0;
+  // 发展良好的球员更常迎来潜力上调，让同季多人进步更常见；下调和观察保护沿用原规则。
+  const bloomP=progress>=4?0.10*(0.4+pr*0.06)*(sh>0.6?1.4:sh<0.3?0.5:1):0;
   const r=rnd(),a=p.pa;
   if(r<stallP&&p.pa-p.ca>=6){
     p.pa=Math.max(p.ca+2,p.pa-ri(4,10));
@@ -11542,6 +11543,15 @@ function genNationalInvites(){ // 根据声望，从弱到强的国家队主动�
   // 按实力排序国家队，找"合适档次"的国家队（实力略高于声望对应档）
   const nations = WC_NATIONS.filter(n=>n!==WORLD.userNation).map(n=>({n, str:natSquadStrength(n)}));
   nations.sort((a,b)=>a.str-b.str); // 从弱到强
+  const offer=invite=>{
+    if(!invite||WORLD.nationInvites.some(i=>i.nat===invite.n))return;
+    WORLD.nationInvites.push({nat:invite.n, str:Math.round(invite.str), season:WORLD.season});
+    news("📨 国家队执教邀请", `${invite.n} 足协向你发出执教邀请！球队实力 ${Math.round(invite.str)}。请到「国家队」页查看并决定是否接受。`, "good");
+  };
+  // 中国队独立抛出橄榄枝，避免声望过高后反被“接近实力上限”的筛选排除。
+  // 每次赛季交接额外有 50% 机会；已有邀请或正在执教国家队时不重复发出。
+  const china=nations.find(x=>x.n==="中国");
+  if(myRep>=15&&china&&!WORLD.nationInvites.some(i=>i.nat==="中国")&&Math.random()<0.5)offer(china);
   // 玩家声望对应的"可执教实力上限"：声望越高，能执教越强的国家队（实力约 105~175）
   const maxStr = clamp(112 + myRep * 0.6, 115, 175);
   // 从弱到强找 1~2 支实力在合理范围的国家队
@@ -11551,11 +11561,7 @@ function genNationalInvites(){ // 根据声望，从弱到强的国家队主动�
   const target = candidates.filter(x=>x.str >= maxStr - 12);
   const pool = target.length ? target : candidates.slice(-3);
   const invite = pool[Math.floor(Math.random()*pool.length)];
-  if(!invite) return;
-  // 避免重复邀请同一国家
-  if(WORLD.nationInvites.some(i=>i.nat===invite.n)) return;
-  WORLD.nationInvites.push({nat:invite.n, str:Math.round(invite.str), season:WORLD.season});
-  news("📨 国家队执教邀请", `${invite.n} 足协向你发出执教邀请！球队实力 ${Math.round(invite.str)}。请到「国际足坛」页查看并决定是否接受。`, "good");
+  offer(invite);
 }
 function acceptNationalInvite(natCN){ // 接受国家队执教邀请
   if(!WORLD.nationInvites || !WORLD.nationInvites.some(i=>i.nat===natCN)) return {ok:false, msg:"该邀请已失效。"};
@@ -13862,7 +13868,7 @@ function remapLineup(c,newForm){
 /* ================= 训练 ================= */
 function developmentReviewCard(c){
   const box=el('div','card');box.innerHTML='<h3>年度潜力评估</h3>';
-  box.appendChild(el('div','hint','每次进入新赛季，汇总28岁及以下球员的潜力升降，包含外租球员。结合实际进步、出场和训练态度小概率调整，并非每年必变；新苗子及观察不足的球员暂缓评估。'));
+  box.appendChild(el('div','hint','每次进入新赛季，汇总28岁及以下球员的潜力升降，包含外租球员。实际进步明显、出场充分且训练认真的球员更有机会获潜力上调，同季可有多人变化，并非每年必变；新苗子及观察不足的球员暂缓评估。'));
   const report=c.developmentReview;
   if(!report||!Array.isArray(report.rows)){box.appendChild(el('p','hint','下一次赛季交接后生成首份报告。现有能力和潜力继续沿用。'));return box;}
   const rows=report.rows,labels={up:'上调',down:'下调',stable:'维持',observing:'暂缓评估'},order={up:0,down:1,stable:2,observing:3};
@@ -16393,13 +16399,48 @@ function saveGame(){
 function loadGame(){
   restoreBrowserSave(false).then(ok=>toast(ok?"存档已载入":"没有可读取的存档",ok?undefined:"bad")).catch(()=>toast("读取失败","bad"));
 }
+// 当前导出文件一直保留，供 Safari 预览、分享和再次保存；不能在点击后立即回收。
+let SAVE_EXPORT_FILE=null;
 function exportSave(){
-  const blob=new Blob([JSON.stringify(WORLD)],{type:"application/json"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download=`足球经理_${UC().short}_${WORLD.season}_第${WORLD.day}天.json`;
-  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-  toast("存档文件已导出");
+  if(!WORLD){toast("请先进入游戏再导出存档","bad");return;}
+  let record;
+  try{
+    const blob=new Blob([JSON.stringify(WORLD)],{type:"application/json"});
+    const name=`执掌绿茵_${UC().short}_${WORLD.season}_第${WORLD.day}天.json`;
+    record={blob,name,url:URL.createObjectURL(blob)};
+  }catch(e){toast("存档文件准备失败，请重试："+(e.message||e),"bad");return;}
+  const previous=SAVE_EXPORT_FILE;SAVE_EXPORT_FILE=record;
+  // 新快照替换旧快照后仍给旧下载留出时间；当前文件不设过期时间，页面关闭时由浏览器释放。
+  if(previous)setTimeout(()=>URL.revokeObjectURL(previous.url),10*60*1000);
+  openModal("导出存档",`<p>当前进度已准备为文件，请选择保存方式。</p>
+    <p class="hint">${esc(record.name)}<br>${(record.blob.size/1048576).toFixed(2)} MB · 包含点击导出时的最新进度</p>
+    <div id="save-export-actions" class="pwa-actions"></div>
+    <p class="hint" id="save-export-status" role="status">请确认文件已出现在「文件」或下载列表中，再关闭本窗口。若打开文件预览，请点分享 → 储存到文件；未保存成功可再次点击保存按钮。</p>
+    <p class="hint">若浏览器打开错误页面，请关闭错误页返回游戏后重试；不要清理浏览器数据。</p>`);
+  const actions=document.getElementById("save-export-actions"),status=document.getElementById("save-export-status");
+  const download=el("a","btn","保存 .json 文件");
+  download.href=record.url;download.download=record.name;download.target="_blank";download.rel="noopener";
+  download.onclick=()=>{status.textContent="已请求浏览器保存，请检查下载列表。若打开文件预览，请点分享 → 储存到文件；这个保存入口仍可再次使用。";};
+  actions.appendChild(download);
+  try{
+    if(typeof File!=="undefined"&&navigator.canShare&&navigator.share){
+      const file=new File([record.blob],record.name,{type:"application/json"});
+      if(navigator.canShare({files:[file]})){
+        const share=el("button","pri","分享 / 储存到文件");share.type="button";
+        share.onclick=async()=>{
+          share.disabled=true;
+          try{
+            // 在真实点击中立即调用，不等待自动存档或异步文件准备，以保留用户手势。
+            await navigator.share({files:[file]});
+            status.textContent="分享面板已关闭，请确认文件已储存到你选择的位置；也可再次保存。";
+          }catch(e){
+            status.textContent=e?.name==="AbortError"?"已取消分享，存档文件仍在这里，可以再次保存。":"系统分享暂不可用，请点击「保存 .json 文件」重试；若出现预览，点分享 → 储存到文件。";
+          }finally{share.disabled=false;}
+        };
+        actions.prepend(share);
+      }
+    }
+  }catch(_){/* 不支持 JSON 文件分享时继续保留普通保存入口。 */}
 }
 
 /* ---------- 玩法说明 ---------- */

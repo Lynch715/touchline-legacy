@@ -1,28 +1,28 @@
 {
-  "version": "20261108.1",
+  "version": "20261110.2",
   "source": "执掌绿茵.html",
-  "sourceSha256": "631c0f3828ef61fa1664b1aba22652c39128de79ae19a0c4e2b2ef4ea5f2c60d",
-  "sourceBytes": 15101973,
-  "webBytes": 2640623,
-  "sourceGzipBytes": 10233375,
-  "webGzipBytes": 824254,
+  "sourceSha256": "1672ea767b2c018d8dd020e071c9a628846f27c5e7334e6fb526477084021bcd",
+  "sourceBytes": 15105284,
+  "webBytes": 2643934,
+  "sourceGzipBytes": 10234671,
+  "webGzipBytes": 825527,
   "images": 1321,
   "imageBytes": 9364670,
   "files": [
     {
       "path": "sw.js",
       "bytes": 196726,
-      "sha256": "61671f8fa20699ad951f8719b5cde5b608d737d8d029ccc7af7ba402f720462b"
+      "sha256": "5844be85f67712fa5974af4e598b748d9009165a0ca52a0cda00aa94f8499ff2"
     },
     {
       "path": "index.html",
-      "bytes": 2640623,
-      "sha256": "2de9a3b3e440ceab818a456c7cebb89a4b4ad6da988f57c98e051c715274065e"
+      "bytes": 2643934,
+      "sha256": "574a0fe9317f9fd032c413f3251cff180b7ff15b560742199d34616e088370fd"
     },
     {
       "path": "执掌绿茵.html",
-      "bytes": 15101973,
-      "sha256": "631c0f3828ef61fa1664b1aba22652c39128de79ae19a0c4e2b2ef4ea5f2c60d"
+      "bytes": 15105284,
+      "sha256": "1672ea767b2c018d8dd020e071c9a628846f27c5e7334e6fb526477084021bcd"
     },
     {
       "path": "manifest.webmanifest",

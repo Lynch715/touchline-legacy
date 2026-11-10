@@ -1,0 +1,66 @@
+<!doctype html><meta charset="utf-8"><title>存档导出兼容验收</title>
+<script>
+(async()=>{
+ const standalone=new URLSearchParams(location.search).has('standalone');
+ const html=await(await fetch(standalone?'../执掌绿茵.html':'../index.html',{cache:'no-store'})).text();
+ const setup=()=>document.addEventListener('DOMContentLoaded',()=>{
+  // 只使用生成的测试世界，不读写玩家浏览器存档。
+  idbGet=async()=>null;cacheGet=async()=>null;readSaveRecord=async()=>null;healSave=async()=>[];
+  storeSave=async()=>{throw Error('QA禁止写入存档');};
+  startResourceCache=()=>{};registerResourceCache=async()=>null;
+  startMenu=async()=>{try{
+   SAVE_PAUSED=true;newWorld(4242,'Manchester City');adoptWorld(JSON.parse(JSON.stringify(WORLD)));SAVE_PAUSED=true;clearTimeout(SAVE_TIMER);
+   VIEW='save';enterGame();fitAppHeight();
+   const panel=document.createElement('div');panel.style.cssText='position:fixed;z-index:99999;bottom:4px;right:4px;max-width:94vw;padding:8px;background:var(--bg2);border:1px solid var(--line)';
+   panel.innerHTML='<button id="qa-run">运行导出回归检查</button><span id="qa-result">测试世界 · 禁止保存</span>';
+   const report=document.createElement('script');report.id='qa-report';report.type='application/json';document.body.appendChild(report);document.body.appendChild(panel);
+   document.getElementById('qa-run').onclick=async()=>{
+    const checks=[],before=JSON.stringify(WORLD),player=P(UC().squad[0]),originalCA=player.ca;
+    const shareDescriptor=Object.getOwnPropertyDescriptor(navigator,'share'),canShareDescriptor=Object.getOwnPropertyDescriptor(navigator,'canShare');
+    const blockDownload=e=>{if(e.target.closest('a[download]'))e.preventDefault();};
+    const assert=(ok,name)=>{if(!ok)throw Error(name);checks.push({name,passed:true});};
+    const mock=(share,canShare)=>{Object.defineProperty(navigator,'share',{configurable:true,value:share});Object.defineProperty(navigator,'canShare',{configurable:true,value:canShare});};
+    const actions=()=>document.getElementById('save-export-actions'),status=()=>document.getElementById('save-export-status').textContent;
+    const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+    document.getElementById('qa-run').disabled=true;document.addEventListener('click',blockDownload);
+    try{
+     mock(undefined,undefined);exportSave();
+     const link=actions().querySelector('a'),url=link.href,filename=link.download;
+     assert(link.isConnected&&link.target==='_blank'&&link.rel.includes('noopener'),'文件链接挂载到页面，预览使用独立窗口');
+     assert(filename.endsWith('.json')&&filename.includes(WORLD.season)&&filename.includes('第'+WORLD.day+'天'),'文件名保留赛季、日期和 JSON 扩展名');
+     assert(actions().querySelectorAll('button').length===0,'不支持文件分享时仍有保存入口');
+     await pause(1300);
+     assert(await(await fetch(url)).text()===before,'超过原来1秒的失效时间后文件仍完整可读');
+     link.click();link.click();
+     assert(await(await fetch(url)).text()===before&&status().includes('已请求')&&!status().includes('已导出'),'同一文件可重复保存，提示不误报已完成');
+     closeModal();player.ca=originalCA+1;exportSave();
+     const latest=actions().querySelector('a'),latestRaw=await(await fetch(latest.href)).text();
+     assert(JSON.parse(latestRaw).players[player.id].ca===originalCA+1,'重新导出包含尚未写入自动存档的最新球员数值');
+     assert(await(await fetch(url)).text()===before,'准备新快照不会立刻使上一份下载失效');
+     player.ca=originalCA;let shared=null;
+     mock(async data=>{shared=data;},()=>true);exportSave();
+     let share=actions().querySelector('button');share.click();await pause(0);
+     assert(shared.files[0].name.endsWith('.json')&&await shared.files[0].text()===before,'系统分享收到完整且可导入的当前 JSON 文件');
+     assert(!share.disabled&&status().includes('确认文件'),'分享返回后允许重试并提示核实文件');
+     mock(async()=>{throw new DOMException('cancelled','AbortError');},()=>true);exportSave();share=actions().querySelector('button');share.click();await pause(0);
+     assert(!share.disabled&&status().includes('已取消')&&actions().querySelector('a').href,'取消分享保留保存入口且不误报失败或成功');
+     mock(async()=>{throw new DOMException('blocked','NotAllowedError');},()=>true);exportSave();share=actions().querySelector('button');share.click();await pause(0);
+     assert(!share.disabled&&status().includes('暂不可用')&&actions().querySelector('a').href,'分享被拒绝时恢复按钮并保留普通下载');
+     mock(async()=>{},()=>false);exportSave();assert(!actions().querySelector('button'),'设备不允许分享 JSON 时不显示无效分享按钮');
+     mock(async()=>{},()=>{throw Error('unsupported');});exportSave();assert(!!actions().querySelector('a'),'分享能力检查异常不阻断文件保存');
+     const candidate=JSON.parse(await(await fetch(actions().querySelector('a').href)).text());adoptWorld(candidate);SAVE_PAUSED=true;clearTimeout(SAVE_TIMER);
+     assert(JSON.stringify(WORLD)===before,'导出 JSON 可通过现有读档流程原样读回');
+     assert(SAVE_PAUSED&&JSON.stringify(WORLD)===before,'导出、分享、取消和重试没有推进游戏或改写球员');
+     report.textContent=JSON.stringify({passed:true,checks:checks.length,results:checks});document.getElementById('qa-result').textContent=' '+checks.length+'项通过 · 禁止保存';
+    }catch(e){report.textContent=JSON.stringify({passed:false,results:checks,error:e.stack});document.getElementById('qa-result').textContent=' 失败：'+e.message;}
+    finally{
+     player.ca=originalCA;document.removeEventListener('click',blockDownload);
+     for(const [key,descriptor] of [['share',shareDescriptor],['canShare',canShareDescriptor]]){if(descriptor)Object.defineProperty(navigator,key,descriptor);else delete navigator[key];}
+     closeModal();document.getElementById('qa-run').disabled=false;
+    }
+   };
+  }catch(e){document.body.innerHTML='<pre id="qa-error"></pre>';document.getElementById('qa-error').textContent=e.stack;}};
+ });
+ document.open();document.write(html.replace('</head>','<base href="../"><script>('+setup.toString()+')();<\/script></head>'));document.close();
+})();
+</script>
