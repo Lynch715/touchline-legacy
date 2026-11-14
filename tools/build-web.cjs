@@ -1,7 +1,7 @@
 // 完整离线版为源文件；网页版替换图片表示，并生成独立于存档的资源缓存。
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),zlib=require('node:zlib');
 const root=path.resolve(__dirname,'..'),sourcePath=path.join(root,'执掌绿茵.html');
-const build='20261110.3';
+const build='20261114.1';
 let source=fs.readFileSync(sourcePath,'utf8');
 source=source.replace(/<meta name="touchline-build" content="[^"]*">/,'<meta name="touchline-build" content="'+build+'">');
 if(!source.includes('<meta name="touchline-build" content="'+build+'">'))throw Error('缺少游戏版本标识');

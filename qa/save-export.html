@@ -81,7 +81,8 @@
      assert(shared.files[0].size>60*1048576&&JSON.parse(await shared.files[0].text()).qaExportPadding.length===24*1048576,'超过60MB的大存档仍以完整 File 交给系统，兼容录屏中的存档大小');
      delete WORLD.qaExportPadding;
      assert(JSON.stringify(WORLD)===before&&SAVE_PAUSED,'主屏幕保存、取消、失败和大文件测试均保留原世界');
-     assert(document.querySelector('#view input[type=file]').accept.includes('.txt')&&document.getElementById('game-build-version').textContent==='20261110.3','文件导入允许TXT且存档页显示当前代码版本');
+     const build=document.querySelector('meta[name="touchline-build"]').content;
+     assert(document.querySelector('#view input[type=file]').accept.includes('.txt')&&/^\d{8}\.\d+$/.test(build)&&document.getElementById('game-build-version').textContent===build,'文件导入允许TXT且存档页显示当前代码版本');
      report.textContent=JSON.stringify({passed:true,checks:checks.length,results:checks});document.getElementById('qa-result').textContent=' '+checks.length+'项通过 · 禁止保存';
     }catch(e){report.textContent=JSON.stringify({passed:false,results:checks,error:e.stack});document.getElementById('qa-result').textContent=' 失败：'+e.message;}
     finally{
