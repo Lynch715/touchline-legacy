@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="执掌绿茵">
 <meta name="touchline-distribution" content="standalone">
-<meta name="touchline-build" content="20261114.2">
+<meta name="touchline-build" content="20261115.1">
 
 
 
@@ -5552,6 +5552,12 @@ function hashStr(s){ let h=2166136261; for(let i=0;i<s.length;i++){h^=s.charCode
 function toCN(first,last){
   return (NAME_CN[first]||first) + "·" + (NAME_CN[last]||last);
 }
+const CHINESE_GIVEN_NAMES=new Map(NAME_POOLS.chn.f.split(/\s+/).map(pair=>pair.split("|")));
+const CHINESE_SURNAMES=new Map(NAME_POOLS.chn.l.split(/\s+/).map(pair=>pair.split("|")));
+function chinesePlayerName(first,last){
+  const given=CHINESE_GIVEN_NAMES.get(first), surname=CHINESE_SURNAMES.get(last);
+  return given&&surname ? surname+given : null;
+}
 
 // ---------- 身高体重（真实为主，纳入比赛核心） ----------
 // 各位置典型身高/体重（cm/kg），用于估算无真实数据的球员
@@ -6045,7 +6051,8 @@ function makePlayer(lvl, pos, age, clubId, origin){
   const [ht,wt]=estBody(pos);
   applyBody(A, ht, wt, pos);
   const p={
-    id:nextPid(), createdAbs:absDay(), first, last, name:first+" "+last, cn:toCN(first,last),
+    id:nextPid(), createdAbs:absDay(), first, last, name:first+" "+last,
+    cn:(rg==="chn"&&chinesePlayerName(first,last))||toCN(first,last),
     pos, pos2:[], age, clubId, nat:origin?.nat || ((club && club.nation===EURO_NATION && rg===club.rg && club.country)? club.country : pick(pool.nat)), rg,
     height:ht, weight:wt, a:A, ca:0, pa:0,
     condition:100, morale:ri(60,88), injury:0, injType:"", sharp:ri(70,95),
@@ -10742,10 +10749,21 @@ function legacyHistoricalNamesake(p){
   if(v?.length===row[7].length&&row[7].every((attr,i)=>attr===v[i]))return row;
   return !p.legendProfile&&p.pos===row[3]&&p.height===row[6]?row:null;
 }
-function migrateLegendNames(){
+function legacyGeneratedChineseName(p){
+  if(p.realData||p.nat!=="中国"||p.rg!=="chn"||typeof p.name!=="string")return null;
+  const [first,last,extra]=p.name.split(" ");
+  // 仅修正仍使用生成器旧格式的名字，避免改写手动修改过的中文名。
+  if(!last||extra!==undefined||p.first!==first||p.cn!==toCN(first,last))return null;
+  return chinesePlayerName(first,last);
+}
+function migratePlayerNames(){
   const correctedNames=new Map();
   for(const p of Object.values(WORLD.players)){
-    if(!p.legend)continue;
+    if(!p.legend){
+      const cn=legacyGeneratedChineseName(p);
+      if(cn){ correctedNames.set(p.id,p.cn); p.cn=cn; }
+      continue;
+    }
     const corrected=LEGEND_NAME_ALIASES.get(p.name)||legacyHistoricalNamesake(p);
     if(!corrected)continue;
     const [name,cn]=corrected;
@@ -17574,7 +17592,7 @@ function adoptCandidate(obj){
   if(!obj || !obj.clubs || !obj.leagues) throw new Error("bad");
   if(obj.ver!==2 || !obj.cups) throw new Error("oldver");
   WORLD=obj; delete WORLD._saveStamp;
-  migrateLegendNames();
+  migratePlayerNames();
   // 五国旧档的“欧洲其他”曾使用编号 5；按其明确国别和无国内联赛身份迁移，避免被误归入新增国家。
   WORLD.clubs.forEach(c=>{if(c.lg<0 && c.country && c.nation!==EURO_NATION && !WORLD.leagues.some(l=>l.nation===c.nation)) c.nation=EURO_NATION;});
   // 扩充联赛级别后编号发生变化，按国家与级别重映射，保留原赛程、积分及历史。
