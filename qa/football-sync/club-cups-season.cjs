@@ -21,7 +21,13 @@ global.endSeason=()=>{
   }
   result.competitions[code]={stage:E.stage,matches:fx.length,champion:E.champion,prize:prizes[code]||0};
  }
- assert(WORLD.cups.every(c=>c.winner!=null));assert(WORLD.playoffs.every(p=>p.done&&p.winner!=null));assert(Object.values(WORLD.euro).every(E=>E.stage==='F'));assert.equal(WORLD.wcl.stage,'F');validateWorld(WORLD);assertLoadable(JSON.parse(JSON.stringify(WORLD)));seasons.push(result);
+ assert(WORLD.cups.every(c=>c.winner!=null));
+ for(const playoff of WORLD.playoffs)assert.equal(promotionResultValid(playoff),null,playoff.name);
+ assert(Object.values(WORLD.euro).every(E=>E.stage==='F'));
+ assert.equal(WORLD.wcl.stage,'F');
+ validateWorld(WORLD);
+ assertLoadable(JSON.parse(JSON.stringify(WORLD)));
+ seasons.push(result);
  original.endSeason();prizes={};assert.equal(WORLD.clubCups.AFC.stage,'G');assert.equal(WORLD.clubCups.LIB.stage,'G');assert.equal(WORLD.clubCups.CON.stage,'G');assert.equal(WORLD.clubCups.SUP.stage,'K');assert.equal(WORLD.clubCups.CWC.stage,'K');assert(Object.values(WORLD.clubCups).every(E=>!E.legacy));validateWorld(WORLD);
 };
 while(WORLD.season<year+years){const r=advance();assert.notEqual(r.t,'over');if(r.t==='match'){const f=r.fx;CURMATCH=runMatch(createMatch(f.home,f.away,{record:false,userSide:f.home===WORLD.userClub?0:1,...knockoutOpts(f)}));counts.userMatches++;counts.manualEntries[f.comp]=(counts.manualEntries[f.comp]||0)+1;finishUserMatch()}clearTimeout(SAVE_TIMER);SAVE_PAUSED=true;if(++counts.advances>SEASON_DAYS*years*3)throw Error('日历停滞');if(counts.advances%60===0)console.log('PROGRESS',scenario,WORLD.season,WORLD.day,counts.matches)}
