@@ -7,7 +7,20 @@ global.applyResult=(f,m)=>{const r=original.applyResult(f,m);if(r){counts.matche
 global.endSeason=()=>{
  assert(WORLD.fixtures.every(f=>f.played),'遗漏比赛');const seen=new Set();for(const f of WORLD.fixtures)for(const id of [f.home,f.away]){const k=f.day+':'+id;assert(!seen.has(k),'同队同日 '+k);seen.add(k);assert(f.day<SEASON_DAYS)}
  const result={season:WORLD.season,competitions:{}};
- for(const code of Object.keys(CLUB_CUP_CODES)){const E=WORLD.clubCups[code],fx=WORLD.fixtures.filter(f=>f.comp===code);if(E.stage==='D'){assert.equal(fx.length,0);assert.equal(prizes[code]||0,0)}else if(!E.legacy){assert.equal(E.stage,'F');const n=CLUB_CUP_CODES[code]?31:E.teams.length-1;assert.equal(fx.length,n);assert.equal(prizes[code],CONTINENTAL_CLUB_CONF[CLUB_CUP_CODES[code]]?.prize||5e6);assert.equal(clubCupHistory(code).find(h=>h.season===WORLD.season).champion,E.champion)}result.competitions[code]={stage:E.stage,matches:fx.length,champion:E.champion,prize:prizes[code]||0};}
+ for(const code of Object.keys(CLUB_CUP_CODES)){
+  const E=WORLD.clubCups[code],fx=WORLD.fixtures.filter(f=>f.comp===code);
+  if(E.stage==='D'){
+   assert.equal(fx.length,0);
+   assert.equal(prizes[code]||0,0);
+  }else if(!E.legacy){
+   assert.equal(E.stage,'F');
+   const expectedMatches={AFC:31,LIB:37,CON:37}[code]??E.teams.length-1;
+   assert.equal(fx.length,expectedMatches);
+   assert.equal(prizes[code],CONTINENTAL_CLUB_CONF[CLUB_CUP_CODES[code]]?.prize||5e6);
+   assert.equal(clubCupHistory(code).find(h=>h.season===WORLD.season).champion,E.champion);
+  }
+  result.competitions[code]={stage:E.stage,matches:fx.length,champion:E.champion,prize:prizes[code]||0};
+ }
  assert(WORLD.cups.every(c=>c.winner!=null));assert(WORLD.playoffs.every(p=>p.done&&p.winner!=null));assert(Object.values(WORLD.euro).every(E=>E.stage==='F'));assert.equal(WORLD.wcl.stage,'F');validateWorld(WORLD);assertLoadable(JSON.parse(JSON.stringify(WORLD)));seasons.push(result);
  original.endSeason();prizes={};assert.equal(WORLD.clubCups.AFC.stage,'G');assert.equal(WORLD.clubCups.LIB.stage,'G');assert.equal(WORLD.clubCups.CON.stage,'G');assert.equal(WORLD.clubCups.SUP.stage,'K');assert.equal(WORLD.clubCups.CWC.stage,'K');assert(Object.values(WORLD.clubCups).every(E=>!E.legacy));validateWorld(WORLD);
 };

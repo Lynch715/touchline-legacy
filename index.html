@@ -9,11 +9,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="执掌绿茵">
 <meta name="touchline-distribution" content="web">
-<meta name="touchline-standalone-bytes" content="15127434">
+<meta name="touchline-standalone-bytes" content="15129511">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="assets/pwa/icon-192.png">
 <link rel="icon" type="image/png" href="assets/pwa/icon-192.png">
-<meta name="touchline-build" content="20261116.1">
+<meta name="touchline-build" content="20261116.2">
 
 
 
@@ -7213,7 +7213,7 @@ function advanceCupRound(cup){
   cup.cur++; cup.alive=winners; cup.byes=[];
   if(winners.length===1){
     cup.winner=winners[0]; const w=C(cup.winner);
-    w.trophies.push(WORLD.season+" "+cup.name); addMoney(w,cupPrize(cup,5),cup.name+"冠军奖金");
+    awardClubTitle(w,WORLD.season,cup.name,CLUB_TITLE_REP.C); addMoney(w,cupPrize(cup,5),cup.name+"冠军奖金");
     w.board.conf=clamp(w.board.conf+15,0,100);
     if(w.id===WORLD.userClub) news(`${cup.name}冠军！`,`${w.cn} 捧起了 ${WORLD.season}/${String(WORLD.season+1).slice(2)} 赛季的${cup.name}！`,"good");
     else if(UC().nation===cup.nation) news(`${cup.name}决赛`,`${w.cn} 夺得本赛季${cup.name}冠军。`,"info");
@@ -7402,12 +7402,13 @@ function finalLine(fx){
   return `${C(fx.home).cn} ${fx.hg}-${fx.ag} ${C(fx.away).cn}${fx.pens?`（点球 ${fx.pens[0]}-${fx.pens[1]}）`:""}`;
 }
 function euroFinish(E, fx){
+  if(E.winner!=null)return false;
   const w=winnerOf(fx);if(w==null)return false;const l=w===fx.home?fx.away:fx.home;
   E.results.push({round:"决赛", ties:[{a:fx.home,b:fx.away,g1:[fx.hg,fx.ag],pens:fx.pens,winner:w}]});
   E.winner=w; E.stage="F";
   const pz=EURO_COMPS[E.code].prize;
   addMoney(C(w), pz.fin+pz.champ, E.short+"冠军奖金"); addMoney(C(l), pz.fin, E.short+"亚军奖金");
-  C(w).trophies.push(WORLD.season+" "+E.name);
+  awardClubTitle(C(w),WORLD.season,E.name,CLUB_TITLE_REP[E.code]);
   C(w).board.conf=clamp(C(w).board.conf+ (E.code==="CL"?40:25),0,100);
   C(w).euro=null; C(l).euro=null;
   if(w===WORLD.userClub) news(`${E.name}冠军！！`,`${C(w).cn} 登上欧洲之巅，捧起${E.name}奖杯！`,"good");
@@ -9226,14 +9227,43 @@ function wageDemand(p, club){
   const h=(hashStr(p.id+"|"+club.id+"|"+p.contract)%1000)/1000;
   return Math.round(Math.max(p.wage*1.06, w*(0.95+h*0.35))/50)*50;
 }
+const CLUB_TITLE_REP={WCL:10,CL:8,CWC:7,EL:5,LIB:5,AFC:4,ECL:3,CON:3,C:3,SUP:2};
+const LEAGUE_TITLE_REP=[4,2,1];
+const LEAGUE_TITLE_REP_BY_NAME=new Map(LEAGUE_DEFS.map(lg=>[lg.name,LEAGUE_TITLE_REP[lg.tier]??1]));
 const TRANSFER_REPUTATION_GAP=14;
+function awardClubTitle(club,season,title,points){
+  const trophy=season+" "+title;
+  if(club.trophies.includes(trophy))return;
+  club.trophies.push(trophy);
+  const before=club.rep;
+  club.rep=Math.min(100,before+points);
+  if(club.rep===before)return;
+  FIN_CLK++;
+  if(club.id===WORLD.userClub){
+    const honor=title.endsWith("冠军")?title:title+"冠军";
+    news(honor+" · 俱乐部声望提升",`${club.cn} 的俱乐部声望 +${club.rep-before}，当前 ${club.rep}/100。`,"good");
+  }
+}
 function transferReputation(club){
-  const {season}=WORLD;
-  const recentChampion=h=>h.champion===club.id&&(h.season===season||h.season===season-1);
-  const hasEliteTitle=WORLD.euro?.CL?.winner===club.id||previousSeasonSummary(season)?.euro?.CL===club.id
-    ||WORLD.wclHistory?.some(recentChampion)||WORLD.cwcHistory?.some(recentChampion);
-  // 近期顶级冠军的引援声望至少与 100 声望的球队相差不超过拒绝门槛。
-  return hasEliteTitle?Math.max(club.rep,100-TRANSFER_REPUTATION_GAP):club.rep;
+  const {season}=WORLD, id=club.id, last=previousSeasonSummary(season);
+  const recentChampion=h=>h?.champion===id&&(h.season===season||h.season===season-1);
+  let best=0;
+  for(const trophy of club.trophies){
+    const split=trophy.indexOf(" "), year=Number(trophy.slice(0,split));
+    if(year===season||year===season-1)best=Math.max(best,LEAGUE_TITLE_REP_BY_NAME.get(trophy.slice(split+1))||0);
+  }
+  if(WORLD.cups.some(cup=>cup.winner===id)||last?.cups?.includes(id))best=Math.max(best,CLUB_TITLE_REP.C);
+  for(const code of Object.keys(EURO_COMPS)){
+    if(WORLD.euro?.[code]?.winner===id||last?.euro?.[code]===id)best=Math.max(best,CLUB_TITLE_REP[code]);
+  }
+  const histories={WCL:WORLD.wclHistory,CWC:WORLD.cwcHistory,SUP:WORLD.superCupHistory,
+    LIB:WORLD.contClubHistory?.libertadores,AFC:WORLD.contClubHistory?.afc,CON:WORLD.contClubHistory?.concacaf};
+  for(const [code,history] of Object.entries(histories)){
+    if(history?.some(recentChampion))best=Math.max(best,CLUB_TITLE_REP[code]);
+  }
+  // 世冠、欧冠、世俱杯卫冕期至少按一线俱乐部评估，其他近期冠军取最高一项。
+  const floor=best>=CLUB_TITLE_REP.CWC?100-TRANSFER_REPUTATION_GAP:0;
+  return Math.min(100,Math.max(club.rep+best,floor));
 }
 function isSportingStepDown(from,to){
   return transferReputation(from)>transferReputation(to)+TRANSFER_REPUTATION_GAP;
@@ -9765,9 +9795,9 @@ function aiOffersToUser(){
     if(!aiAffordWage(b, wage*52, fee)) return;
     const max=Math.round(Math.min(spend, fee*(1.12+heat*0.35))/1e4)*1e4;
     WORLD.offers.push({pid:p.id, club:b.id, fee, max, wage, atAsk, release, day:WORLD.day, until:Math.min(WORLD.day+14, windowEndDay())});
-    const eager = b.rep>u.rep+8;
+    const eager = transferReputation(b)>transferReputation(u)+8;
     news(top?`${b.cn} 加入争夺 ${p.cn}`:`${b.cn} 报价 ${p.cn}`,
-      `${b.cn} 为 ${p.cn} 提交了 ${money(fee)} 的正式报价${top?`，高于 ${C(top.club).cn} 此前的 ${money(top.fee)}`:""}${release?`——触发了他合同里的 ${money(p.releaseClause)} 解约金条款，你<b>无法拒绝</b>`:fee>=ask*1.3?"，远超市场估价":""}。${eager?"据悉球员本人对加盟这家豪门很感兴趣。":""}请到「转会」页面处理，${dl?"转会窗即将关闭":"14 天内有效"}。`,"warn");
+      `${b.cn} 为 ${p.cn} 提交了 ${money(fee)} 的正式报价${top?`，高于 ${C(top.club).cn} 此前的 ${money(top.fee)}`:""}${release?`——触发了他合同里的 ${money(p.releaseClause)} 解约金条款，你<b>无法拒绝</b>`:fee>=ask*1.3?"，远超市场估价":""}。${eager?"据悉球员本人对加盟这支球队很感兴趣。":""}请到「转会」页面处理，${dl?"转会窗即将关闭":"14 天内有效"}。`,"warn");
   });
 }
 
@@ -9803,10 +9833,11 @@ function aiTransferRound(tries){
          : chase ? (perfIndex(p)>=0.45 && p.ca>buyer.rep*1.6)
                : ((p.pos===need.pos||(p.pos2||[]).includes(need.pos)) && p.ca>need.cur+5)) &&
         (chasePot || p.ca < buyer.rep*2.05+42));
+    const buyerRep=transferReputation(buyer);
     const afford=pool.filter(p=>{
         const seller=p.clubId>=0?C(p.clubId):null;
         if(seller && !canSell(seller,p)) return false;
-        if(seller && seller.rep>buyer.rep+11 && rnd()<0.85) return false;
+        if(seller && transferReputation(seller)>buyerRep+11 && rnd()<0.85) return false;
         if(seller && !p.listed && buyer.rep < seller.rep-3 && rnd()<0.5) return false;
         return askingPrice(p)<=budget; });
     if(!afford.length) continue;
@@ -10022,7 +10053,7 @@ function rejectOffer(i){
   const of=WORLD.offers[i]; if(!of) return; const p=P(of.pid), b=C(of.club), u=UC();
   WORLD.offers.splice(i,1);
   if(of.type==="loan"){ if(p.wantsLoan) p.morale=clamp(p.morale-6,5,100); render(); return; }
-  if(b.rep>u.rep+8 && !p.untouchable && rnd()<0.55){
+  if(transferReputation(b)>transferReputation(u)+8 && !p.untouchable && rnd()<0.55){
     p.morale=clamp(p.morale-14,5,100); p.unrest=(p.unrest||0)+1;
     news(`${p.cn} 对拒绝报价感到失望`,`${p.cn} 得知俱乐部拒绝了 ${b.cn} 的报价后情绪低落，他认为那是职业生涯更进一步的机会。${p.unrest>=2?"经纪人暗示他将公开要求转会，并拒绝任何续约谈判。":""}`,"warn");
   }
@@ -11161,7 +11192,8 @@ function endSeason(){
     if(!t.length) return;
     summary.leagues.push({lg:lg.lg, nation:lg.nation, tier:lg.tier, table:t.map(r=>({id:r.id,pts:r.pts,gd:r.gd,rank:r.rank}))});
     const argFirst=NATIONS[lg.nation]?.code==='ARG'&&lg.tier===1?(WORLD.playoffs||[]).find(p=>p.nation===lg.nation&&p.tier===0&&p.rules?.fmt==='arg')?.firstWinner:null;
-    const champ=C(argFirst??t[0].id); champ.trophies.push(WORLD.season+" "+lg.name);
+    const champ=C(argFirst??t[0].id);
+    awardClubTitle(champ,WORLD.season,lg.name,LEAGUE_TITLE_REP_BY_NAME.get(lg.name)??1);
     const n=t.length;
     t.forEach(r=>{
       const c=C(r.id);
@@ -11535,7 +11567,7 @@ function clubCupsDayEnd(day){
     if(winners.length>1){clubCupScheduleKO(E,winners,r+1);continue;}
     const f=fx[0];E.champion=winners[0];E.runnerUp=E.champion===f.home?f.away:f.home;E.stage='F';
     const name=clubCupName(E.code),prize=CONTINENTAL_CLUB_CONF[CLUB_CUP_CODES[E.code]]?.prize||5e6,c=C(E.champion);
-    c.trophies.push(E.season+' '+name+'冠军');addMoney(c,prize,name+'冠军奖金');
+    awardClubTitle(c,E.season,name+'冠军',CLUB_TITLE_REP[E.code]);addMoney(c,prize,name+'冠军奖金');
     awardClubCupHonors(E);
     const history=clubCupHistory(E.code);if(!history.some(h=>h.season===E.season))history.push(clubCupSnapshot(E));
     news('🏆 '+name,`${finalLine(f)}，${c.cn} 夺得 ${E.season} ${name}冠军！`,E.champion===WORLD.userClub?'good':'info');
@@ -11875,7 +11907,7 @@ function wclDayEnd(day){
   if(winners.length===1){
     const final=results[0];E.champion=final.winner;E.runnerUp=E.champion===final.a?final.b:final.a;E.stage="F";
     addMoney(C(E.champion),14e6,"世冠联赛冠军奖金");addMoney(C(E.runnerUp),8e6,"世冠联赛亚军奖金");
-    C(E.champion).trophies.push(E.season+" 世冠联赛冠军");
+    awardClubTitle(C(E.champion),E.season,"世冠联赛冠军",CLUB_TITLE_REP.WCL);
     const appeared=new Set(WORLD.fixtures.filter(f=>f.comp==="WCL"&&f.played).flatMap(f=>f.wclPlayers||[]));
     C(E.champion).squad.map(P).filter(p=>p&&appeared.has(p.id)).forEach(p=>{p.honors=p.honors||[];p.honors.push({s:E.season,t:"世冠联赛冠军",d:"随队登顶世界冠军联赛"});});
     WORLD.wclHistory=WORLD.wclHistory||[];
@@ -12750,7 +12782,7 @@ function bridgeTiers(moves){
     // 升班马
     mv.promoted.forEach(id=>{
       const c=C(id);
-      c.rep=clamp(c.rep+4,15,96);
+      c.rep=clamp(c.rep+4,15,100);
       if(id===WORLD.userClub){
         c._promo={bonus:Math.round(Math.pow(c.rep,3)*30/1e5)*1e5, target};   // 等 resetSeasonFinance 跑完再计入 grant
         return;
@@ -12772,7 +12804,7 @@ function bridgeTiers(moves){
     // 降班马先公开挂牌；玩家进入新赛季后才开始逐日处理转会。
     mv.relegated.forEach(id=>{
       const c=C(id);
-      c.rep=clamp(c.rep-3,15,96);
+      c.rep=clamp(c.rep-3,15,100);
       if(id===WORLD.userClub) return;
       const stars=c.squad.map(P).filter(p=>!p.loan && p.ca>=ceiling && p.age<=31).sort((a,b)=>b.ca-a.ca).slice(0,3);
       stars.forEach(p=>{ p.listed=true; p.relegationSale={club:id, season:WORLD.season, aiFromDay:7}; });
@@ -14084,7 +14116,8 @@ function vTransfer(v){
         const rej=el("button","sm","拒绝"); rej.onclick=()=>rejectOffer(i); acts.appendChild(rej);
         d.appendChild(acts); o.appendChild(d); return;
       }
-      const att = b.rep>c.rep+8?'<span class="tag t-w">球员渴望加盟</span>': b.rep>=c.rep-3?'<span class="tag t-n">球员愿意考虑</span>':'<span class="tag t-n">球员有些犹豫</span>';
+      const gap=transferReputation(b)-transferReputation(c);
+      const att = gap>8?'<span class="tag t-w">球员渴望加盟</span>': gap>=-3?'<span class="tag t-n">球员愿意考虑</span>':'<span class="tag t-n">球员有些犹豫</span>';
       const d=el("div"); d.style.cssText="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--row-line);flex-wrap:wrap";
       d.innerHTML=`${crestHTML(b)}<b>${esc(b.cn)}</b><span class="tag t-n">${LGS(b)}</span>
         <span class="hint">报价</span><b style="cursor:pointer" onclick="showPlayer(${p.id})">${esc(p.cn)}</b>
@@ -14403,7 +14436,8 @@ function submitBid(pid){
   if(seller && isSportingStepDown(seller,c) && rnd()<0.6){ toast(`${p.cn} 不愿加盟——认为这是职业生涯的倒退`,"bad"); closeModal(); return; }
   // 抢手球员：报价仅略高于要价时，可能被更大的俱乐部截胡
   if(seller && !relegationGrace(p) && fee < ask*1.08 && (perfIndex(p)>=0.35 || p.ca>seller.rep*1.9) && rnd()<0.14){
-    const rivals=WORLD.clubs.filter(r=>r.id!==c.id && r.id!==seller.id && r.rep>c.rep+3 && r.squad.length<29
+    const buyerRep=transferReputation(c);
+    const rivals=WORLD.clubs.filter(r=>r.id!==c.id && r.id!==seller.id && transferReputation(r)>buyerRep+3 && r.squad.length<29
        && clubSpend(r)>=fee*1.12 && p.ca<r.rep*2.05+42 && p.ca>r.rep*1.4);
     if(rivals.length){
       const r=pick(rivals), rf=Math.round(fee*(1.1+rnd()*0.15)/1000)*1000, rw=wageDemand(p,r);
@@ -14727,6 +14761,7 @@ function vBuild(v){
 /* ================= 俱乐部 ================= */
 function vClub(v){
   const c=UC();
+  const recruitmentRep=transferReputation(c);
   v.appendChild(el("div","",`<h1>${esc(c.cn)}</h1><div class="sub">${esc(c.en)} · ${esc(c.stadium)}</div>`));
   const g=el("div","grid2");
   g.appendChild(el("div","card",`<h3>俱乐部信息</h3>
@@ -14734,6 +14769,7 @@ function vClub(v){
     <tr><td class="hint">所属联赛</td><td>${LGN(c)}${c.euro?" · "+EURO_COMPS[c.euro].name:""}</td></tr>
     <tr><td class="hint">球场</td><td>${esc(c.stadium)}（${c.cap.toLocaleString()} 座）</td></tr>
     <tr><td class="hint">俱乐部声望</td><td>${c.rep}/100 ${barHTML(c.rep,100,"#4a9eff")}</td></tr>
+    ${recruitmentRep>c.rep?`<tr><td class="hint">引援声望</td><td>${recruitmentRep}/100 <span class="hint">含近期冠军</span></td></tr>`:""}
     <tr><td class="hint">董事会期望</td><td>${esc(c.board.expect)}</td></tr>
     <tr><td class="hint">董事会信心</td><td><span style="color:${c.board.conf>60?'#00d47e':c.board.conf>30?'#f0a020':'var(--bad)'}">${Math.round(c.board.conf)}%</span></td></tr>
     </table>`));
@@ -16880,8 +16916,8 @@ function vHelp(v){
       <div style="line-height:1.85">转会窗在 <b>8 月</b>与 <b>1 月</b>开启。<br>
       • 对手球员的属性默认不可见，加入<b>球探名单</b>后情报逐日积累，45% 可见属性和训练态度、95% 可见真实潜力<br>
       • 潜力只是上限，不是终点。年轻球员能兑现多少，看出场时间、训练态度和伤病；普通球员24岁释放全部成长空间，29岁仍可继续成长，30岁起逐步收窄未兑现潜力；新青训首个不完整赛季不下调预期<br>
-      • 报价需同时满足要价、球员薪资要求与俱乐部声望；低于要价 93% 会被直接拒绝<br>
-      • 本赛季和上赛季的欧冠、世冠联赛、世俱杯冠军会提高球队对引援对象的吸引力<br>
+      • 球员会考虑薪资和球队吸引力，转会还须谈妥转会费并满足预算<br>
+      • 联赛、国内杯和洲际俱乐部赛事夺冠可提高俱乐部声望。本季及上季最重要的一项冠军还会额外提高转会和租借意愿<br>
       • 表现突出的球员会被其他俱乐部盯上（转会页「转会传闻」可见关注度与追求者），窗口内会收到溢价报价，多家竞价时后来者出价更高；可以<b>接受 / 还价 / 拒绝</b>，拒绝豪门报价可能让球员不满<br>
       • 把球员<b>挂牌</b>可以吸引更多报价；设为<b>非卖品</b>能劝退大部分追求者。抢手球员报价只高出要价一点点时，可能被更大的俱乐部截胡<br>
       • AI 俱乐部也会挂牌冗员（搜索列表里带「挂牌」标签，要价打八五折）；窗口最后三天是截止日，市场最为活跃<br>

@@ -21,9 +21,11 @@ async function test(name,fn){try{reset();await fn();results.push({name,pass:true
    assert.match(messages.at(-1),/职业生涯的倒退/);
    assert.equal(p.clubId,seller.id);
    euroFinish(WORLD.euro.CL,{home:c.id,away:seller.id,played:true,hg:2,ag:0});
+   assert.equal(c.rep,48);
+   assert.equal(transferReputation(c),86);
    seedRng(7);ui(p,'now');submitBid(p.id);
    assert.equal(p.clubId,c.id);
-   assert.equal(c.rep,40);
+   assert.equal(c.rep,48);
  });
  await test('夏窗读取旧档中上季欧冠冠军，已隔两季的冠军不再加成',()=>{
    const p=target(),c=UC(),seller=C(p.clubId);
@@ -52,6 +54,24 @@ async function test(name,fn){try{reset();await fn();results.push({name,pass:true
    WORLD.cwcHistory=[{season:WORLD.season-1,champion:borrower.id}];
    seedRng(7);submitLoanIn(loan.id);
    assert.equal(loan.clubId,borrower.id);
+ });
+ await test('旧档国内联赛和国内杯冠军都能改变球员的加盟决定',()=>{
+   for(const [competition,bonus] of [['league',4],['cup',3]]){
+     reset();
+     const p=target(),c=UC(),seller=C(p.clubId);
+     c.rep=50;seller.rep=64+bonus;WORLD.day=0;
+     seedRng(7);ui(p,'now');submitBid(p.id);
+     assert.equal(p.clubId,seller.id);
+     const season=WORLD.season-1;
+     if(competition==='league')c.trophies.push(season+' '+LG(c).name);
+     else WORLD.history.push({season,cups:[c.id]});
+     adoptWorld(JSON.parse(JSON.stringify(WORLD)));SAVE_PAUSED=true;
+     assert.equal(UC().rep,50);
+     assert.equal(transferReputation(UC()),50+bonus);
+     const loaded=P(p.id);
+     seedRng(7);ui(loaded,'now');submitBid(loaded.id);
+     assert.equal(loaded.clubId,c.id);
+   }
  });
  await test('博斯曼弹窗同时提供免签预签和本窗付费选项',()=>{const p=target();let html='';const old=global.openModal;global.openModal=(t,b)=>html=b;try{makeBid(p.id);}finally{global.openModal=old;}assert.match(html,/value="precontract"/);assert.match(html,/value="now"/);assert.match(html,/id="bid-fee" type="number"/);});
  await test('切换加盟方式显示费用并重算预算，切回预签不计隐藏费用',()=>{const p=target(),nodes=ui(p);updBidArrival(p.id);assert(nodes['#bid-fee-fields'].hidden);assert.match(nodes['#bid-cost'].innerHTML,/转会费 £0/);assert.match(nodes['#bid-cost'].innerHTML,/0 周工资/);nodes['#bid-arrival'].value='now';updBidArrival(p.id);assert(!nodes['#bid-fee-fields'].hidden);assert(!nodes['#bid-payment-fields'].hidden);assert.match(nodes['#bid-cost'].innerHTML,new RegExp(remWeeks(UC())+' 周工资'));nodes['#bid-arrival'].value='precontract';updBidArrival(p.id);assert.match(nodes['#bid-cost'].innerHTML,/转会费 £0/);});
