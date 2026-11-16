@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="执掌绿茵">
 <meta name="touchline-distribution" content="standalone">
-<meta name="touchline-build" content="20261115.1">
+<meta name="touchline-build" content="20261116.1">
 
 
 
@@ -9222,6 +9222,18 @@ function wageDemand(p, club){
   const h=(hashStr(p.id+"|"+club.id+"|"+p.contract)%1000)/1000;
   return Math.round(Math.max(p.wage*1.06, w*(0.95+h*0.35))/50)*50;
 }
+const TRANSFER_REPUTATION_GAP=14;
+function transferReputation(club){
+  const {season}=WORLD;
+  const recentChampion=h=>h.champion===club.id&&(h.season===season||h.season===season-1);
+  const hasEliteTitle=WORLD.euro?.CL?.winner===club.id||previousSeasonSummary(season)?.euro?.CL===club.id
+    ||WORLD.wclHistory?.some(recentChampion)||WORLD.cwcHistory?.some(recentChampion);
+  // 近期顶级冠军的引援声望至少与 100 声望的球队相差不超过拒绝门槛。
+  return hasEliteTitle?Math.max(club.rep,100-TRANSFER_REPUTATION_GAP):club.rep;
+}
+function isSportingStepDown(from,to){
+  return transferReputation(from)>transferReputation(to)+TRANSFER_REPUTATION_GAP;
+}
 function squadNeed(club){
   // 返回最薄弱的位置
   let worst=null, ws=1e9;
@@ -13613,7 +13625,7 @@ function submitLoanIn(pid){
   { const r=canAfford(u, t.fee, p.wage*t.wageShare*52, {nextYear:false, weeks:loanWeeks(t.half)});
     if(!r.ok){ toast(affordMsg(u, r, t.fee, p.wage*t.wageShare*52),"bad"); return; } }
   if(u.squad.length>=30){ toast("阵容已满（上限 30 人）","bad"); return; }
-  if(owner.rep>u.rep+14 && rnd()<0.5){ toast(`${p.cn} 不愿被租到层级更低的球队`,"bad"); closeModal(); return; }
+  if(isSportingStepDown(owner,u) && rnd()<0.5){ toast(`${p.cn} 不愿被租到层级更低的球队`,"bad"); closeModal(); return; }
   loanPlayer(pid,u.id,t);
   news(`租入 ${p.cn}`,`${u.cn} 从 ${owner.cn} 租借 ${p.cn} ${t.half?"至冬窗":"至赛季末"}${t.fee?`，租借费 ${money(t.fee)}`:""}，承担 ${Math.round(t.wageShare*100)}% 工资${t.minApps?`。注意出场条款：租期内出场不足 ${Math.round(t.minApps*100)}%，母队可免费召回`:""}。`,"good");
   toast(`租借成功：${p.cn}`); closeModal(); render();
@@ -14384,8 +14396,7 @@ function submitBid(pid){
     }
   }
   if(wg < need*0.92){ toast(`${p.cn} 认为薪资不足，要求 ${money(need)}/周`,"bad"); closeModal(); return; }
-  // 球员意愿：声望差
-  if(seller && seller.rep > c.rep+14 && rnd()<0.6){ toast(`${p.cn} 不愿加盟——认为这是职业生涯的倒退`,"bad"); closeModal(); return; }
+  if(seller && isSportingStepDown(seller,c) && rnd()<0.6){ toast(`${p.cn} 不愿加盟——认为这是职业生涯的倒退`,"bad"); closeModal(); return; }
   // 抢手球员：报价仅略高于要价时，可能被更大的俱乐部截胡
   if(seller && !relegationGrace(p) && fee < ask*1.08 && (perfIndex(p)>=0.35 || p.ca>seller.rep*1.9) && rnd()<0.14){
     const rivals=WORLD.clubs.filter(r=>r.id!==c.id && r.id!==seller.id && r.rep>c.rep+3 && r.squad.length<29
@@ -16866,6 +16877,7 @@ function vHelp(v){
       • 对手球员的属性默认不可见，加入<b>球探名单</b>后情报逐日积累，45% 可见属性和训练态度、95% 可见真实潜力<br>
       • 潜力只是上限，不是终点。年轻球员能兑现多少，看出场时间、训练态度和伤病；普通球员24岁释放全部成长空间，29岁仍可继续成长，30岁起逐步收窄未兑现潜力；新青训首个不完整赛季不下调预期<br>
       • 报价需同时满足要价、球员薪资要求与俱乐部声望；低于要价 93% 会被直接拒绝<br>
+      • 本赛季和上赛季的欧冠、世冠联赛、世俱杯冠军会提高球队对引援对象的吸引力<br>
       • 表现突出的球员会被其他俱乐部盯上（转会页「转会传闻」可见关注度与追求者），窗口内会收到溢价报价，多家竞价时后来者出价更高；可以<b>接受 / 还价 / 拒绝</b>，拒绝豪门报价可能让球员不满<br>
       • 把球员<b>挂牌</b>可以吸引更多报价；设为<b>非卖品</b>能劝退大部分追求者。抢手球员报价只高出要价一点点时，可能被更大的俱乐部截胡<br>
       • AI 俱乐部也会挂牌冗员（搜索列表里带「挂牌」标签，要价打八五折）；窗口最后三天是截止日，市场最为活跃<br>
