@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="执掌绿茵">
 <meta name="touchline-distribution" content="standalone">
-<meta name="touchline-build" content="20261116.2">
+<meta name="touchline-build" content="20261116.3">
 
 
 
@@ -190,10 +190,36 @@ button.pri:hover{background:#0aa866;border-color:#0aa866}
 button.danger{background:#7a2226;border-color:#7a2226;color:#fff}
 button.sm{padding:5px 10px;font-size:11px}
 button.on{background:var(--acc2);border-color:var(--acc2);color:#fff}
-select,input[type=text],input[type=number]{
+select,.select-trigger,input[type=text],input[type=number]{
   background:var(--bg3);color:var(--txt);border:1px solid var(--line);border-radius:5px;
   padding:5px 8px;font-size:12px;font-family:inherit
 }
+select option,select optgroup{background:var(--bg2);color:var(--txt)}
+select[data-picker-source],.select-trigger[hidden]{display:none!important}
+.select-trigger{display:inline-flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;max-width:100%;text-align:left}
+.select-trigger span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.select-trigger::after{content:"";flex:none;width:5px;height:5px;margin:0 2px 3px;border:solid currentColor;border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+.select-picker{
+  position:fixed;inset:auto max(12px,var(--sar)) max(12px,var(--sab)) max(12px,var(--sal));
+  width:auto;max-width:480px;max-height:74vh;max-height:74dvh;margin:0 auto;padding:0;
+  border:1px solid var(--line);border-radius:16px;background:var(--bg2);color:var(--txt);
+  box-shadow:0 12px 42px #0005;overflow:hidden
+}
+.select-picker[open]{display:flex;flex-direction:column}
+.select-picker::backdrop{background:#0006}
+.select-picker header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.select-picker h2{font-size:16px;color:var(--txt)}
+.select-picker header button{min-height:40px}
+.select-options{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:4px 8px 8px}
+.select-options button{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:48px;
+  padding:8px 10px;border-color:transparent;border-radius:7px;background:var(--bg2);color:var(--txt);
+  font-size:16px;text-align:left;overflow-wrap:anywhere
+}
+.select-options button:hover{background:var(--bg3)}
+.select-options button[aria-current="true"]{background:var(--selected-bg);font-weight:700}
+.select-options button[aria-current="true"]::after{content:"✓";color:var(--acc)}
+.select-options button:focus-visible,.select-trigger:focus-visible{outline:2px solid var(--info);outline-offset:-2px}
 input[type=range]{accent-color:var(--acc)}
 label{font-size:11px;color:var(--dim);display:block;margin-bottom:3px}
 /* 筛选行：每个字段一列，控件行等高，滑块与下拉框基线对齐 */
@@ -201,7 +227,7 @@ label{font-size:11px;color:var(--dim);display:block;margin-bottom:3px}
 .filters>div{display:flex;flex-direction:column;gap:5px;min-width:0}
 .filters label{margin:0;white-space:nowrap}
 .filters .ctl{height:30px;display:flex;align-items:center}
-.filters select,.filters input[type=text]{height:30px;padding-top:0;padding-bottom:0}
+.filters :is(select,.select-trigger,input[type=text]){height:30px;padding-top:0;padding-bottom:0}
 .filters input[type=range]{margin:0;display:block}
 
 .tag{display:inline-block;padding:2px 6px;border-radius:3px;font-size:11px;font-weight:700;line-height:1.35}
@@ -379,7 +405,7 @@ img.crest-plate{background:#f5f1e9;border-radius:50%;padding:2px;box-sizing:bord
   .filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px 12px;align-items:end}
   .filters>div{min-width:0}
   .filters .ctl{height:36px}
-  .filters select,.filters input[type=text],.filters input[type=number]{height:36px;width:100% !important}
+  .filters :is(select,.select-trigger,input[type=text],input[type=number]){height:36px;width:100% !important}
   .filters input[type=range]{width:100% !important}
 
   /* 表格 */
@@ -389,7 +415,7 @@ img.crest-plate{background:#f5f1e9;border-radius:50%;padding:2px;box-sizing:bord
   th,td{padding:6px 8px}
   button,.btn{padding:9px 14px;font-size:12.5px}
   button.sm{padding:8px 11px;font-size:12px}
-  select,input[type=text],input[type=number]{font-size:16px;padding:7px 9px}
+  select,.select-trigger,input[type=text],input[type=number]{font-size:16px;padding:7px 9px}
 
   /* 弹窗全屏 */
   #modal{padding:0;align-items:stretch}
@@ -488,7 +514,8 @@ a.plink:hover{color:#ffffff}
 .more-entry .hint{display:block;white-space:normal}
 .more-back{margin-bottom:12px}
 .cheat-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:10px;margin:12px 0}
-.cheat-fields input,.cheat-fields select{display:block;width:100%;margin-top:4px;min-height:40px}
+.cheat-fields :is(input,select,.select-trigger){width:100%;margin-top:4px;min-height:40px}
+.cheat-fields :is(input,select){display:block}
 .cheat-results{display:grid;gap:6px;margin-top:10px;max-height:350px;overflow:auto}
 .cheat-player{white-space:normal;text-align:left;min-height:40px;padding:7px 10px}
 .cheat-player small{display:block;color:var(--dim)}
@@ -12940,6 +12967,93 @@ const el=(t,c,h)=>{const e=document.createElement(t); if(c)e.className=c; if(h!=
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let VIEW="home", SORT={k:null,d:1};
 
+function setupAndroidSelectPicker(){
+  if(navigator.userAgentData?.platform!=="Android"&&!/Android/i.test(navigator.userAgent))return;
+  const dialog=el("dialog","select-picker",'<header><h2 id="select-picker-title"></h2><button type="button">取消</button></header><div class="select-options"></div>');
+  if(typeof dialog.showModal!=="function")return;
+  dialog.id="android-select-picker";
+  dialog.setAttribute("aria-labelledby","select-picker-title");
+  const title=dialog.querySelector("h2"),cancel=dialog.querySelector("button"),options=dialog.querySelector(".select-options");
+  cancel.onclick=()=>dialog.close();
+  dialog.addEventListener("click",e=>{if(e.target===dialog)dialog.close();});
+  document.body.appendChild(dialog);
+
+  const triggers=new WeakMap();
+  function enhance(select){
+    if(!select.isConnected||select.multiple||select.size>1)return;
+    if(triggers.has(select)){triggers.get(select)();return;}
+    const label=select.labels[0]||select.closest(".ctl")?.previousElementSibling||select.previousElementSibling||select.closest("h3");
+    const labelCopy=label?.cloneNode(true);
+    labelCopy?.querySelectorAll("select,button").forEach(e=>e.remove());
+    const name=select.getAttribute("aria-label")||labelCopy?.textContent.trim()||"选择选项";
+    const trigger=el("button","select-trigger");
+    trigger.type="button";
+    trigger.style.cssText=select.style.cssText;
+    trigger.setAttribute("aria-haspopup","dialog");
+    trigger.setAttribute("aria-controls",dialog.id);
+    const value=trigger.appendChild(el("span"));
+    const sync=()=>{
+      const text=select.selectedOptions[0]?.label||"请选择";
+      value.textContent=text;
+      trigger.setAttribute("aria-label",name+"："+text);
+      trigger.disabled=select.matches(":disabled");
+      trigger.hidden=select.hidden;
+    };
+    trigger.onclick=()=>{
+      if(!select.isConnected||select.matches(":disabled")||dialog.open)return;
+      title.textContent=name;
+      options.replaceChildren();
+      for(const option of select.options){
+        if(option.hidden||option.closest("optgroup[hidden]"))continue;
+        const row=el("button");
+        row.type="button";
+        row.textContent=option.label;
+        row.disabled=option.matches(":disabled");
+        if(option.selected){row.setAttribute("aria-current","true");row.autofocus=!row.disabled;}
+        row.onclick=()=>{
+          dialog.close();
+          if(!select.isConnected||option.selected||option.index<0)return;
+          select.selectedIndex=option.index;
+          sync();
+          select.dispatchEvent(new Event("input",{bubbles:true,composed:true}));
+          select.dispatchEvent(new Event("change",{bubbles:true}));
+        };
+        options.appendChild(row);
+      }
+      trigger.focus({preventScroll:true});
+      dialog.showModal();
+      options.querySelector('[aria-current="true"]')?.scrollIntoView({block:"nearest"});
+    };
+    for(const label of select.labels){
+      label.addEventListener("click",e=>{
+        if(e.target.closest("button,input,select,textarea,a"))return;
+        e.preventDefault();trigger.click();
+      });
+    }
+    select.addEventListener("change",sync);
+    triggers.set(select,sync);
+    select.dataset.pickerSource="";
+    select.after(trigger);
+    sync();
+  }
+
+  const observer=new MutationObserver(records=>{
+    for(const record of records){
+      const select=record.target.closest("select");
+      if(select)enhance(select);
+      for(const node of record.addedNodes){
+        if(node.nodeType!==1)continue;
+        if(node.matches("select"))enhance(node);
+        else node.querySelectorAll("select").forEach(enhance);
+      }
+    }
+  });
+  for(const root of [$("#loadscr"),$("#view"),$("#modal")]){
+    root.querySelectorAll("select").forEach(enhance);
+    observer.observe(root,{childList:true,subtree:true,attributes:true,attributeFilter:["disabled","hidden","label","selected"]});
+  }
+}
+
 function toast(msg,cls){
   const t=el("div","toast "+(cls||""),esc(msg));
   $("#toast").appendChild(t);
@@ -17459,10 +17573,11 @@ window.addEventListener("DOMContentLoaded",()=>{
   lockZoom();
   watchOrientation();
   setupPWAInstall();
+  setupAndroidSelectPicker();
   loadCustomCrests();
   document.getElementById("tb-go").onclick=onContinue;
   document.addEventListener("keydown",e=>{
-    if(e.key==="Escape"){ closeModal(); return; }
+    if(e.key==="Escape"){ if(!$("#android-select-picker")?.open)closeModal(); return; }
     if(e.defaultPrevented || e.isComposing || e.keyCode===229 || e.repeat ||
        (e.target&&e.target.closest&&e.target.closest("input,textarea,select,button,a[href],[contenteditable='true']"))) return;
     if(e.code==="Space" && VIEW==="match" && CURMATCH && !CURMATCH.done){ e.preventDefault(); toggleplay(); }
