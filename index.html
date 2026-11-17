@@ -9,11 +9,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="执掌绿茵">
 <meta name="touchline-distribution" content="web">
-<meta name="touchline-standalone-bytes" content="15135497">
+<meta name="touchline-standalone-bytes" content="15136806">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="assets/pwa/icon-192.png">
 <link rel="icon" type="image/png" href="assets/pwa/icon-192.png">
-<meta name="touchline-build" content="20261116.3">
+<meta name="touchline-build" content="20261117.1">
 
 
 
@@ -6205,6 +6205,11 @@ function makeRealPlayer(row, clubId){
   assignPlaystyles(p);
   return p;
 }
+function markAcademyPlayer(p){
+  p.homegrown=true;
+  p.academyClubId=p.clubId;
+}
+
 // 真实名单人数不足（有的队只有 15 人）时，用生成球员补足替补深度
 function topUpSquad(club){
   const rep=club.rep;
@@ -6214,7 +6219,7 @@ function topUpSquad(club){
     const r=rnd(); const age = r<0.35? ri(18,21) : r<0.75? ri(22,26) : ri(27,31);
     const p=makePlayer(lvl,pos,age,club.id);
     p.wage=calcWage(p,rep); p.value=calcValue(p);
-    if(age<=21 && rnd()<0.6) p.homegrown=true;
+    if(age<=21 && rnd()<0.6) markAcademyPlayer(p);
     WORLD.players[p.id]=p; club.squad.push(p.id);
   };
   const minPer={GK:2,DC:3,DL:1,DR:1,DM:1,MC:2,ML:1,MR:1,AM:1,ST:2};
@@ -6258,7 +6263,7 @@ function genSquad(club){
       age = r<0.10? ri(17,19) : r<0.34? ri(20,23) : r<0.72? ri(24,28) : r<0.92? ri(29,32) : ri(33,36);
       const p=makePlayer(lvl,pos,age,club.id);
       p.wage=calcWage(p,rep); p.value=calcValue(p);
-      if(rnd()<0.3) p.homegrown=true;
+      if(rnd()<0.3) markAcademyPlayer(p);
       WORLD.players[p.id]=p; ids.push(p.id);
       idx++;
     }
@@ -9389,9 +9394,10 @@ function movePlayer(pid, toClubId, fee, labelOut, labelIn){
   if(to.id===WORLD.userClub) repairLineup(to); else autoPickLineup(to);
   return {from,to};
 }
+const TRANSFER_LOG_LIMIT=200;
 function pushTransferLog(row){
   WORLD.transferLog.unshift(Object.assign({d:WORLD.day, s:WORLD.season}, row));
-  if(WORLD.transferLog.length>200) WORLD.transferLog.length=200;
+  if(WORLD.transferLog.length>TRANSFER_LOG_LIMIT) WORLD.transferLog.length=TRANSFER_LOG_LIMIT;
 }
 function transferPlayer(pid,toClubId,fee,wage,years,opts){
   const p=P(pid), to=C(toClubId); opts=opts||{};
@@ -10903,7 +10909,7 @@ function spawnLegendYouths(){
     const uc=cands.find(x=>x.id===WORLD.userClub);
     const c=(uc&&rnd()<0.18)? uc : pick(cands);
     const p=makeLegendYouth(c.id,16,17); if(!p) return;
-    p.homegrown=true; p.wage=Math.max(250,Math.round(calcWage(p,c.rep)*0.35/50)*50); p.contract=WORLD.season+3;
+    markAcademyPlayer(p); p.wage=Math.max(250,Math.round(calcWage(p,c.rep)*0.35/50)*50); p.contract=WORLD.season+3;
     WORLD.players[p.id]=p; c.squad.push(p.id); p.value=calcValue(p);
     if(c.id===WORLD.userClub)
       news("青训营的惊喜",`青训主管特别提到一名叫 ${p.cn}（${POS_CN[p.pos]}，${p.age}岁，${p.nat}）的少年："我从没见过这样的天赋。"`,"good");
@@ -11043,7 +11049,7 @@ function youthIntake(){
       const bonus = 20 + Math.pow(rnd(),2.3)*85 + c.youthRating*1.2;
       const capPA = 108 + c.youthRating*3.4;   // 20 级青训营天花板 176(≈88)，8 级只有 135(≈67)
       p.pa=clamp(Math.round(p.ca+bonus), p.ca, Math.min(200, Math.round(capPA)));
-      p.homegrown=true; p.wage=Math.max(250,Math.round(calcWage(p,c.rep)*0.35/50)*50);
+      markAcademyPlayer(p); p.wage=Math.max(250,Math.round(calcWage(p,c.rep)*0.35/50)*50);
       p.contract=WORLD.season+3;
       WORLD.players[p.id]=p; c.squad.push(p.id); arr.push(p);
     }
@@ -13352,6 +13358,12 @@ function vInbox(v){
 }
 
 /* ================= 阵容 ================= */
+function academyBadge(p, clubId){
+  if(!p.homegrown) return "";
+  const academy=C(p.academyClubId);
+  const label=academy ? (academy.id===clubId ? "自家青训" : `${academy.cn}青训`) : "青训出处不详";
+  return `<div class="hint academy-origin">◆${esc(label)}</div>`;
+}
 let SQUADFILTER="all";
 function vSquad(v){
   if(NAT_SCOPE==='nation' && WORLD.userNation){ vNationSquad(v); return; }
@@ -13383,7 +13395,7 @@ function vSquad(v){
   card.appendChild(makeTable([
     {h:"",k:"st",nos:true,cls:"ctr",r:p=>inXI(p.id)?'<span class="tag t-ok">首发</span>':inSub(p.id)?'<span class="tag t-i">替补</span>':''},
     {h:"#",k:"num",cls:"num",mh:true,v:p=>p.num||999,r:p=>`<span class="hint" style="font-variant-numeric:tabular-nums">${p.num||"-"}</span>`},
-    {h:"姓名",k:"n",v:p=>p.cn,r:p=>`<b>${esc(p.cn)}</b>${p.homegrown?' <span class="hint">◆</span>':''}${p.loan?' <span class="tag t-i">租</span>':''}${p.wantsLoan?' <span class="tag t-w">想外租</span>':''}${c.captain===p.id?' <span class="tag t-ok">队长</span>':c.viceCaptain===p.id?' <span class="tag t-i">副队长</span>':''}<div class="hint en-sub" style="font-size:10.5px">${esc(p.name)}</div>`},
+    {h:"姓名",k:"n",v:p=>p.cn,r:p=>`<b>${esc(p.cn)}</b>${p.loan?' <span class="tag t-i">租</span>':''}${p.wantsLoan?' <span class="tag t-w">想外租</span>':''}${c.captain===p.id?' <span class="tag t-ok">队长</span>':c.viceCaptain===p.id?' <span class="tag t-i">副队长</span>':''}<div class="hint en-sub" style="font-size:10.5px">${esc(p.name)}</div>${academyBadge(p,c.id)}`},
     {h:"位置",k:"pos",v:p=>POSITIONS.indexOf(p.pos),r:p=>`<span class="tag t-${POS_GRP[p.pos]}">${POS_CN[p.pos]}</span>${p.pos2.length?`<span class="hint pos2" style="font-size:10.5px"> ${p.pos2.map(x=>POS_CN[x]).join("/")}</span>`:""}`},
     {h:"年龄",k:"age",cls:"num",mh:true,v:p=>p.age,r:p=>p.age},
     {h:"能力",k:"ca",cls:"num",v:p=>p.ca,r:p=>`<b style="color:${caColor(p.ca)}">${ovr(p)}</b>`},
@@ -13409,7 +13421,7 @@ function vSquad(v){
     const lc=el("div","card");
     lc.innerHTML=`<h3>外租中（${lo.length}）<span class="hint" style="font-weight:400">不占阵容名额 · 转会窗内可在档案里召回</span></h3>`;
     lc.appendChild(makeTable([
-      {h:"姓名",k:"n",v:p=>p.cn,r:p=>`<b>${esc(p.cn)}</b><div class="hint en-sub" style="font-size:10.5px">${esc(p.name)}</div>`},
+      {h:"姓名",k:"n",v:p=>p.cn,r:p=>`<b>${esc(p.cn)}</b><div class="hint en-sub" style="font-size:10.5px">${esc(p.name)}</div>${academyBadge(p,c.id)}`},
       {h:"租往",k:"c",v:p=>C(p.clubId).cn,r:p=>crestHTML(C(p.clubId))+esc(C(p.clubId).short)+` <span class="tag t-n">${LGS(C(p.clubId))}</span>`},
       {h:"位置",k:"pos",v:p=>POSITIONS.indexOf(p.pos),r:p=>`<span class="tag t-${POS_GRP[p.pos]}">${POS_CN[p.pos]}</span>`},
       {h:"年龄",k:"age",cls:"num",mh:true,v:p=>p.age,r:p=>p.age},
@@ -13452,7 +13464,7 @@ function showPlayer(pid){
     <div class="pcol-side">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
         ${club?crestHTML(club,34):'<span class="crest" style="width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#1c2530,#2a3542);border:1px solid #7a8a99;display:inline-flex;align-items:center;justify-content:center;overflow:hidden"><svg viewBox="0 0 34 34" width="34" height="34"><circle cx="17" cy="17" r="15" fill="#141a21" stroke="#c9a227" stroke-width="1.2"/><circle cx="17" cy="12.5" r="4.2" fill="#c9a227"/><path d="M9 28c1.2-5 4.4-7.5 8-7.5s6.8 2.5 8 7.5" fill="#c9a227"/><circle cx="17" cy="17" r="2.6" fill="none" stroke="#8a9aa8" stroke-width="0.8" opacity="0.6"/></svg></span>'}
-        <div><b style="font-size:15px">${esc(p.cn)}</b>${p.legend&&(own||know>=95)?' <span class="tag" style="background:#6b4e00;color:#ffd24a">传奇之种</span>':''}<div class="hint">${esc(p.name)}</div></div>
+        <div><b style="font-size:15px">${esc(p.cn)}</b>${p.legend&&(own||know>=95)?' <span class="tag" style="background:#6b4e00;color:#ffd24a">传奇之种</span>':''}<div class="hint">${esc(p.name)}</div>${academyBadge(p,WORLD.needJob?null:WORLD.userClub)}</div>
       </div>
       ${p.playstyles&&p.playstyles.length?`<div style="margin:0 0 10px;padding:8px;background:var(--bg3);border-radius:8px;border:1px solid #232d38">
         <div class="hint" style="margin-bottom:5px;font-size:11px">🏅 球员徽章</div>
@@ -14179,7 +14191,7 @@ function vYouth(v){
   const card=el("div","card"); card.innerHTML=`<h3>U21 球员（${yy.length} 人）</h3>`;
   if(!yy.length) card.appendChild(el("div","empty","目前没有年轻球员"));
   else card.appendChild(makeTable([
-    {h:"姓名",k:"n",v:p=>p.cn,r:p=>esc(p.cn)+(p.homegrown?' <span class="hint">◆自家青训</span>':'')},
+    {h:"姓名",k:"n",v:p=>p.cn,r:p=>esc(p.cn)+academyBadge(p,c.id)},
     {h:"位置",k:"pos",v:p=>POSITIONS.indexOf(p.pos),r:p=>`<span class="tag t-${POS_GRP[p.pos]}">${POS_CN[p.pos]}</span>`},
     {h:"年龄",k:"age",cls:"num",v:p=>p.age,r:p=>p.age},
     {h:"国籍",k:"nat",v:p=>p.nat,r:p=>esc(p.nat)},
@@ -17025,7 +17037,7 @@ function vHelp(v){
     <div class="card"><h3>球员</h3>
       <div style="line-height:1.85">每人 30 项 1–20 的属性，综合成 0–100 的<b>能力值</b>与隐藏的<b>潜力值</b>。
       年轻球员在良好的教练与充足出场时间下会成长，30 岁后身体属性开始衰退。
-      自家青训球员标记为 ◆，每年 3 月会有新一批苗子入队。</div></div>
+      ◆ 标明青训来源，显示「自家青训」或培养俱乐部的名称。每年 3 月会有新一批苗子入队。</div></div>
     <div class="card"><h3>转会与球探</h3>
       <div style="line-height:1.85">转会窗在 <b>8 月</b>与 <b>1 月</b>开启。<br>
       • 对手球员的属性默认不可见，加入<b>球探名单</b>后情报逐日积累，45% 可见属性和训练态度、95% 可见真实潜力<br>
@@ -17755,11 +17767,29 @@ function repairLegacyFinalNews(){
   }
   return fixed;
 }
+function migrateAcademyClubs(){
+  const log=WORLD.transferLog;
+  const oldest=log.at(-1), truncated=log.length>=TRANSFER_LOG_LIMIT;
+  const oldestAbs=truncated ? oldest.s*400+oldest.d : -Infinity;
+  const firstMoves=new Map();
+  // 日志按最新在前保存。沿途覆盖后留下最早的一条转会或租借记录。
+  for(const row of log) firstMoves.set(row.pid,row);
+  for(const p of Object.values(WORLD.players)){
+    if(!p.homegrown || p.academyClubId!==undefined) continue;
+    const move=firstMoves.get(p.id), neverTransferred=p.joinedAbs==null;
+    let clubId=neverTransferred ? ownerOf(p) : null;
+    if(move && (neverTransferred || !truncated || p.createdAbs>oldestAbs)){
+      clubId=move.loan===2 ? move.to : move.from;
+    }
+    p.academyClubId=C(clubId)?.id ?? null;
+  }
+}
 function adoptCandidate(obj){
   if(!obj || !obj.clubs || !obj.leagues) throw new Error("bad");
   if(obj.ver!==2 || !obj.cups) throw new Error("oldver");
   WORLD=obj; delete WORLD._saveStamp;
   migratePlayerNames();
+  migrateAcademyClubs();
   // 五国旧档的“欧洲其他”曾使用编号 5；按其明确国别和无国内联赛身份迁移，避免被误归入新增国家。
   WORLD.clubs.forEach(c=>{if(c.lg<0 && c.country && c.nation!==EURO_NATION && !WORLD.leagues.some(l=>l.nation===c.nation)) c.nation=EURO_NATION;});
   // 扩充联赛级别后编号发生变化，按国家与级别重映射，保留原赛程、积分及历史。
