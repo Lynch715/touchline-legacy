@@ -1,0 +1,216 @@
+{
+  "asOf": "2026-11-18",
+  "clubs": [
+    {
+      "club": "Bolton Wanderers",
+      "squad": "https://www.transfermarkt.com/bolton-wanderers/kader/verein/355/saison_id/2026",
+      "players": 26,
+      "crest": "existing"
+    },
+    {
+      "club": "Cardiff City",
+      "squad": "https://www.transfermarkt.com/cardiff-city/kader/verein/603/saison_id/2026",
+      "players": 24,
+      "crest": "existing"
+    },
+    {
+      "club": "Charlton Athletic",
+      "squad": "https://www.transfermarkt.com/charlton-athletic/kader/verein/358/saison_id/2026",
+      "players": 31,
+      "crest": "existing"
+    },
+    {
+      "club": "Lincoln City",
+      "squad": "https://www.transfermarkt.com/lincoln-city/kader/verein/1198/saison_id/2026",
+      "players": 28,
+      "crest": "existing"
+    },
+    {
+      "club": "Peterborough United",
+      "squad": "https://www.transfermarkt.com/peterborough-united/kader/verein/1072/saison_id/2026",
+      "players": 29,
+      "crest": "existing"
+    },
+    {
+      "club": "Cambridge United",
+      "squad": "https://www.transfermarkt.com/cambridge-united/kader/verein/986/saison_id/2026",
+      "players": 23,
+      "crest": "https://img.a.transfermarkt.technology/wappen/head/986.png?lm=1789459227",
+      "sha256": "2d40343492db48dbd88f760010e97744ce69d6d7b3db1a84636c444fece68928"
+    },
+    {
+      "club": "Burton Albion",
+      "squad": "https://www.transfermarkt.com/burton-albion/kader/verein/2963/saison_id/2026",
+      "players": 24,
+      "crest": "existing"
+    },
+    {
+      "club": "Bristol Rovers",
+      "squad": "https://www.transfermarkt.com/bristol-rovers/kader/verein/2455/saison_id/2026",
+      "players": 25,
+      "crest": "existing"
+    },
+    {
+      "club": "Cheltenham Town",
+      "squad": "https://www.transfermarkt.com/cheltenham-town/kader/verein/3371/saison_id/2026",
+      "players": 22,
+      "crest": "https://img.a.transfermarkt.technology/wappen/head/3371.png?lm=1789459344",
+      "sha256": "6defbb71cc4f9cd92c5b207090806be8550d2febc8786a9d75f66d9596d14d9d"
+    },
+    {
+      "club": "Crawley Town",
+      "squad": "https://www.transfermarkt.com/crawley-town/kader/verein/3537/saison_id/2026",
+      "players": 31,
+      "crest": "https://img.a.transfermarkt.technology/wappen/head/3537.png?lm=1789459351",
+      "sha256": "b4bcab6e86c58c87f8e49f3a51d57641bff6c7700fcb6414a9b42c7a829e0340"
+    },
+    {
+      "club": "Exeter City",
+      "squad": "https://www.transfermarkt.com/exeter-city/kader/verein/6699/saison_id/2026",
+      "players": 27,
+      "crest": "existing"
+    },
+    {
+      "club": "Northampton Town",
+      "squad": "https://www.transfermarkt.com/northampton-town/kader/verein/1302/saison_id/2026",
+      "players": 28,
+      "crest": "existing"
+    },
+    {
+      "club": "Port Vale",
+      "squad": "https://www.transfermarkt.com/fc-port-vale/kader/verein/1211/saison_id/2026",
+      "players": 27,
+      "crest": "https://img.a.transfermarkt.technology/wappen/head/1211.png?lm=1789459237",
+      "sha256": "108faab2475ef6d4fd0710931a96c3ce4bc6f3419482e0edcb3b0608ddb407e5"
+    },
+    {
+      "club": "Rotherham United",
+      "squad": "https://www.transfermarkt.com/rotherham-united/kader/verein/1194/saison_id/2026",
+      "players": 31,
+      "crest": "existing"
+    },
+    {
+      "club": "Shrewsbury Town",
+      "squad": "https://www.transfermarkt.com/shrewsbury-town/kader/verein/3054/saison_id/2026",
+      "players": 22,
+      "crest": "existing"
+    },
+    {
+      "club": "AFC Fylde",
+      "squad": "https://www.transfermarkt.com/afc-fylde/kader/verein/22672/saison_id/2026",
+      "players": 25,
+      "crest": "https://img.a.transfermarkt.technology/wappen/head/22672.png?lm=1789460317",
+      "sha256": "3a8ed848da1eb7bb52b9a657ce28d4628587d45fd5afcc184aa901f61e525ee5"
+    },
+    {
+      "club": "Hornchurch",
+      "squad": "https://www.transfermarkt.com/afc-hornchurch/kader/verein/3868/saison_id/2026",
+      "players": 29,
+      "crest": "https://img.a.transfermarkt.technology/wappen/head/3868.png?lm=1789459366",
+      "sha256": "970f31af14d4d1c1cc61323d8b616bf9c96adf70c94e21354f0e503f6a938639"
+    },
+    {
+      "club": "Kidderminster Harriers",
+      "squad": "https://www.transfermarkt.com/kidderminster-harriers/kader/verein/1195/saison_id/2026",
+      "players": 27,
+      "crest": "https://img.a.transfermarkt.technology/wappen/head/1195.png?lm=1789459236",
+      "sha256": "aa73ff03e87c31d1ef53bf6e0e985ffaad5aa764ef1c4302673b808f1e93adab"
+    },
+    {
+      "club": "Scunthorpe United",
+      "squad": "https://www.transfermarkt.com/scunthorpe-united/kader/verein/2964/saison_id/2026",
+      "players": 27,
+      "crest": "https://img.a.transfermarkt.technology/wappen/head/2964.png?lm=1789459327",
+      "sha256": "248ed8bcd1504970304f369847a989c2ab54896fa53dc88bfcab0c7c9d8b3f67"
+    },
+    {
+      "club": "Tamworth",
+      "squad": "https://www.transfermarkt.com/tamworth-fc/kader/verein/3539/saison_id/2026",
+      "players": 31,
+      "crest": "https://img.a.transfermarkt.technology/wappen/head/3539.png?lm=1789459351",
+      "sha256": "239c62b02bfd949e2435bcf93f61a68a9cccad17b1813951558799b68e48c5d6"
+    },
+    {
+      "club": "Worthing",
+      "squad": "https://www.transfermarkt.com/worthing-fc/kader/verein/8123/saison_id/2026",
+      "players": 28,
+      "crest": "https://img.a.transfermarkt.technology/wappen/head/8123.png?lm=1789459586",
+      "sha256": "616bc8d7b6c176755702552bf10d9ff17896a187c57cf9a5e79637a09df44614"
+    },
+    {
+      "club": "Yeovil Town",
+      "squad": "https://www.transfermarkt.com/yeovil-town/kader/verein/972/saison_id/2026",
+      "players": 23,
+      "crest": "https://img.a.transfermarkt.technology/wappen/head/972.png?lm=1789459221",
+      "sha256": "3aba84e801d9c765f067c28c35e9be0f6be5012e93c0ce4e4e62593ae6e15760"
+    },
+    {
+      "club": "Kickers Offenbach",
+      "squad": "https://www.transfermarkt.com/kickers-offenbach/kader/verein/107/saison_id/2026",
+      "players": 29,
+      "crest": "https://img.a.transfermarkt.technology/wappen/head/107.png?lm=1789459174",
+      "sha256": "9fb763f7dae400d333e2e6aa357fa3e9b2c019fc6bece5baf6aed61263680843"
+    },
+    {
+      "club": "Valenciennes",
+      "squad": "https://www.transfermarkt.com/fc-valenciennes/kader/verein/1423/saison_id/2026",
+      "players": 25,
+      "crest": "https://img.a.transfermarkt.technology/wappen/head/1423.png?lm=1789459251",
+      "sha256": "412d2e4aa133fdc26cc20c1e48030a392d6b9ae4337f2dbbb88d77977fe742ec"
+    },
+    {
+      "club": "Dalian Kun City",
+      "squad": "https://www.transfermarkt.com/dalian-kun-city/kader/verein/57778/saison_id/2025",
+      "players": 30,
+      "crest": "https://img.a.transfermarkt.technology/wappen/head/57778.png?lm=1789462864",
+      "sha256": "a7501662990cad9e0158c2e041c62450b134640dfc43bdd18760e080c543b370"
+    },
+    {
+      "club": "Jubilo Iwata",
+      "squad": "https://www.transfermarkt.com/jubilo-iwata/kader/verein/937/saison_id/2026",
+      "players": 39,
+      "crest": "https://img.a.transfermarkt.technology/wappen/head/937.png?lm=1792616349",
+      "sha256": "3692e89bb52505af73355943886bc36708adf79e1b430d12ac199aaf52754d8b"
+    },
+    {
+      "club": "Porto B",
+      "squad": "https://www.transfermarkt.com/fc-porto-b/kader/verein/10331/saison_id/2026",
+      "players": 29,
+      "crest": "https://img.a.transfermarkt.technology/wappen/head/10331.png?lm=1789459709",
+      "sha256": "5d2da5c2c6f454c0fc897c73d3e086443a6a8c26576657371adaaa1a6355a5f0"
+    },
+    {
+      "club": "FC Grand-Saconnex",
+      "squad": "https://www.transfermarkt.com/fc-grand-saconnex/kader/verein/49621/saison_id/2026",
+      "players": 30,
+      "crest": "https://img.a.transfermarkt.technology/wappen/head/49621.png?lm=1789462258",
+      "sha256": "d95c2044063a82d0745e49a6c3604c122324e61f9f56945afd73dd5a29c57757"
+    },
+    {
+      "club": "Olympic Charleroi",
+      "squad": "https://www.transfermarkt.com/olympic-club-charleroi-farciennes/kader/verein/3146/saison_id/2026",
+      "players": 25,
+      "crest": "https://img.a.transfermarkt.technology/wappen/head/3146.png?lm=1789459335",
+      "sha256": "864ec735813810cd85afe8584153c12abf64c18d6e88e046c69df3dbfdd1ec4d"
+    },
+    {
+      "club": "Flandria",
+      "squad": "https://www.transfermarkt.com/club-sd-flandria/kader/verein/13341/saison_id/2025",
+      "players": 26,
+      "crest": "https://img.a.transfermarkt.technology/wappen/head/13341.png?lm=1789459840",
+      "sha256": "a8f48e064af457f8a727ba559868b8651c698f54b4621a0357a60f6c617ffe56"
+    },
+    {
+      "club": "Bucaspor 1928",
+      "squad": "https://www.transfermarkt.com/bucaspor-1928/kader/verein/44286/saison_id/2026",
+      "players": 26,
+      "crest": "https://img.a.transfermarkt.technology/wappen/head/44286.png?lm=1789461863",
+      "sha256": "5ac7c661c87fbd36d70257a4dec475f8e19072cc3fba6a73242a3f5ab572e64a"
+    }
+  ],
+  "ageNotes": {
+    "Archie Lang": "https://www.blackpoolgazette.co.uk/sport/archie-lang-afc-fylde-bamber-bridge-thornton-cleveleys-9342717",
+    "Guillermo De La Cruz": "Age unpublished; estimated in game. https://worthingfc.com/teams/men/"
+  },
+  "squadNotes": "Player identity, primary position, reported age and national affiliation follow the team snapshot. Match attributes, potential and contracts are game estimates."
+}
