@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="执掌绿茵">
 <meta name="touchline-distribution" content="standalone">
-<meta name="touchline-build" content="20261119.2">
+<meta name="touchline-build" content="20261126.3">
 
 
 
@@ -575,7 +575,7 @@ button.nav:focus-visible{outline:2px solid var(--acc);outline-offset:-2px}
     <div id="view"></div>
   </div>
 </div>
-<div id="modal"><div id="modal-box">
+<div id="modal"><div id="modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-t" tabindex="-1">
   <div id="modal-hd"><b id="modal-t"></b><span class="x" onclick="closeModal()">×</span></div>
   <div id="modal-bd"></div><div id="modal-ft"></div>
 </div></div>
@@ -4576,14 +4576,22 @@ function nationalCupsDayEnd(day){
     if(winners.length>1){nationalScheduleKO(E,winners,r+1);continue;}
     const f=fx[0],name=NATIONAL_COMPS[E.code].name;E.champion=winners[0];E.runnerUp=E.champion===f.home?f.away:f.home;E.stage='F';
     const h=nationalHistory(E.code);if(!h.some(x=>x.season===E.season))h.push(nationalSnapshot(E));
-    (E.squads[E.champion]||[]).map(P).filter(Boolean).forEach(p=>{p.honors=p.honors||[];const t=E.season+' '+name+'冠军';if(!p.honors.includes(t))p.honors.push(t);});
+    awardCompetitionPlayers(E.season,E.code,E.champion);
+    awardNationalCoach(E.season,E.code,E.champion,f.day);
     if(E.champion===WORLD.userNation){const t=E.season+' '+name+'冠军（'+E.champion+'）';WORLD.managerHonors=WORLD.managerHonors||[];if(!WORLD.managerHonors.includes(t))WORLD.managerHonors.push(t);}
     news('🏆 '+name+'落幕',`${f.home} ${f.hg}-${f.ag} ${f.away}${f.pens?'（点球 '+f.pens.join('-')+'）':''}，${E.champion} 夺得 ${E.season} ${name}冠军！`,E.champion===WORLD.userNation?'good':'info');
   }
 }
 function nationalMatchPlayers(code,nations){
   const E=WORLD.nationalCups[code],players={};
-  for(const nat of nations)(E.squads[nat]||[]).forEach((id,i)=>{const p=P(id);if(p&&p.nat===nat){players[id]=structuredClone(p);players[id].susp=E.discipline[id]?.susp||0;players[id].yellow=0;players[id].number=i+1;}});
+  for(const nation of nations)if(nation!==WORLD.userNation)ensureNationalManager(nation);
+  for(const nat of nations)(E.squads[nat]||[]).forEach((id,i)=>{
+    const p=P(id);
+    if(!p||p.nat!==nat)return;
+    const {careerMatches,careerEvents,careerLegacy,...matchData}=p;
+    players[id]=structuredClone(matchData);
+    Object.assign(players[id],{susp:E.discipline[id]?.susp||0,yellow:0,number:i+1});
+  });
   return players;
 }
 function matchPlayer(M,id){return M.national?M.players[id]:P(id);}
@@ -4608,7 +4616,11 @@ function applyNationalResult(f,M){
     for(const id of T.club.squad)if(E.discipline[id]?.susp>0)E.discipline[id].susp--;
     for(const m of T.men){
       const p=P(m.id);if(!p||m.mins<=0)continue;
-      p.intlStats=p.intlStats||{apps:0,goals:0,assists:0,cleanSheet:0,ratingSum:0,motm:0};const s=p.intlStats;s.apps++;s.goals+=m.goals;s.assists+=m.assists;s.ratingSum+=m.rating;s.motm+=M.motm?.id===m.id?1:0;if(m.pos==='GK'&&m.mins>=60&&M.score[1-side]===0)s.cleanSheet++;
+      p.intlStats=p.intlStats||{apps:0,goals:0,assists:0,cleanSheet:0,ratingSum:0,motm:0};const s=p.intlStats;
+      const debut=s.apps===0, best=M.motm?.id===m.id, clean=matchRoleMinutes(m,"gk")>=60&&M.score[1-side]===0;
+      s.apps++;s.goals+=m.goals;s.assists+=m.assists;s.ratingSum+=m.rating;s.motm+=Number(best);s.cleanSheet+=Number(clean);
+      recordCareerAppearance(p,E.season,f.comp,T.cid,m,best,clean);
+      if(debut)recordCareerEvent(p,{type:"intlDebut",s:E.season,d:f.day,team:T.cid});
       p.condition=Math.min(p.condition,m.cond);
       if(m.injured){p.injury=Math.max(p.injury,rollInjuryDays());p.injRecovery=0;p.injType='国家队比赛伤病';}
       const d=E.discipline[p.id]||(E.discipline[p.id]={yellow:0,susp:0});d.yellow+=m.yellow;if(m.red)d.susp=Math.max(d.susp,1);if(d.yellow>=2){d.yellow=0;d.susp=Math.max(d.susp,1);}
@@ -6493,7 +6505,7 @@ function newWorld(seed, userClubEn){
     userClub:0, news:[], inbox:[], transferLog:[], history:[],
     freeAgents:[], scoutReports:[], shortlist:[], worldNews:[],
     userNation:null, nationVacancies:[], nationManagers:{}, managerHonors:[], rebornLegends:null,
-    userCoach:null, coachRep:10,
+    userCoach:null, coachRep:10, careerTrackingFrom:{s:2026,d:0},
     settings:{}
   };
   const rows=[];
@@ -7420,6 +7432,8 @@ function advanceCupRound(cup){
   if(winners.length===1){
     cup.winner=winners[0]; const w=C(cup.winner);
     awardClubTitle(w,WORLD.season,cup.name,CLUB_TITLE_REP.C); addMoney(w,cupPrize(cup,5),cup.name+"冠军奖金");
+    awardCompetitionPlayers(WORLD.season,"C:"+cup.nation,w.id,{awards:false});
+    grantManagerTitle(w,WORLD.season,cup.name+"冠军");
     w.board.conf=clamp(w.board.conf+15,0,100);
     if(w.id===WORLD.userClub) news(`${cup.name}冠军！`,`${w.cn} 捧起了 ${WORLD.season}/${String(WORLD.season+1).slice(2)} 赛季的${cup.name}！`,"good");
     else if(UC().nation===cup.nation) news(`${cup.name}决赛`,`${w.cn} 夺得本赛季${cup.name}冠军。`,"info");
@@ -7615,6 +7629,8 @@ function euroFinish(E, fx){
   const pz=EURO_COMPS[E.code].prize;
   addMoney(C(w), pz.fin+pz.champ, E.short+"冠军奖金"); addMoney(C(l), pz.fin, E.short+"亚军奖金");
   awardClubTitle(C(w),WORLD.season,E.name,CLUB_TITLE_REP[E.code]);
+  awardCompetitionPlayers(WORLD.season,E.code,w);
+  grantManagerTitle(C(w),WORLD.season,E.short+"冠军");
   C(w).board.conf=clamp(C(w).board.conf+ (E.code==="CL"?40:25),0,100);
   C(w).euro=null; C(l).euro=null;
   if(w===WORLD.userClub) news(`${E.name}冠军！！`,`${C(w).cn} 登上欧洲之巅，捧起${E.name}奖杯！`,"good");
@@ -8085,6 +8101,14 @@ function stepMatch(M){
   M.teams.forEach((tm,s)=>{
     const tempoF=0.85+tm.tac.tempo*0.08, pressG=0.85+tm.tac.press*0.09;
     tm.men.forEach(m=>{ if(m.off)return;
+    if(m.careerPosition!==m.pos){
+      const priorGroup=POS_GRP[m.careerPosition];
+      if(priorGroup){
+        const roles=m.careerRoles||(m.careerRoles={});
+        roles[priorGroup]=(roles[priorGroup]||0)+m.mins-m.careerPositionStart;
+      }
+      m.careerPosition=m.pos; m.careerPositionStart=m.mins;
+    }
     m.mins += dt/60;
     const st=m.p.a.stamina, wr=m.p.a.workrate;
     let drain=(dt/60)*(0.30+ (20-st)*0.028 + wr*0.006)*(s===side?tempoF:pressG*1.05)*1.0; // 非守门员体能消耗（原0.78，调高约28%）
@@ -8660,6 +8684,198 @@ function processNewsEvents(){
 }
 
 // ---------- 结果落地 ----------
+function careerCompetition(f){
+  if(f.comp==="L")return "L:"+f.lg;
+  if(f.comp==="C")return "C:"+f.nation;
+  return f.comp;
+}
+function matchRoleMinutes(m,group,position=m.pos){
+  const current=m.careerPosition?POS_GRP[m.careerPosition]===group?m.mins-m.careerPositionStart:0:
+    !m.careerRoles&&POS_GRP[position]===group?m.mins:0;
+  return (m.careerRoles?.[group]||0)+(current||0);
+}
+function recordCareerAppearance(p,season,comp,team,m,best,clean){
+  const rows=p.careerMatches||(p.careerMatches=[]);
+  let row;
+  for(let i=rows.length-1;i>=0&&rows[i].s===season;i--){
+    const r=rows[i];
+    if(r.team===team&&r.comp===comp&&r.age===p.age){row=r;break;}
+  }
+  if(!row){
+    row={s:season,comp,team,age:p.age,apps:0,starts:0,mins:0,g:0,a:0,rt:0,best:0,cs:0};
+    rows.push(row);
+  }
+  row.apps++; row.starts+=Number(m.subIn==null); row.mins+=Math.round(m.mins||0);
+  row.g+=m.goals; row.a+=m.assists; row.rt+=Math.round(m.rating*100);
+  row.best+=Number(best); row.cs+=Number(clean);
+  for(const group of ["gk","df","mf","fw"]){
+    const minutes=Math.round(matchRoleMinutes(m,group,m.pos||p.pos));
+    if(minutes<=0)continue;
+    const roles=row.roles||(row.roles={}), totals=roles[group]||(roles[group]=[0,0,0,0]);
+    totals[0]++; totals[1]+=minutes; totals[2]+=Math.round(m.rating*100)*minutes;
+    if(group==="gk"&&clean)totals[3]++;
+  }
+}
+function recordCareerEvent(p,event){
+  if(p)(p.careerEvents||(p.careerEvents=[])).push(event);
+}
+function careerTransferEvent(row){
+  if(!Number.isInteger(row.s))return;
+  const type=row.loan===1?"loan":row.loan===2?"return":row.from<0?"sign":"transfer";
+  recordCareerEvent(P(row.pid),{type,s:row.s,d:row.d,from:row.from,to:row.to,fee:row.fee});
+}
+function migrateCareerHistory(){
+  if(WORLD.careerTrackingFrom)return;
+  WORLD.careerTrackingFrom={s:WORLD.season,d:WORLD.day};
+  WORLD.careerPartialCompetitions=[...new Set([...WORLD.fixtures,...nationalFixtures()].filter(f=>f.played).map(careerCompetition))];
+  for(const p of Object.values(WORLD.players)){
+    const rows=[];
+    if(p.last?.apps)rows.push({s:WORLD.season-1,apps:p.last.apps,g:p.last.goals,a:p.last.assists,avg:p.last.rt});
+    if(p.apps>0)rows.push({s:WORLD.season,apps:p.apps,g:p.goals,a:p.assists,avg:p.ratingSum/p.apps});
+    if(rows.length)p.careerLegacy=rows;
+  }
+  for(const row of WORLD.transferLog.slice().reverse())careerTransferEvent(row);
+}
+function archivePlayerCareer(p,reason="退役"){
+  const retired=WORLD.retiredCareers||(WORLD.retiredCareers={});
+  const {id,cn,name,nat,pos,age,legend,academyClubId,createdAbs,careerApps,careerGoals,intlStats,honors,careerMatches,careerEvents,careerLegacy}=p;
+  retired[id]={id,cn,name,nat,pos,age,legend,academyClubId,createdAbs,careerApps,careerGoals,intlStats,honors,careerMatches,careerEvents,careerLegacy,
+    retired:true,retiredAt:{s:WORLD.season,d:WORLD.day,team:p.clubId,reason}};
+}
+function removeInactivePlayer(p){
+  if(p&&(p.careerApps>0||p.intlStats?.apps>0||p.honors?.length))archivePlayerCareer(p,"离开球员名册");
+  if(p)delete WORLD.players[p.id];
+}
+function awardScopeName(comp){
+  if(comp.startsWith("L:"))return WORLD.leagues[Number(comp.slice(2))]?.name||"联赛";
+  if(comp.startsWith("C:"))return NATIONS[Number(comp.slice(2))]?.cup||"国内杯";
+  if(comp==="WCL")return "世界冠军联赛";
+  return NATIONAL_COMPS[comp]?.name||EURO_COMPS[comp]?.name||(Object.hasOwn(CLUB_CUP_CODES,comp)?clubCupName(comp):"世界年度奖");
+}
+function competitionCareerComplete(s,comp){
+  const start=WORLD.careerTrackingFrom;
+  return !!start&&(s>start.s||s===start.s&&!(WORLD.careerPartialCompetitions||[]).includes(comp));
+}
+function leadingAwardTeam(teams){
+  let team, minutes=-1;
+  for(const [id,played] of teams){
+    if(played>minutes||played===minutes&&id<team){team=id;minutes=played;}
+  }
+  return team;
+}
+function seasonAwardTeam(p,s){
+  const teams=new Map(), rows=p.careerMatches;
+  for(let i=(rows?.length||0)-1;i>=0&&rows[i].s>=s;i--){
+    const r=rows[i];
+    if(r.s===s&&typeof r.team==="number")teams.set(r.team,(teams.get(r.team)||0)+r.mins);
+  }
+  return leadingAwardTeam(teams)??p.clubId;
+}
+function competitionAwardPool(s,comp){
+  const pool=[];
+  for(const p of Object.values(WORLD.players)){
+    const rows=p.careerMatches;
+    let total, teams;
+    for(let i=(rows?.length||0)-1;i>=0&&rows[i].s>=s;i--){
+      const r=rows[i];
+      if(r.s!==s||(comp?r.comp!==comp:typeof r.team!=="number"))continue;
+      if(!total){total={p,team:r.team,apps:0,mins:0,g:0,a:0,rt:0,best:0,cs:0,roles:{}};teams=new Map();}
+      teams.set(r.team,(teams.get(r.team)||0)+r.mins);
+      for(const key of ["apps","mins","g","a","rt","best","cs"])total[key]+=r[key];
+      for(const [group,value] of Object.entries(r.roles||{})){
+        const sum=total.roles[group]||(total.roles[group]=[0,0,0,0]);
+        for(let n=0;n<sum.length;n++)sum[n]+=value[n];
+      }
+    }
+    if(!total)continue;
+    total.teams=teams;
+    total.team=leadingAwardTeam(teams);
+    pool.push(total);
+  }
+  return pool;
+}
+function playerAwardEntry(p,s,title,scope,team,note,day){
+  if((p.honors||[]).some(h=>h?.s===s&&h.t===title&&h.scope===scope))return null;
+  return {s,t:title,scope,team,d:note,...(Number.isInteger(day)?{day}:{})};
+}
+function grantPlayerAward(p,s,title,scope,team,note,day=WORLD.day){
+  const entry=playerAwardEntry(p,s,title,scope,team,note,day);
+  if(entry)(p.honors||(p.honors=[])).push(entry);
+}
+function saveAwardResult(s,comp,title,winners,day=WORLD.day){
+  if(!winners.length)return false;
+  const awards=WORLD.awardResults||(WORLD.awardResults=[]);
+  if(awards.some(a=>a.s===s&&a.comp===comp&&a.title===title))return false;
+  const scope=awardScopeName(comp), changes=[], players=new Set();
+  for(const winner of winners){
+    if(winner.pid==null)continue;
+    const p=P(winner.pid)||WORLD.retiredCareers?.[winner.pid];
+    if(!p||players.has(winner.pid))return false;
+    players.add(winner.pid);
+    const honor=playerAwardEntry(p,s,winner.medal||title,scope,winner.team,winner.note||"",day);
+    if(honor)changes.push({p,honors:[...(p.honors||[]),honor]});
+  }
+  for(const {p,honors} of changes)p.honors=honors;
+  awards.push({s,comp,scope,title,winners,day});
+  return true;
+}
+function restorePlayerAwardHonors(){
+  for(const award of WORLD.awardResults||[]){
+    for(const w of award.winners){
+      if(w.pid==null)continue;
+      const p=P(w.pid)||WORLD.retiredCareers?.[w.pid];
+      if(p)grantPlayerAward(p,award.s,w.medal||award.title,award.scope,w.team,w.note||"",award.day??null);
+    }
+  }
+}
+function awardStatLine(r){
+  return {apps:r.apps,minutes:r.mins,...(r.group?{}:{goals:r.g,assists:r.a}),cleanSheets:r.cs,rating:r.rating??r.rt/(r.apps*100)};
+}
+function rankedAwardRole(pool,group,minApps,minMins){
+  return pool.filter(r=>r.roles[group]?.[0]>=minApps&&r.roles[group][1]>=minMins).map(r=>{
+    const [apps,mins,rt,cs]=r.roles[group];
+    return {...r,apps,mins,cs,rating:rt/mins/100,group};
+  }).sort((a,b)=>b.rating-a.rating||b.mins-a.mins||a.p.id-b.p.id);
+}
+function awardCompetitionPlayers(s,comp,champion,{league=false,awards=true}={}){
+  const scope=awardScopeName(comp), pool=competitionAwardPool(s,comp);
+  if(!pool.length)return false;
+  for(const {p,teams} of pool){
+    if(teams.has(champion))grantPlayerAward(p,s,scope+"冠军",scope,champion,"随队出场并夺冠");
+  }
+  if(!awards||!competitionCareerComplete(s,comp))return true;
+  const fixtureCount=league?0:(NATIONAL_COMPS[comp]?WORLD.nationalCups?.[comp]?.fixtures:WORLD.fixtures.filter(f=>careerCompetition(f)===comp))?.length||0;
+  const singleMatch=!league&&(fixtureCount?fixtureCount===1:pool.every(r=>r.apps===1));
+  const minApps=league?10:singleMatch?1:2, minMins=league?600:singleMatch?60:120;
+  const eligible=pool.filter(r=>r.apps>=minApps&&r.mins>=minMins);
+  const avg=r=>r.rt/r.apps;
+  const ratingRank=(a,b)=>avg(b)-avg(a)||b.mins-a.mins||a.p.id-b.p.id;
+  const topGoal=pool.filter(r=>r.g>0).sort((a,b)=>b.g-a.g||b.a-a.a||a.mins-b.mins||a.p.id-b.p.id)[0];
+  const topAssist=pool.filter(r=>r.a>0).sort((a,b)=>b.a-a.a||b.g-a.g||a.mins-b.mins||a.p.id-b.p.id)[0];
+  const ranked=eligible.slice().sort(ratingRank);
+  const keeper=rankedAwardRole(pool,"gk",minApps,minMins).sort((a,b)=>b.cs-a.cs||b.rating-a.rating||b.mins-a.mins||a.p.id-b.p.id)[0];
+  const award=(title,rows)=>{
+    const chosen=rows.filter(Boolean);
+    saveAwardResult(s,comp,title,chosen.map(r=>({pid:r.p.id,name:r.p.cn,team:r.team,role:r.group,stats:awardStatLine(r)})));
+  };
+  award("金靴奖",[topGoal]);
+  award(comp==="WCL"?"世冠金球奖":"最佳球员",[ranked[0]]);
+  award("最佳门将",[keeper]);
+  if(league){
+    award("助攻王",[topAssist]);
+    award("最佳年轻球员",[ranked.find(r=>r.p.careerMatches.find(x=>x.s===s&&x.comp===comp)?.age<=21)]);
+    award("最佳阵容",bestEleven(pool,minApps,minMins));
+  }
+  return true;
+}
+function bestEleven(pool,minApps,minMins){
+  const picked=new Set(), eleven=[];
+  for(const [group,count] of [["gk",1],["df",4],["mf",3],["fw",3]]){
+    const chosen=rankedAwardRole(pool,group,minApps,minMins).filter(r=>!picked.has(r.p.id)).slice(0,count);
+    for(const row of chosen){picked.add(row.p.id);eleven.push(row);}
+  }
+  return eleven;
+}
 function applyResult(fx, M){
   if(fx.national)return applyNationalResult(fx,M);
   if(fx.played) return false;
@@ -8705,6 +8921,7 @@ function applyResult(fx, M){
   else addMoney(H, gate, "门票收入 vs "+A.short);
   fx.attendance=att0; FIN_CLK++;
   // 球员数据结算
+  const careerComp=careerCompetition(fx);
   M.teams.forEach((T,side)=>{
     const conceded=M.score[1-side];
     (T.suspServing||[]).forEach(id=>{const p=P(id); if(p&&p.susp>0) p.susp--;});
@@ -8716,7 +8933,9 @@ function applyResult(fx, M){
       p.apps++; p.careerApps++; p.goals+=m.goals; p.careerGoals+=m.goals;
       p.assists+=m.assists; p.keyPasses=(p.keyPasses||0)+m.keyp; p.dribbles=(p.dribbles||0)+m.drib; p.ratingSum+=m.rating;
       p.form.push(m.rating); if(p.form.length>6)p.form.shift();
-      if(conceded===0 && p.pos==="GK" && m.mins>60) p.cleanSheet++;
+      const clean=conceded===0&&matchRoleMinutes(m,"gk")>=60;
+      if(clean)p.cleanSheet++;
+      recordCareerAppearance(p,WORLD.season,careerComp,T.cid,m,M.motm?.id===p.id,clean);
       if(m.yellow) p.yellow++;
       if(m.red){ p.red++; p.susp += ri(1,3); }
       else if(p.yellow>0 && p.yellow%5===0 && m.yellow) p.susp+=1;
@@ -9573,6 +9792,7 @@ function toFreeAgent(p, from){
     if(c.captain===p.id) c.captain=null;
     if(c.viceCaptain===p.id) c.viceCaptain=null;
     fixCaptain(c); }
+  if(c)recordCareerEvent(p,{type:"free",s:WORLD.season,d:WORLD.day,from:c.id,to:-1});
   p.clubId=-1; p.num=null;
   p.contract=WORLD.season;                       // 合同到此为止
   p.listed=false; p.untouchable=false; p.unrest=0; p.wantsLoan=false;
@@ -9604,7 +9824,9 @@ function movePlayer(pid, toClubId, fee, labelOut, labelIn){
 }
 const TRANSFER_LOG_LIMIT=200;
 function pushTransferLog(row){
-  WORLD.transferLog.unshift(Object.assign({d:WORLD.day, s:WORLD.season}, row));
+  const entry={d:WORLD.day,s:WORLD.season,...row};
+  WORLD.transferLog.unshift(entry);
+  careerTransferEvent(entry);
   if(WORLD.transferLog.length>TRANSFER_LOG_LIMIT) WORLD.transferLog.length=TRANSFER_LOG_LIMIT;
 }
 function transferPlayer(pid,toClubId,fee,wage,years,opts){
@@ -11029,7 +11251,21 @@ const LEGEND_HOMONYMS=new Map([
   ["Zé Roberto","Zé Roberto (1974)"]
 ]);
 const HISTORICAL_LEGEND_BY_NAME=new Map(LEGENDS.map(row=>[row[0],row]));
-function legendNameKey(name){return LEGEND_NAME_ALIASES.get(name)?.[0]||name;}
+const legendSearchKey=name=>String(name??"").normalize("NFD").replace(/[^\p{L}\p{N}]/gu,"").toLowerCase();
+const STAR_REBIRTH_BY_NAME=new Map(STAR_REBIRTH.map(row=>[legendSearchKey(row[0]),row]));
+function starRebirthRecord(p){
+  if(!p.realData&&!p.legend)return null;
+  const row=STAR_REBIRTH_BY_NAME.get(legendSearchKey(p.name||""));
+  return row?.[2]===p.nat?row:null;
+}
+function legendNameKey(name){return LEGEND_NAME_ALIASES.get(name)?.[0]||STAR_REBIRTH_BY_NAME.get(legendSearchKey(name))?.[0]||name;}
+function playerLegendKey(p){
+  if(p.retired)return null;
+  if(p.legend)return legacyHistoricalNamesake(p)?.[0]||legendNameKey(p.name);
+  if(!p.realData)return null;
+  const historical=HISTORICAL_LEGEND_BY_NAME.get(legendNameKey(p.name));
+  return starRebirthRecord(p)?.[0]||(historical&&historical[2]===p.nat?historical[0]:null);
+}
 function legacyHistoricalNamesake(p){
   const row=HISTORICAL_LEGEND_BY_NAME.get(LEGEND_HOMONYMS.get(p.name));
   if(!row||p.nat!==row[2])return null;
@@ -11081,7 +11317,7 @@ function migratePlayerNames(){
 function availableHistoricalLegends(){
   normalizeLegends();
   const used=new Set(WORLD.rebornLegends);
-  const active=new Set(Object.values(WORLD.players).filter(p=>!p.retired).map(p=>p.name));
+  const active=new Set(Object.values(WORLD.players).map(playerLegendKey));
   return LEGENDS.filter(([name])=>!used.has(name)&&!active.has(name));
 }
 function makeLegendYouth(clubId, ageMin, ageMax){
@@ -11132,7 +11368,7 @@ function spawnLegendFA(quiet){
   return p;
 }
 // 现役明星退役重生：把退役明星转世为低年龄、低能力、高潜力的少年自由球员
-function rebirthStar(en, cn, natCn, pos, ovr){
+function rebirthStar(en, cn, natCn, pos, ovr, quiet=false){
   if(!legendAvailable(en))return null;
   WORLD.rebornLegends.push(en);
   const age=15;
@@ -11156,7 +11392,7 @@ function rebirthStar(en, cn, natCn, pos, ovr){
   assignLegendPlaystyles(p,ovr,rec?rec[7]:null);
   p.wage=marketWage(p); p.contract=WORLD.season; p.value=Math.round(calcValue(p)*0.4);
   WORLD.players[p.id]=p; WORLD.freeAgents.push(p.id);
-  news("传奇重生",`${cn} 退役后转世重生！一位名叫 ${cn}（${POS_CN[p.pos]}，${p.age}岁）的少年出现在自由市场，潜力惊人。`,"good");
+  if(!quiet)news("传奇重生",`${cn} 退役后转世重生！一位名叫 ${cn}（${POS_CN[p.pos]}，${p.age}岁）的少年出现在自由市场，潜力惊人。`,"good");
   return p;
 }
 
@@ -11361,7 +11597,7 @@ function genWorldNews(summary){
   // 4. 金靴
   if(summary.topScorers && summary.topScorers.length){
     const t=summary.topScorers[0];
-    push("award","联赛金靴", `${t.n}（${t.c}）以 ${t.g} 球荣膺 ${s}/${ss} 赛季最佳射手，另有 ${t.a} 次助攻。`);
+    push("award","全球金靴", `${t.n}（${t.c}）以 ${t.g} 球领跑 ${s}/${ss} 赛季全球射手榜，另有 ${t.a} 次助攻。`);
   }
   // 5. 最佳球员
   if(summary.topRated && summary.topRated.length){
@@ -11371,7 +11607,7 @@ function genWorldNews(summary){
   // 5.5 助攻王
   if(summary.topAssists && summary.topAssists.length){
     const t=summary.topAssists[0];
-    push("award","联赛助攻王", `${t.n}（${t.c}）以 ${t.a} 次助攻荣膺 ${s}/${ss} 赛季助攻王，另有 ${t.g} 球入账。`);
+    push("award","全球助攻王", `${t.n}（${t.c}）以 ${t.a} 次助攻领跑 ${s}/${ss} 赛季全球助攻榜，另有 ${t.g} 球入账。`);
   }
   // 6. 转会标王
   const paid=(WORLD.transferLog||[]).filter(t=>t.s===s && t.fee>0);
@@ -11421,20 +11657,22 @@ function endSeason(){
   const summary={season:WORLD.season, leagues:[], cups:WORLD.cups.map(c=>c.winner),
                  euro:{CL:WORLD.euro?.CL?.winner??null, EL:WORLD.euro?.EL?.winner??null, ECL:WORLD.euro?.ECL?.winner??null}};
   const allP=Object.values(WORLD.players).filter(p=>p.apps>0);
+  const awardClubShort=p=>C(seasonAwardTeam(p,WORLD.season))?.short||"-";
   summary.topScorers=allP.slice().sort((a,b)=>b.goals-a.goals||b.assists-a.assists).slice(0,10)
-    .map(p=>({pid:p.id,n:p.cn,c:p.clubId>=0?C(p.clubId).short:"-",g:p.goals,a:p.assists,ap:p.apps}));
+    .map(p=>({pid:p.id,n:p.cn,c:awardClubShort(p),g:p.goals,a:p.assists,ap:p.apps}));
   summary.topRated=allP.filter(p=>p.apps>=15).sort((a,b)=>b.ratingSum/b.apps-a.ratingSum/a.apps).slice(0,10)
-    .map(p=>({pid:p.id,n:p.cn,c:p.clubId>=0?C(p.clubId).short:"-",r:(p.ratingSum/p.apps).toFixed(2),ap:p.apps}));
+    .map(p=>({pid:p.id,n:p.cn,c:awardClubShort(p),r:(p.ratingSum/p.apps).toFixed(2),ap:p.apps}));
   summary.topAssists=allP.slice().sort((a,b)=>b.assists-a.assists||b.goals-a.goals).slice(0,10)
-    .map(p=>({pid:p.id,n:p.cn,c:p.clubId>=0?C(p.clubId).short:"-",a:p.assists,g:p.goals,ap:p.apps}));
+    .map(p=>({pid:p.id,n:p.cn,c:awardClubShort(p),a:p.assists,g:p.goals,ap:p.apps}));
   const tables={};
   WORLD.leagues.forEach(lg=>{
     const t=leagueTable(lg.lg); tables[lg.lg]=t;
     if(!t.length) return;
-    summary.leagues.push({lg:lg.lg, nation:lg.nation, tier:lg.tier, table:t.map(r=>({id:r.id,pts:r.pts,gd:r.gd,rank:r.rank}))});
     const argFirst=NATIONS[lg.nation]?.code==='ARG'&&lg.tier===1?(WORLD.playoffs||[]).find(p=>p.nation===lg.nation&&p.tier===0&&p.rules?.fmt==='arg')?.firstWinner:null;
     const champ=C(argFirst??t[0].id);
+    summary.leagues.push({lg:lg.lg,nation:lg.nation,tier:lg.tier,champion:champ.id,table:t.map(r=>({id:r.id,pts:r.pts,gd:r.gd,rank:r.rank}))});
     awardClubTitle(champ,WORLD.season,lg.name,LEAGUE_TITLE_REP_BY_NAME.get(lg.name)??1);
+    awardCompetitionPlayers(WORLD.season,"L:"+lg.lg,champ.id,{league:true});
     const n=t.length;
     t.forEach(r=>{
       const c=C(r.id);
@@ -11470,10 +11708,10 @@ function endSeason(){
   awardSeasonHonors(summary);
   // 金球奖年度评选（用 summary 快照数据）
   try{ awardBallonDor(summary); }catch(e){}
-  // 世界级个人荣誉（世冠金球奖 / 金手套 / 金童 / 最佳教练）
-  try{ awardWorldHonors(summary); }catch(e){}
   // 教练荣誉（各队教练根据战绩取得）
   try{ awardManagerHonors(summary); }catch(e){}
+  // 世界年度个人奖在各赛事冠军履历写入后结算。
+  try{ awardWorldHonors(summary); }catch(e){}
   // 赛季教练评分 + 评级
   try{ rateSeasonPerformance(summary); }catch(e){}
   // 教练流动（辞职/开除/上任）
@@ -11511,13 +11749,14 @@ function endSeason(){
         fixCaptain(c);
         if(c.id===WORLD.userClub) news(`${p.cn} 宣布退役`,`${p.age}岁的 ${p.cn} 结束了职业生涯，共出场 ${p.careerApps} 次，打进 ${p.careerGoals} 球。`,"info"); }
       // 现役明星退役重生：在 STAR_REBIRTH 名单里，或能力极高的球员，有概率转世为少年
-      const starRec=STAR_REBIRTH.find(r=>r[0]===p.name);
-      const isStar=starRec || p.ca>=150;
+      const starRec=starRebirthRecord(p);
+      const template=legendNameKey(p.name);
+      const isStar=starRec || p.ca>=150&&!HISTORICAL_LEGEND_BY_NAME.has(template)&&!STAR_REBIRTH_BY_NAME.has(legendSearchKey(template));
       if(isStar && rnd()<0.55){
-        const en=p.name, cn=p.cn, nat=p.nat, pos=p.pos;
-        const ovr=starRec? starRec[4] : clamp(Math.round(p.ca*1.05),80,95);
-        rebirthStar(en, cn, nat, pos, ovr);
+        if(starRec)rebirthStar(...starRec.slice(0,5));
+        else rebirthStar(p.name,p.cn,p.nat,p.pos,clamp(Math.round(p.ca*1.05),80,95));
       }
+      archivePlayerCareer(p);
       WORLD.freeAgents=WORLD.freeAgents.filter(i=>i!==p.id);
       delete WORLD.players[p.id];
       return;
@@ -11579,7 +11818,7 @@ function endSeason(){
   WORLD.freeAgents = WORLD.freeAgents.filter(id=>{
     const p=P(id); if(!p) return false;
     if(p.legend) return true;   // 传奇重生球员不清理，永久保留在自由市场
-    if(p.ca<42 || p.age>60){ delete WORLD.players[id]; return false; }
+    if(p.ca<42 || p.age>60){ removeInactivePlayer(p); return false; }
     return true;
   });
   WORLD.clubs.forEach(c=>{
@@ -11595,7 +11834,7 @@ function endSeason(){
   WORLD.freeAgents.sort((a,b)=>(P(b).ca+(P(b).pa-P(b).ca)*0.5)-(P(a).ca+(P(a).pa-P(a).ca)*0.5));
   const legendsFA=WORLD.freeAgents.filter(id=>{const p=P(id); return p && p.legend;});
   WORLD.freeAgents=WORLD.freeAgents.filter(id=>{const p=P(id); return !p || !p.legend;});
-  WORLD.freeAgents.splice(220).forEach(id=>{ delete WORLD.players[id]; });
+  WORLD.freeAgents.splice(220).forEach(id=>removeInactivePlayer(P(id)));
   WORLD.freeAgents=WORLD.freeAgents.concat(legendsFA);
   /* 自由市场保底：AI 不再白白放人之后，池子会被逐季抽干（实测 10 季后归零、
      全联盟阵容卡在 20 人、谁都没人可签）。这里补一批「下级联赛 / 解约球员」进市场，
@@ -11813,17 +12052,29 @@ function clubCupsDayEnd(day){
     const f=fx[0];E.champion=winners[0];E.runnerUp=E.champion===f.home?f.away:f.home;E.stage='F';
     const name=clubCupName(E.code),prize=CONTINENTAL_CLUB_CONF[CLUB_CUP_CODES[E.code]]?.prize||5e6,c=C(E.champion);
     awardClubTitle(c,E.season,name+'冠军',CLUB_TITLE_REP[E.code]);addMoney(c,prize,name+'冠军奖金');
+    awardCompetitionPlayers(E.season,E.code,E.champion);
     awardClubCupHonors(E);
     const history=clubCupHistory(E.code);if(!history.some(h=>h.season===E.season))history.push(clubCupSnapshot(E));
     news('🏆 '+name,`${finalLine(f)}，${c.cn} 夺得 ${E.season} ${name}冠军！`,E.champion===WORLD.userClub?'good':'info');
   }
 }
 function managerTitleRep(title){return ({'世冠联赛冠军':12,'欧冠冠军':10,'世俱杯冠军':8,'欧联冠军':6,'联赛冠军':5,'欧协联冠军':4,'亚冠精英联赛冠军':6,'南美解放者杯冠军':6,'中北美冠军联赛冠军':4})[title]||3;}
+function grantCoachAward(manager,season,title,scope,team,day=WORLD.day){
+  const honors=manager.honors||(manager.honors=[]);
+  if(honors.some(h=>h?.s===season&&h.t===title&&h.scope===scope))return false;
+  honors.push({s:season,t:title,scope,team,d:careerTeamName(team),day});
+  return true;
+}
 function grantManagerTitle(c,season,title){
-  if(!c?.manager)return false;const m=c.manager;m.honors=m.honors||[];
-  const fresh=!m.honors.some(h=>h.s===season&&h.t===title);
-  if(fresh){m.honors.push({s:season,t:title,d:'率队夺冠'});m.rep=clamp(m.rep+2,10,99);}
-  if(c.id===WORLD.userClub&&!WORLD.needJob){WORLD.managerHonors=WORLD.managerHonors||[];const key=season+' '+title;
+  if(!c)return false;
+  const issued=c.coachTitles||(c.coachTitles=[]),key=season+" "+title;
+  if(issued.includes(key))return false;
+  issued.push(key);
+  if(!c.manager)return false;
+  const m=c.manager;
+  const fresh=!m.honors?.some(h=>h?.s===season&&h.t===title);
+  if(fresh){grantCoachAward(m,season,title,title,c.id);m.rep=clamp(m.rep+2,10,99);}
+  if(c.id===WORLD.userClub&&!WORLD.needJob){WORLD.managerHonors=WORLD.managerHonors||[];
     if(!WORLD.managerHonors.includes(key)){WORLD.managerHonors.push(key);addCoachRep(managerTitleRep(title),'率队夺得 '+title);}}
   return fresh;
 }
@@ -11831,7 +12082,7 @@ function awardClubCupHonors(E){
   if(E.honorsV1||E.legacy)return;const title=clubCupName(E.code)+'冠军',c=C(E.champion);
   grantManagerTitle(c,E.season,title);
   const appeared=new Set(WORLD.fixtures.filter(f=>f.comp===E.code&&f.played).flatMap(f=>f.cupPlayers?.find(r=>r.club===c.id)?.ids||[]));
-  for(const id of appeared){const p=P(id);if(!p)continue;p.honors=p.honors||[];if(!p.honors.some(h=>h.s===E.season&&h.t===title))p.honors.push({s:E.season,t:title,d:'随队夺冠'});}
+  for(const id of appeared){const p=P(id);if(p)grantPlayerAward(p,E.season,title,clubCupName(E.code),c.id,"随队出场并夺冠");}
   E.honorsV1=1;
 }
 function migrateClubCups(){buildClubCups();}
@@ -11896,12 +12147,31 @@ function initNationalManager(){ // 初始化国家队主教练状态
   if(WORLD.nationVacancies===undefined) WORLD.nationVacancies=[]; // 空缺国家队职位
   if(WORLD.nationManagers===undefined) WORLD.nationManagers={}; // 各国现任主教练（国家队名->{name, rep, since}）
   // 初始化各国主教练（AI 虚拟教练）
-  if(Object.keys(WORLD.nationManagers).length===0){
-    WC_NATIONS.forEach(n=>{
-      const str = natSquadStrength(n);
-      WORLD.nationManagers[n] = { name: genManagerName(), rep: clamp(Math.round(str/12 + gauss(0,3)), 1, 99), since: WORLD.season };
-    });
+  for(const n of WC_NATIONS)if(n!==WORLD.userNation&&!WORLD.nationVacancies.includes(n))ensureNationalManager(n);
+}
+function ensureNationalManager(n){
+  const managers=WORLD.nationManagers||(WORLD.nationManagers={});
+  if(!managers[n])managers[n]={name:genManagerName(),rep:clamp(Math.round(natSquadStrength(n)/12),1,99),since:WORLD.season};
+  return managers[n];
+}
+function storeNationalCoachHonors(manager,nation,player=false){
+  if(!manager?.honors?.length)return null;
+  const id=player?"player":(manager.nationalCareerId??=(WORLD.nextNationalCoachId=(WORLD.nextNationalCoachId||0)+1));
+  const archive=WORLD.nationalCoachHonors||(WORLD.nationalCoachHonors={});
+  const record=archive[id]||(archive[id]={name:manager.cn||manager.name,nation,honors:[]});
+  for(const honor of manager.honors){
+    if(typeof honor?.team!=="string")continue;
+    if(!record.honors.some(h=>h.s===honor.s&&h.t===honor.t&&h.team===honor.team))record.honors.push({...honor});
   }
+  return id;
+}
+function awardNationalCoach(season,comp,nation,day){
+  const player=nation===WORLD.userNation, title=NATIONAL_COMPS[comp].name;
+  const manager=player?(WORLD.needJob?WORLD.userCoach:UC()?.manager):ensureNationalManager(nation);
+  if(!manager)return;
+  grantCoachAward(manager,season,title+"冠军",title,nation,day);
+  const coachId=storeNationalCoachHonors(manager,nation,player);
+  saveAwardResult(season,comp,"冠军教练",[{name:manager.cn||manager.name,team:nation,coachId}],day);
 }
 function genManagerName(){ // 生成虚拟教练名
   const surnames=["席尔瓦","穆勒","罗西","田中","加西亚","约翰逊","科瓦奇","费尔南德斯","范德贝克","李","金","阿隆索","德容","佩雷拉","施密特","小泉","马丁内斯","奥科耶","杜邦","安德森","诺瓦克","索萨","伊万诺夫","布朗","洛佩斯"];
@@ -11943,6 +12213,7 @@ function acceptNationalInvite(natCN){ // 接受国家队执教邀请
   if(!WORLD.nationInvites || !WORLD.nationInvites.some(i=>i.nat===natCN)) return {ok:false, msg:"该邀请已失效。"};
   if(WORLD.userNation) return {ok:false, msg:"你已在执教 "+WORLD.userNation+"，需先辞职。"};
   WORLD.userNation = natCN;
+  storeNationalCoachHonors(WORLD.nationManagers[natCN],natCN);
   WORLD.nationManagers[natCN] = { name:"你", rep:coachRep(), since:WORLD.season };
   WORLD.nationInvites = WORLD.nationInvites.filter(i=>i.nat!==natCN);
   addCoachRep(4, `出任 ${natCN} 国家队主教练`);
@@ -11965,6 +12236,7 @@ function genNationalVacancies(){ // 大赛后产生空缺：战绩不佳的国�
     const fireProb = str>80 ? 0.06 : str>70 ? 0.10 : str>60 ? 0.13 : 0.16;
     if(Math.random() < fireProb){
       vac.push(n);
+      storeNationalCoachHonors(WORLD.nationManagers[n],n);
       delete WORLD.nationManagers[n];
     }
   }
@@ -11984,6 +12256,7 @@ function applyNationalJob(natCN){ // 玩家应聘国家队主教练
   const chance = clamp(0.25 + (myRep-need)*0.03, 0.05, 0.95);
   if(Math.random() < chance){
     WORLD.userNation = natCN;
+    storeNationalCoachHonors(WORLD.nationManagers[natCN],natCN);
     WORLD.nationManagers[natCN] = { name:"你", rep:myRep, since:WORLD.season };
     WORLD.nationVacancies = WORLD.nationVacancies.filter(x=>x!==natCN);
     news("🎉 执教国家队！", `你成功应聘成为 ${natCN} 国家队主教练！你将带队征战世界杯和洲际赛。`, "good");
@@ -12153,8 +12426,8 @@ function wclDayEnd(day){
     const final=results[0];E.champion=final.winner;E.runnerUp=E.champion===final.a?final.b:final.a;E.stage="F";
     addMoney(C(E.champion),14e6,"世冠联赛冠军奖金");addMoney(C(E.runnerUp),8e6,"世冠联赛亚军奖金");
     awardClubTitle(C(E.champion),E.season,"世冠联赛冠军",CLUB_TITLE_REP.WCL);
-    const appeared=new Set(WORLD.fixtures.filter(f=>f.comp==="WCL"&&f.played).flatMap(f=>f.wclPlayers||[]));
-    C(E.champion).squad.map(P).filter(p=>p&&appeared.has(p.id)).forEach(p=>{p.honors=p.honors||[];p.honors.push({s:E.season,t:"世冠联赛冠军",d:"随队登顶世界冠军联赛"});});
+    awardCompetitionPlayers(E.season,"WCL",E.champion);
+    grantManagerTitle(C(E.champion),E.season,"世冠联赛冠军");
     WORLD.wclHistory=WORLD.wclHistory||[];
     if(!WORLD.wclHistory.some(h=>h.season===E.season))WORLD.wclHistory.push(wclSnapshot(E));
     news("🏆 世界冠军联赛",`${finalLine(fx[0])}，${C(E.champion).cn} 夺得 ${E.season} 世界冠军联赛冠军！`,E.champion===WORLD.userClub?"good":"info");
@@ -12225,105 +12498,143 @@ function renderWorldChampionsLeague(v){
 }
 
 
-// ---------- 金球奖年度评选 ----------
-function awardBallonDor(summary){
-  const season=summary.season,candidates=new Map();
-  for(const row of summary.topScorers||[]){const p=findAwardPlayer(row);if(p)candidates.set(p.id,{pid:p.id,n:row.n,c:row.c,g:row.g||0,a:row.a||0,r:0});}
-  for(const row of summary.topRated||[]){const p=findAwardPlayer(row);if(!p)continue;
-    const c=candidates.get(p.id)||{pid:p.id,n:row.n,c:row.c,g:0,a:0,r:0};c.r=parseFloat(row.r)||0;candidates.set(p.id,c);}
-  const ranked=[...candidates.values()].map(c=>({...c,score:c.g*2+c.a*1.5+c.r*3})).sort((a,b)=>b.score-a.score).slice(0,3);
-  if(!ranked.length)return;
-  const winner=ranked[0],wp=P(winner.pid),entry={season,winner:winner.n,pid:winner.pid,club:winner.c||"-",
-    runnerUp:ranked[1]?.n||null,runnerUpPid:ranked[1]?.pid??null,third:ranked[2]?.n||null,thirdPid:ranked[2]?.pid??null,
-    g:winner.g,a:winner.a,avg:winner.r?winner.r.toFixed(2):"0"};
-  (WORLD.ballonDor||(WORLD.ballonDor=[])).push(entry);
-  (wp.honors||(wp.honors=[])).push({s:season,t:"金球奖",d:`${season} 年度世界最佳球员`});
-  news("金球奖揭晓",`${esc(winner.n)}（${esc(entry.club)}）以 ${entry.g} 球 ${entry.a} 助攻荣膺 ${season} 年世界金球奖！${ranked[1]?` 银球：${esc(ranked[1].n)}。`:""}${ranked[2]?` 铜球：${esc(ranked[2].n)}。`:""}`,"good");
-  if(!WORLD.needJob&&wp.clubId===WORLD.userClub)news("金球奖！",`你的球员 ${esc(winner.n)} 当选世界金球奖得主！`,"good");
+// ---------- 世界年度个人奖 ----------
+const WORLD_LEAGUE_WEIGHTS=[1,0.84,0.68,0.55,0.45];
+const WORLD_CUP_WEIGHTS={WCL:1.22,CL:1.18,CWC:1.16,EL:1.04,LIB:1.04,AFC:0.96,ECL:0.96,CON:0.90,SUP:1.05};
+function worldAwardWeight(comp,team){
+  if(Object.hasOwn(WORLD_CUP_WEIGHTS,comp))return WORLD_CUP_WEIGHTS[comp];
+  const tier=comp?.startsWith("L:")?WORLD.leagues[Number(comp.slice(2))]?.tier:C(team)?.tier;
+  return WORLD_LEAGUE_WEIGHTS[clamp(tier??0,0,WORLD_LEAGUE_WEIGHTS.length-1)];
 }
-
-
-// ---------- 世界级个人荣誉评选（世冠金球奖 / 金手套 / 金童 / 最佳教练）----------
+function worldAwardPerformance(p,s){
+  const rows=p.careerMatches||[], raw={apps:0,g:0,a:0,best:0,cs:0}, weighted={...raw};
+  for(let i=rows.length-1;i>=0&&rows[i].s>=s;i--){
+    const r=rows[i];
+    if(r.s!==s||typeof r.team!=="number")continue;
+    const weight=worldAwardWeight(r.comp,r.team);
+    for(const key of ["apps","g","a","best","cs"]){raw[key]+=r[key];weighted[key]+=r[key]*weight;}
+  }
+  const totals={apps:p.apps,g:p.goals,a:p.assists,best:p.motm,cs:p.cleanSheet};
+  const estimation=raw.apps<p.apps;
+  const team=seasonAwardTeam(p,s), fallback=worldAwardWeight(null,team);
+  for(const key of Object.keys(totals))weighted[key]+=Math.max(0,totals[key]-raw[key])*fallback;
+  const average=p.ratingSum/p.apps;
+  const volume=34/Math.max(34,p.apps);
+  const contributions=(weighted.g*2+weighted.a*1.5+weighted.best*1.2)*volume;
+  const quality=Math.max(0,average-6)*18*weighted.apps/Math.max(p.apps,raw.apps,1);
+  return {p,team,average,estimation,score:contributions+quality,cleanBonus:weighted.cs*0.6*volume};
+}
+function worldPlayerAwardWinner(r,medal,score){
+  const {p}=r;
+  return {pid:p.id,name:p.cn,team:r.team,medal,stats:{apps:p.apps,goals:p.goals,assists:p.assists,
+    cleanSheets:p.cleanSheet,rating:r.average,score,estimated:r.estimation}};
+}
+function awardBallonDor(summary){
+  const s=summary.season;
+  const ranked=Object.values(WORLD.players).filter(p=>p.apps>=15).map(p=>worldAwardPerformance(p,s))
+    .sort((a,b)=>b.score+b.cleanBonus-a.score-a.cleanBonus||b.average-a.average||a.p.id-b.p.id).slice(0,3);
+  const medals=["金球奖","银球奖","铜球奖"];
+  const winners=ranked.map((r,i)=>worldPlayerAwardWinner(r,medals[i],r.score+r.cleanBonus));
+  if(!saveAwardResult(s,"WORLD","金球奖",winners))return;
+  const [winner,runnerUp,third]=ranked;
+  const p=winner.p, club=careerTeamName(winners[0].team);
+  (WORLD.ballonDor||(WORLD.ballonDor=[])).push({season:s,winner:p.cn,pid:p.id,club,runnerUp:runnerUp?.p.cn??null,
+    runnerUpPid:runnerUp?.p.id??null,third:third?.p.cn??null,thirdPid:third?.p.id??null,g:p.goals,a:p.assists,avg:winner.average.toFixed(2)});
+  news("金球奖揭晓",`${p.cn}（${club}）荣膺 ${s} 年世界金球奖。${runnerUp?` 银球：${runnerUp.p.cn}。`:""}${third?` 铜球：${third.p.cn}。`:""}`,"good");
+}
 function awardWorldHonors(summary){
-  const s = summary && summary.season!=null ? summary.season : WORLD.season;
-  const allP = Object.values(WORLD.players).filter(p=>p.apps>0);
-  if(!allP.length) return;
-
-  // 1. 世冠金球奖：世冠联赛参赛球队球员中评选最佳（进球*2 + 助攻*1.5 + 场均评分*3）
-  const wcl = (WORLD.wclHistory||[]).find(h=>h.season===s)||null;
-  if(wcl && wcl.groups){
-    const wclClubIds = new Set();
-    wcl.groups.forEach(g=>g.standings.forEach(st=>wclClubIds.add(st.id)));
-    const wclPlayers = allP.filter(p=>p.clubId>=0 && wclClubIds.has(p.clubId));
-    if(wclPlayers.length){
-      const ranked = wclPlayers.map(p=>({p, score: p.goals*2 + p.assists*1.5 + (p.apps?p.ratingSum/p.apps:0)*3}))
-        .sort((a,b)=>b.score-a.score).slice(0,3);
-      if(ranked.length){
-        const w = ranked[0].p;
-        const cn = w.clubId>=0 ? C(w.clubId).short : "-";
-        const entry = {season:s, winner:w.cn,pid:w.id, club:cn, goals:w.goals, assists:w.assists, avg:(w.apps?w.ratingSum/w.apps:0).toFixed(2)};
-        if(!WORLD.wclGoldenBall) WORLD.wclGoldenBall=[];
-        WORLD.wclGoldenBall.push(entry);
-        w.honors = w.honors || [];
-        w.honors.push({s, t:"世冠金球奖", d:`${s} 世冠联赛最佳球员`});
-        news("🏅 世冠金球奖", `${w.cn}（${cn}）以 ${w.goals} 球 ${w.assists} 助攻荣膺 ${s} 世冠联赛金球奖！`+(ranked[1]?` 银球：${ranked[1].p.cn}，铜球：${ranked[2].p.cn}。`:""), "info");
-        const u = UC();
-        if(w.clubId===u.id) news("🏅 世冠金球奖！", `你的球员 ${w.cn} 当选世冠联赛最佳球员！`, "good");
-      }
+  const s=summary.season;
+  const keepers=rankedAwardRole(competitionAwardPool(s,null),"gk",15,900);
+  const keepScore=r=>{
+    let clean=0, weight=0;
+    for(const row of r.p.careerMatches){
+      if(row.s!==s||typeof row.team!=="number"||!row.roles?.gk)continue;
+      const strength=worldAwardWeight(row.comp,row.team);
+      clean+=row.roles.gk[3]*strength; weight+=row.roles.gk[1]*strength;
+    }
+    return clean*3*34/Math.max(34,r.apps)+r.rating*4*weight/r.mins;
+  };
+  const keeper=keepers.map(r=>({...r,score:keepScore(r)})).sort((a,b)=>b.score-a.score||a.p.id-b.p.id)[0];
+  if(keeper){
+    const {p}=keeper, team=seasonAwardTeam(p,s), club=careerTeamName(team);
+    const stats={...awardStatLine(keeper),score:keeper.score};
+    if(saveAwardResult(s,"WORLD","金手套奖",[{pid:p.id,name:p.cn,team,role:"gk",stats}])){
+      (WORLD.goldenGlove||(WORLD.goldenGlove=[])).push({season:s,winner:p.cn,pid:p.id,club,avg:keeper.rating.toFixed(2),cs:keeper.cs});
+      news("金手套奖",`${p.cn}（${club}）获 ${s} 年金手套奖。`,"info");
     }
   }
-
-  // 2. 金手套奖（雅辛奖）：世界最佳门将（零封*3 + 场均评分*4）
-  const gks = allP.filter(p=>p.pos==="GK").map(p=>({p, score: p.cleanSheet*3 + (p.apps?p.ratingSum/p.apps:0)*4})).sort((a,b)=>b.score-a.score);
-  if(gks.length){
-    const w = gks[0].p;
-    const cn = w.clubId>=0 ? C(w.clubId).short : "-";
-    if(!WORLD.goldenGlove) WORLD.goldenGlove=[];
-    WORLD.goldenGlove.push({season:s, winner:w.cn,pid:w.id, club:cn, cs:w.cleanSheet, avg:(w.apps?w.ratingSum/w.apps:0).toFixed(2)});
-    w.honors = w.honors || [];
-    w.honors.push({s, t:"金手套奖", d:`${s} 世界最佳门将（${w.cleanSheet} 次零封）`});
-    news("🧤 金手套奖", `${w.cn}（${cn}）以 ${w.cleanSheet} 次零封荣膺 ${s} 世界最佳门将（雅辛奖）！`, "info");
-    const u = UC();
-    if(w.clubId===u.id) news("🧤 金手套奖！", `你的门将 ${w.cn} 当选世界最佳门将！`, "good");
+  const youth=Object.values(WORLD.players).filter(p=>p.age<=21&&p.apps>=12)
+    .map(p=>worldAwardPerformance(p,s)).sort((a,b)=>b.score-a.score||a.p.id-b.p.id)[0];
+  if(youth&&saveAwardResult(s,"WORLD","金童奖",[worldPlayerAwardWinner(youth,undefined,youth.score)])){
+    const {p,team,average}=youth, club=careerTeamName(team);
+    (WORLD.goldenBoy||(WORLD.goldenBoy=[])).push({season:s,winner:p.cn,pid:p.id,club,avg:average.toFixed(2),age:p.age,ca:p.ca});
+    news("金童奖",`${p.cn}（${club}）获 ${s} 年金童奖。`,"info");
   }
-
-  // 3. 金童奖：U21 最佳年轻球员（按 CA 能力 + 场均评分 + 进球）
-  const youths = allP.filter(p=>p.age<=21).map(p=>({p, score: (p.ca||0)*0.5 + (p.apps?p.ratingSum/p.apps:0)*3 + p.goals*2})).sort((a,b)=>b.score-a.score);
-  if(youths.length){
-    const w = youths[0].p;
-    const cn = w.clubId>=0 ? C(w.clubId).short : "-";
-    if(!WORLD.goldenBoy) WORLD.goldenBoy=[];
-    WORLD.goldenBoy.push({season:s, winner:w.cn,pid:w.id, club:cn, age:w.age, ca:w.ca||0});
-    w.honors = w.honors || [];
-    w.honors.push({s, t:"金童奖", d:`${s} 世界最佳年轻球员（U21）`});
-    news("🌟 金童奖", `${w.cn}（${cn}，${w.age} 岁）荣膺 ${s} 世界金童奖，未来之星！`, "info");
-    const u = UC();
-    if(w.clubId===u.id) news("🌟 金童奖！", `你的年轻球员 ${w.cn} 当选世界金童奖！`, "good");
-  }
-
-  // 4. 最佳教练（FIFA 年度最佳教练）
-  // 玩家教练：若本赛季夺得世冠/欧冠/联赛冠军则获奖；否则按声望最高的 AI 冠军教练
-  const u = UC();
-  const wonMajor = (wcl && wcl.champion===u.id)
-    || (summary && summary.euro && summary.euro.CL===u.id)
-    || (summary && summary.leagues && summary.leagues.some(lg=>lg.table[0] && lg.table[0].id===u.id));
-  let coachName = null;
-  if(wonMajor&&!WORLD.needJob){
-    coachName = "你";
-    if(!WORLD.coachHonors) WORLD.coachHonors=[];
-    WORLD.coachHonors.push({season:s, winner:"你", club:u.cn});
-    news("🏆 最佳教练", `你凭借 ${s} 赛季的出色执教，荣膺 FIFA 年度最佳教练！`, "good");
-  } else {
-    // 用世冠/欧冠冠军教练（AI）兜底
-    const champId = wcl ? wcl.champion
-      : (summary && summary.euro && summary.euro.CL!=null) ? summary.euro.CL : null;
-    if(champId!=null && champId!==u.id){
-      const cc = C(champId);
-      coachName = cc.cn + " 主帅";
-      if(!WORLD.coachHonors) WORLD.coachHonors=[];
-      WORLD.coachHonors.push({season:s, winner:coachName, club:cc.cn});
-      news("🏆 最佳教练", `${coachName}（${cc.cn}）荣膺 ${s} 年度最佳教练。`, "info");
+  awardCareerCoaches(summary);
+}
+function awardCareerCoaches(summary){
+  const s=summary.season, coaches=new Map();
+  const points={WCL:70,CL:60,CWC:45,LIB:36,EL:32,AFC:27,ECL:20,CON:19,SUP:12};
+  const champion=new Map();
+  for(const [comp,id] of Object.entries(summary.euro||{}))if(id!=null)champion.set(comp,id);
+  for(const [comp,E] of Object.entries(WORLD.clubCups||{}))if(E.season===s&&E.champion!=null)champion.set(comp,E.champion);
+  const wcl=(WORLD.wclHistory||[]).find(h=>h.season===s);
+  if(wcl?.champion!=null)champion.set("WCL",wcl.champion);
+  const score=(l,r,c)=>{
+    const rounds=WORLD.leagues[l.lg]?.rounds||l.table.length*2-2;
+    const target=Number.isFinite(c.board?.target)?c.board.target:Math.ceil(l.table.length/2);
+    return 12*clamp(r.pts/Math.max(1,rounds)/3,0,1)+clamp((target-r.rank)/Math.max(1,l.table.length-1)*18,-10,18)
+      + (r.id===(l.champion??l.table[0]?.id)?(l.tier===0?24:l.tier===1?10:5):0);
+  };
+  for(const l of summary.leagues||[]){
+    const candidates=[];
+    for(const r of l.table){
+      const c=C(r.id);
+      if(!c?.manager)continue;
+      const row={c,score:score(l,r,c),league:l.lg};
+      candidates.push(row); coaches.set(c.id,{...row,score:row.score});
     }
+    candidates.sort((a,b)=>b.score-a.score||a.c.id-b.c.id);
+    if(competitionCareerComplete(s,"L:"+l.lg))awardCoachWinner(s,"L:"+l.lg,"联赛最佳教练",candidates[0]);
+  }
+  const bonusScores=new Map();
+  const active=WORLD.clubs.filter(c=>c.manager).map(c=>({c,manager:c.manager}));
+  const former=(WORLD.unemployed||[]).concat(WORLD.needJob&&WORLD.userCoach?[WORLD.userCoach]:[]);
+  const addTrophyScore=(id,title,value)=>{
+    const c=C(id);
+    if(!c)return;
+    const wins=m=>m.honors?.some(h=>h?.s===s&&h.t===title&&h.team===id);
+    let holder=active.find(({manager})=>wins(manager));
+    if(!holder){
+      const manager=former.find(wins)||(!c.coachTitles?.includes(s+" "+title)?c.manager:null);
+      if(!manager)return;
+      holder={c,manager};
+    }
+    const {manager}=holder, previous=bonusScores.get(manager);
+    bonusScores.set(manager,{...holder,score:(previous?.score||0)+value});
+  };
+  for(const [comp,id] of champion){
+    const title=comp==="WCL"?"世冠联赛冠军":(EURO_COMPS[comp]?.short||awardScopeName(comp))+"冠军";
+    addTrophyScore(id,title,points[comp]||0);
+  }
+  (summary.cups||[]).forEach((id,nation)=>{if(id!=null)addTrophyScore(id,(NATIONS[nation]?.cup||"杯赛")+"冠军",7);});
+  const ranked=[...coaches.values()].map(row=>({c:row.c,manager:row.c.manager,score:row.score}));
+  for(const [manager,bonus] of bonusScores){
+    const row=ranked.find(r=>r.manager===manager);
+    if(row)row.score+=bonus.score;
+    else ranked.push(bonus);
+  }
+  const winner=ranked.sort((a,b)=>b.score-a.score||a.c.id-b.c.id)[0];
+  awardCoachWinner(s,"WORLD","FIFA 年度最佳教练",winner);
+}
+function awardCoachWinner(s,comp,title,winner){
+  if(!winner)return;
+  const {c}=winner, manager=winner.manager||c.manager, name=manager.cn||manager.name||c.cn+"主帅";
+  if(!saveAwardResult(s,comp,title,[{name,team:c.id,stats:{score:winner.score}}]))return;
+  grantCoachAward(manager,s,title,awardScopeName(comp),c.id);
+  if(comp==="WORLD"){
+    (WORLD.coachHonors||(WORLD.coachHonors=[])).push({season:s,winner:name,club:c.cn});
+    news("年度最佳教练",`${name}（${c.cn}）获得 ${s} 年${title}。`,"good");
   }
 }
 
@@ -12544,14 +12855,13 @@ function genManager(club){
 }
 // 教练荣誉（根据球队战绩，赛季末结算）
 function awardManagerHonors(summary){
-  if(WORLD.needJob)return;
   const s = summary.season;
   WORLD.clubs.forEach(c=>{
     if(!c.manager) return;
     const m = c.manager;
     const titles = [];
     // 联赛冠军
-    summary.leagues.forEach(lg=>{ if(lg.table[0] && lg.table[0].id===c.id) titles.push("联赛冠军"); });
+    summary.leagues.forEach(lg=>{ if((lg.champion??lg.table[0]?.id)===c.id) titles.push("联赛冠军"); });
     // 杯赛冠军
     summary.cups.forEach((w,ni)=>{ if(w===c.id) titles.push(NATIONS[ni]?NATIONS[ni].cup+"冠军":"杯赛冠军"); });
     // 欧洲赛事
@@ -12806,39 +13116,26 @@ function rateSeasonPerformance(summary){
 }
 function awardSeasonHonors(summary){
   const s = summary.season;
+  const result=(p,note)=>({pid:p.id,name:p.cn,team:seasonAwardTeam(p,s),note,stats:{apps:p.apps,goals:p.goals,
+    assists:p.assists,cleanSheets:p.cleanSheet,rating:p.apps?p.ratingSum/p.apps:0}});
+  const award=(title,p,note)=>{
+    if(!p)return;
+    saveAwardResult(s,"WORLD",title,[result(p,note)]);
+  };
   if(summary.topScorers && summary.topScorers.length){
     const t = summary.topScorers[0];
-    const p = findAwardPlayer(t);
-    if(p) p.honors.push({s, t:"金靴奖", d:`${t.g}球荣膺赛季最佳射手`});
+    if(t.g>0)award("全球金靴奖",findAwardPlayer(t),`${t.g} 球`);
   }
   if(summary.topRated && summary.topRated.length){
     const t = summary.topRated[0];
-    const p = findAwardPlayer(t);
-    if(p) p.honors.push({s, t:"赛季最佳球员", d:`场均${t.r}分当选`});
-    summary.topRated.slice(0,5).forEach(r=>{
-      const q = findAwardPlayer(r);
-      if(q && !q.honors.some(x=>x.s===s && x.t==="最佳阵容")) q.honors.push({s, t:"最佳阵容", d:"入选赛季最佳阵容"});
-    });
+    award("全球赛季最佳球员",findAwardPlayer(t),`场均 ${t.r} 分`);
+    const eleven=bestEleven(competitionAwardPool(s,null),15,900)
+      .map(r=>({pid:r.p.id,name:r.p.cn,team:r.team,role:r.group,stats:awardStatLine(r)}));
+    saveAwardResult(s,"WORLD","全球最佳阵容",eleven);
   }
   if(summary.topAssists && summary.topAssists.length){
     const t = summary.topAssists[0];
-    const p = findAwardPlayer(t);
-    if(p) p.honors.push({s, t:"助攻王", d:`${t.a}次助攻荣膺赛季助攻王`});
-  }
-  const u = UC();
-  const champTitles = [];
-  if(summary.euro && summary.euro.CL===u.id) champTitles.push("欧冠冠军");
-  if(summary.euro && summary.euro.EL===u.id) champTitles.push("欧联冠军");
-  if(summary.euro && summary.euro.ECL===u.id) champTitles.push("欧协联冠军");
-  summary.leagues.forEach(lg=>{ if(lg.table[0] && lg.table[0].id===u.id) champTitles.push("联赛冠军"); });
-  summary.cups.forEach((w,ni)=>{ if(w===u.id) champTitles.push("杯赛冠军"); });
-  if(champTitles.length){
-    u.squad.forEach(id=>{
-      const p = P(id);
-      if(p && p.apps>0) champTitles.forEach(ct=>{
-        if(!p.honors.some(x=>x.s===s && x.t===ct)) p.honors.push({s, t:ct, d:"随队夺冠"});
-      });
-    });
+    if(t.a>0)award("全球助攻王",findAwardPlayer(t),`${t.a} 次助攻`);
   }
 }
 function findPlayerByName(cn){
@@ -13292,12 +13589,18 @@ function toast(msg,cls){
   $("#toast").appendChild(t);
   setTimeout(()=>{t.style.transition=".3s";t.style.opacity=0;setTimeout(()=>t.remove(),320);},2600);
 }
+let modalReturnFocus=null;
 function openModal(title, html, footer){
+  const modal=$("#modal");
+  if(!modal.classList.contains("on"))modalReturnFocus=document.activeElement;
   $("#modal-t").innerHTML=title; $("#modal-bd").innerHTML=html;
   $("#modal-ft").innerHTML=footer||'<button onclick="closeModal()">关闭</button>';
-  $("#modal").classList.add("on");
+  modal.classList.add("on");
+  $("#modal-box").focus({preventScroll:true});
 }
 function closeModal(){ if(CHEAT_PENDING)return; $("#modal").classList.remove("on","pwa-guide");
+  if(modalReturnFocus?.isConnected)modalReturnFocus.focus({preventScroll:true});
+  modalReturnFocus=null;
   if($("#modal-t").textContent==="赛季回顾") setTimeout(processLoanBuyouts,0);
   // 临场换人/战术面板关闭时，按打开前的播放状态恢复比赛
   if(typeof SUBRESUME!=="undefined" && SUBRESUME && CURMATCH && VIEW==="match" && !CURMATCH.done){ SUBRESUME=false; SUBQ=[]; SUBOUT=null; toggleplay(true); }
@@ -13735,8 +14038,8 @@ function showPlayer(pid){
       <div style="font-size:12px">出场 <b>${p.apps}</b> · 进球 <b>${p.goals}</b> · 助攻 <b>${p.assists}</b><br>
         平均评分 <b>${avgRating(p)}</b> · 全场最佳 ${p.motm}<br>
         黄牌 ${p.yellow} · 红牌 ${p.red}<br>关键传球 ${p.keyPasses||0} · 成功过人 ${p.dribbles||0}</div>
-      <div class="hint" style="margin-top:6px">生涯 ${p.careerApps} 场 / ${p.careerGoals} 球</div>
-      ${p.honors&&p.honors.length?`<div style="margin-top:8px"><div class="hint" style="margin-bottom:3px">荣誉履历</div>${p.honors.slice(-6).reverse().map(x=>`<div style="font-size:11px;color:#ffd24a">🏆 ${x.s}赛季 · ${x.t} <span class="hint">${x.d}</span></div>`).join("")}</div>`:""}
+      <div class="hint" style="margin-top:6px">生涯 ${p.careerApps} 场 / ${p.careerGoals} 球 <button class="sm" onclick="showPlayerCareer(${pid})">生涯</button></div>
+      ${p.honors&&p.honors.length?`<div style="margin-top:8px"><div class="hint" style="margin-bottom:3px">荣誉履历</div>${p.honors.slice(-6).reverse().map(h=>`<div style="font-size:11px;color:#ffd24a">🏆 ${esc(typeof h==="string"?h:`${h.s}赛季 · ${h.t}`)} <span class="hint">${esc(h.d||"")}</span></div>`).join("")}</div>`:""}
       ${own?`<div class="hint" style="margin-top:6px">外界关注度 ${Math.round(Math.min(100,heatOf(p)*100))}%${interestOf(pid).length?" · 追求者："+interestOf(pid).map(it=>esc(C(it.club).short)).join("、"):""}${p.untouchable?' · <span class="tag t-i">非卖品</span>':''}${p.listed?' · <span class="tag t-w">已挂牌</span>':''}${(p.unrest||0)>=2?' · <span class="tag t-b">要求转会</span>':''}${p.wantsLoan?' · <span class="tag t-w">希望外租</span>':''}</div>`:perfTag(p)?`<div style="margin-top:6px">${perfTag(p)}${p.listed?' <span class="tag t-w">挂牌</span>':''}</div>`:""}
       ${p.form.length?`<div class="hint" style="margin-top:6px">近期评分：${p.form.map(r=>`<span style="color:${r>=7.2?'#00d47e':r>=6.5?'#ffd24a':'#f0a020'}">${r.toFixed(1)}</span>`).join(" ")}</div>`:""}
     </div>
@@ -13789,6 +14092,76 @@ function showPlayer(pid){
   if(validBuyout(p)) ft+=`<button class="pri" onclick="loanBuyoutDialog(${pid})">行使买断权</button>`;
   if(p.precontract)h+=`<div class="card">已预签 ${esc(C(p.precontract.to).cn)}，${p.precontract.start} 赛季加盟；届时周薪 ${money(p.precontract.wage)}。</div>`;
   openModal(esc(p.cn)+' <span class="hint" style="font-weight:400">'+(club?esc(club.cn):"自由球员")+'</span>', h, ft);
+}
+
+function careerTeamName(team){
+  if(typeof team==="string")return team;
+  return C(team)?.cn||(team===-1?"自由球员":"—");
+}
+function careerSeasonLabel(s){return `${s}/${String(s+1).slice(-2)}`;}
+function careerDateLabel(s,d){
+  if(!Number.isInteger(d))return careerSeasonLabel(s);
+  const date=dateOf(d,s);
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+}
+function careerTeamTotals(rows){
+  const teams=new Map();
+  for(const r of rows){
+    const key=r.s+"|"+r.team;
+    if(!teams.has(key))teams.set(key,{s:r.s,team:r.team,ages:new Set(),apps:0,starts:0,mins:0,g:0,a:0,rt:0,cs:0});
+    const t=teams.get(key); t.ages.add(r.age);
+    for(const field of ["apps","starts","mins","g","a","rt","cs"])t[field]+=r[field];
+  }
+  return [...teams.values()].reverse();
+}
+function careerTable(rows,keeper){
+  if(!rows.length)return '<p class="hint">暂无逐季出场记录</p>';
+  return `<div style="overflow-x:auto"><table><thead><tr><th>赛季</th><th>效力球队</th><th>年龄</th><th>出场</th><th>首发</th><th>分钟</th><th>进球</th><th>助攻</th>${keeper?"<th>零封</th>":""}<th>场均评分</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${careerSeasonLabel(r.s)}</td><td>${esc(careerTeamName(r.team))}</td><td>${[...r.ages].join(" → ")}</td><td>${r.apps}</td><td>${r.starts}</td><td>${r.mins}</td><td>${r.g}</td><td>${r.a}</td>${keeper?`<td>${r.cs}</td>`:""}<td>${(r.rt/(r.apps*100)).toFixed(2)}</td></tr>`).join("")}</tbody></table></div>`;
+}
+function careerEventLabel(e){
+  if(e.type==="intlDebut")return `${e.team}国家队首秀`;
+  const from=careerTeamName(e.from), to=careerTeamName(e.to);
+  if(e.type==="sign")return `免签加盟 ${to}`;
+  if(e.type==="free")return `离开 ${from}，成为自由球员`;
+  if(e.type==="return")return `结束在 ${from} 的租借，回到 ${to}`;
+  if(e.type==="loan")return `${from} → ${to}（租借${e.fee?`，租借费 ${money(e.fee)}`:""}）`;
+  return `${from} → ${to}（转会${e.fee?`，转会费 ${money(e.fee)}`:""}）`;
+}
+function careerTimeline(p){
+  const events=(p.careerEvents||[]).map(e=>({s:e.s,d:e.d,text:careerEventLabel(e)}));
+  for(const h of p.honors||[]){
+    if(typeof h==="string"){
+      const year=h.match(/^(\d{4})\s+(.+)$/);
+      events.push({s:year?Number(year[1]):null,text:year?year[2]:h});
+    }else if(h?.t){
+      const fields=[h.t,h.scope,h.team!=null?careerTeamName(h.team):null,h.d].filter(Boolean);
+      events.push({s:h.s,d:h.day,text:[...new Set(fields)].join(" · ")});
+    }
+  }
+  if(p.retiredAt)events.push({...p.retiredAt,text:`${p.age} 岁${p.retiredAt.reason||"退役"} · ${careerTeamName(p.retiredAt.team)}`});
+  events.sort((a,b)=>(b.s||0)-(a.s||0)||(b.d??-1)-(a.d??-1));
+  return events.length?events.map(e=>`<div style="padding:6px 0;border-bottom:1px solid var(--line)"><span class="hint">${e.s?esc(careerDateLabel(e.s,e.d)):"—"}</span>　${esc(e.text)}</div>`).join(""):'<p class="hint">暂无生涯事件</p>';
+}
+function showPlayerCareer(pid){
+  const p=P(pid)||WORLD.retiredCareers?.[pid];
+  if(!p)return;
+  const rows=p.careerMatches||[], legacy=p.careerLegacy||[], club=rows.filter(r=>typeof r.team==="number"), country=rows.filter(r=>typeof r.team==="string");
+  const known=[...club,...legacy];
+  const apps=known.reduce((sum,r)=>sum+r.apps,0), assists=known.reduce((sum,r)=>sum+(r.a||0),0);
+  const honors=(p.honors||[]).map(h=>typeof h==="string"?h:h?.t).filter(Boolean);
+  const titles=honors.filter(title=>title.includes("冠军")).length;
+  const intl=p.intlStats||{}, since=WORLD.careerTrackingFrom;
+  const team=Number.isInteger(p.academyClubId)?C(p.academyClubId):null;
+  const legacyRows=legacy.slice().reverse().map(r=>`<li>${careerSeasonLabel(r.s)} · ${r.apps} 场 · ${r.g??"—"} 球 · ${r.a??"—"} 助攻${Number.isFinite(r.avg)?` · 场均 ${r.avg.toFixed(2)}`:""}</li>`).join("");
+  openModal(`${esc(p.cn)} · 生涯`,
+    `<section><h3>生涯总览</h3><p>${esc(p.nat||"—")} · ${POS_CN[p.pos]||"—"} · ${p.age} 岁${p.retired?esc(p.retiredAt?.reason||"退役"):""}${team?` · 出自${esc(team.cn)}青训`:""}</p>
+      <p>俱乐部 ${p.careerApps||0} 场 / ${p.careerGoals||0} 球 / ${assists} 助攻${apps<(p.careerApps||0)?"（有记录的助攻）":""}<br>国家队 ${intl.apps||0} 场 / ${intl.goals||0} 球 / ${intl.assists||0} 助攻<br>已记录冠军 ${titles} 项 · 个人奖 ${honors.length-titles} 项</p></section>
+    <div class="hr"></div><section><h3>俱乐部履历</h3>${since?`<p class="hint">逐季明细记录自 ${esc(careerDateLabel(since.s,since.d))}</p>`:""}${careerTable(careerTeamTotals(club),p.pos==="GK")}
+    ${legacyRows?`<h4>更新前赛季汇总</h4><ul>${legacyRows}</ul>`:""}</section>
+    <div class="hr"></div><section><h3>国家队履历</h3>${careerTable(careerTeamTotals(country),p.pos==="GK")}</section>
+    <div class="hr"></div><section><h3>生涯时间线</h3>${careerTimeline(p)}</section>`,
+    `${p.retired?"":`<button onclick="showPlayer(${pid})">返回档案</button>`}<button onclick="closeModal()">关闭</button>`);
+  $("#modal-bd").scrollTop=0;
 }
 
 // ===== 个人训练计划弹窗 =====
@@ -15200,7 +15573,7 @@ function vClub(v){
     <tr><td class="hint">执教风格</td><td>${esc(c.manager.style)}</td></tr>
     <tr><td class="hint">教练声望</td><td>${c.manager.rep}/100 ${barHTML(c.manager.rep,100,"#4a9eff")}</td></tr>
     </table>
-    ${c.manager.honors&&c.manager.honors.length?`<div style="margin-top:8px"><div class="hint" style="margin-bottom:3px">荣誉履历</div>${c.manager.honors.slice(-8).reverse().map(x=>`<div style="font-size:11px;color:#ffd24a">🏆 ${x.s}赛季 · ${x.t}</div>`).join("")}</div>`:""}`:"<span class=\"hint\">暂无教练信息</span>"}`));
+    ${c.manager.honors&&c.manager.honors.length?`<div style="margin-top:8px"><button class="sm" onclick="showCoachHonors(${c.id})">荣誉履历</button></div>`:""}`:"<span class=\"hint\">暂无教练信息</span>"}`));
   if(c.id===WORLD.userClub && c.manager){ const rb=el("button","btn btn-danger","🚪 辞去主教练职务"); rb.style.cssText="margin-top:8px"; rb.onclick=()=>{ if(confirm("确定要辞去 "+c.cn+" 主教练职务吗？你将会进入待业状态。")){ const r=resignClub(); toast(r.msg); render(); } }; const w=el("div",""); w.appendChild(rb); g.appendChild(w); }
 g.appendChild(el("div","card",`<h3>教练团队</h3>
     <div class="attr"><span class="an">教练水平</span>${barHTML(c.coachRating,20,attrColor(c.coachRating))}<span class="av">${c.coachRating}</span></div>
@@ -15497,11 +15870,19 @@ function showClub(id){
   const sq=c.squad.map(i=>P(i)).sort((a,b)=>b.ca-a.ca);
   openModal(crestHTML(c,22)+esc(c.cn),
     `<div class="hint" style="margin-bottom:10px">${esc(c.stadium)}（${c.cap.toLocaleString()}）· 声望 ${c.rep} ·
-      ${t?`${LGS(c)}第 ${t.rank} 位 · ${t.pts} 分`:esc(c.country||"欧洲")+"球队"}${c.euro?" · "+EURO_COMPS[c.euro].short:""} · 近况 ${formHTML(c.form.slice(-5))}</div>
+      ${t?`${LGS(c)}第 ${t.rank} 位 · ${t.pts} 分`:esc(c.country||"欧洲")+"球队"}${c.euro?" · "+EURO_COMPS[c.euro].short:""} · 近况 ${formHTML(c.form.slice(-5))}
+      ${c.manager?`<button class="sm" onclick="showCoachHonors(${id})">主教练荣誉</button>`:""}</div>
      <div class="scroll tw"><table><thead><tr><th>姓名</th><th>位置</th><th class="num">年龄</th><th class="num">能力</th><th class="num">出场</th><th class="num">进球</th><th class="num">身价</th></tr></thead>
      <tbody>${sq.map(p=>`<tr class="clickable" onclick="showPlayer(${p.id})"><td>${playerLink(p)}</td><td><span class="tag t-${POS_GRP[p.pos]}">${POS_CN[p.pos]}</span></td>
        <td class="num">${p.age}</td><td class="num"><b style="color:${caColor(p.ca)}">${ovr(p)}</b></td>
        <td class="num">${p.apps}</td><td class="num">${p.goals}</td><td class="num">${money(p.value)}</td></tr>`).join("")}</tbody></table></div>`);
+}
+function showCoachHonors(id){
+  const c=C(id), m=c?.manager;
+  if(!m)return;
+  const honors=(m.honors||[]).slice().reverse();
+  openModal(`${esc(m.cn||m.name)} · 教练荣誉`,
+    honors.length?honors.map(h=>`<div style="padding:6px 0;border-bottom:1px solid var(--line)"><b>${esc(typeof h==="string"?h:`${careerSeasonLabel(h.s)} · ${h.t}`)}</b>${h.d?` <span class="hint">${esc(h.d)}</span>`:""}</div>`).join(""):'<p class="hint">暂无教练荣誉</p>');
 }
 
 /* ================= 赛程 ================= */
@@ -15679,8 +16060,78 @@ function vNews(v){
   });
 }
 
+function renderAwardHistory(v){
+  const entries=[...(WORLD.awardResults||[])];
+  const recorded=new Set(entries.map(r=>`${r.s}|${r.comp}|${r.title}`));
+  for(const [key,comp,title] of [["ballonDor","WORLD","金球奖"],["goldenGlove","WORLD","金手套奖"],["goldenBoy","WORLD","金童奖"],
+    ["coachHonors","WORLD","FIFA 年度最佳教练"],["wclGoldenBall","WCL","世冠金球奖"]]){
+    for(const r of WORLD[key]||[]){
+      if(recorded.has(`${r.season}|${comp}|${title}`))continue;
+      const winners=[{pid:r.pid,name:r.winner,team:r.club}];
+      if(r.runnerUp)winners.push({pid:r.runnerUpPid,name:r.runnerUp,medal:"银球奖"});
+      if(r.third)winners.push({pid:r.thirdPid,name:r.third,medal:"铜球奖"});
+      entries.push({s:r.season,comp,scope:awardScopeName(comp),title,winners});
+    }
+  }
+  const panel=el("section","card",
+    '<h3>历届奖项</h3><div class="cheat-fields"><label for="award-season">赛季<select id="award-season"></select></label><label for="award-competition">赛事<select id="award-competition"></select></label></div><details class="hint"><summary>评奖口径</summary><p>赛事金靴按进球、助攻和较少的出场分钟排序。最佳门将看实际守门场次、时间、零封和评分。世界金球奖、金童奖及金手套按赛事级别加权，累计贡献超过 34 场后折算到 34 场。旧档缺少分赛事数据时，金球奖和金童奖的缺失部分按可核实的球队级别估算。位置奖采用有实际位置记录的比赛。</p></details><div id="award-history-list"></div>');
+  const season=panel.querySelector("#award-season"), competition=panel.querySelector("#award-competition"), list=panel.querySelector("#award-history-list");
+  const seasons=[...new Set(entries.map(r=>r.s))].sort((a,b)=>b-a);
+  season.innerHTML=seasons.map(s=>`<option value="${s}">${careerSeasonLabel(s)}</option>`).join("");
+  const show=()=>{
+    const rows=entries.filter(r=>r.s===Number(season.value)&&r.comp===competition.value);
+    list.innerHTML=rows.length?rows.map(r=>`<div style="padding:8px 0;border-bottom:1px solid var(--line)"><b>${esc(r.title)}</b>${r.day!=null?` <span class="hint">${careerDateLabel(r.s,r.day)}</span>`:""}<div class="hint">${r.winners.map(w=>{
+      const name=esc(w.name), playable=Number.isInteger(w.pid)&&(P(w.pid)||WORLD.retiredCareers?.[w.pid]);
+      const coach=Number.isInteger(w.coachId)?String(w.coachId):w.coachId==="player"?"'player'":null;
+      const winner=playable?`<button class="sm" onclick="showPlayerCareer(${w.pid})">${name}</button>`:
+        coach?`<button class="sm" onclick="showNationalCoachHonors(${coach})">${name}</button>`:name;
+      const role={gk:"门将",df:"后卫",mf:"中场",fw:"前锋"}[w.role];
+      return `<div>${w.medal?esc(w.medal)+" · ":""}${role?role+" · ":""}${winner}${w.team!=null?`（${esc(careerTeamName(w.team))}）`:""}${awardStatsLabel(w.stats)}</div>`;
+    }).join("")}</div></div>`).join(""):'<p class="hint">暂无获奖记录</p>';
+  };
+  season.onchange=()=>{
+    const relevant=entries.filter(r=>r.s===Number(season.value));
+    const scopes=new Map(relevant.map(r=>[r.comp,r.scope]));
+    competition.innerHTML=[...scopes].map(([comp,scope])=>`<option value="${esc(comp)}">${esc(scope)}</option>`).join("");
+    if(scopes.has("WORLD"))competition.value="WORLD";
+    show();
+  };
+  competition.onchange=show; season.onchange();
+  v.appendChild(foldCard(panel,"award-history","历届奖项",[],false));
+}
+function awardStatsLabel(stats){
+  if(!stats)return "";
+  const fields=[["apps","场"],["minutes","分钟"],["goals","球"],["assists","助攻"],["cleanSheets","零封"]];
+  const parts=fields.filter(([key])=>stats[key]!=null).map(([key,unit])=>`${stats[key]} ${unit}`);
+  if(Number.isFinite(stats.rating))parts.push(`场均 ${stats.rating.toFixed(2)}`);
+  if(Number.isFinite(stats.score))parts.push(`评选 ${stats.score.toFixed(2)} 分`);
+  if(stats.estimated)parts.push("含旧档估算");
+  return parts.length?`<div class="hint">${esc(parts.join(" · "))}</div>`:"";
+}
+function showNationalCoachHonors(id){
+  const record=WORLD.nationalCoachHonors?.[id];
+  if(!record)return;
+  openModal(`${esc(record.name)} · 国家队教练荣誉`,record.honors.slice().reverse().map(h=>
+    `<p><b>${esc(h.t)}</b> · ${esc(h.team)} · ${esc(careerDateLabel(h.s,h.day))}</p>`).join(""));
+}
+
 function vHistory(v){
   v.appendChild(el("div","",`<h1>历史</h1><div class="sub">共 ${WORLD.history.length} 个完整赛季</div>`));
+  renderAwardHistory(v);
+  const retired=Object.values(WORLD.retiredCareers||{});
+  const archive=el("section","card",'<h3>退役球员</h3><div class="cheat-fields"><label for="retired-player-search">搜索退役球员<input id="retired-player-search" type="search" placeholder="中文名或英文名"></label></div><div class="hint" id="retired-player-count" aria-live="polite"></div><div class="cheat-results"></div>');
+  const search=archive.querySelector("input"), list=archive.querySelector(".cheat-results"), count=archive.querySelector("#retired-player-count");
+  search.oninput=()=>{
+    const query=legendSearchKey(search.value), found=retired.filter(p=>[p.cn,p.name].some(n=>legendSearchKey(n).includes(query))).reverse();
+    count.textContent=found.length>30?`前 30 名，共 ${found.length} 人，请缩小搜索范围`:found.length?`找到 ${found.length} 人`:"暂无符合条件的退役档案";
+    list.replaceChildren();
+    for(const p of found.slice(0,30)){
+      const button=el("button","sm cheat-player",`<strong>${esc(p.cn)}</strong><small>${p.retiredAt.s} 赛季 · ${p.age} 岁${esc(p.retiredAt.reason||"退役")}</small>`);
+      button.onclick=()=>showPlayerCareer(p.id); list.appendChild(button);
+    }
+  };
+  search.oninput();
+  v.appendChild(foldCard(archive,"retired-players","退役球员",[[`${retired.length} 人`]],false));
   // 荣誉殿堂：世俱杯冠军 + 金球奖得主
   const hall=[];
   if(WORLD.wclHistory && WORLD.wclHistory.length){
@@ -17059,6 +17510,64 @@ function vCheats(v){
   };
   search.oninput=update;
   update();
+  const legends=el("section","card",'<h3>传奇之种</h3><button type="button">刷新传奇之种</button>');
+  legends.querySelector("button").onclick=()=>cheatLegendDialog();
+  v.appendChild(legends);
+}
+
+function cheatLegendDialog(previousQuery=""){
+  if(!cheatsEnabled()||!cheatActionAvailable())return;
+  const players=new Map();
+  for(const p of Object.values(WORLD.players)){
+    const name=playerLegendKey(p);
+    if(!name)continue;
+    if(p.legend||!players.has(name))players.set(name,p);
+  }
+  const reborn=new Set((WORLD.rebornLegends||[]).map(legendNameKey));
+  const entries=[...LEGENDS,...STAR_REBIRTH].map(row=>({row, keys:[...row.slice(0,2),players.get(row[0])?.cn].map(legendSearchKey)}));
+  for(const [alias,[name,cn]] of LEGEND_NAME_ALIASES){
+    const entry=entries.find(({row})=>row[0]===name);
+    if(entry)entry.keys.push(legendSearchKey(alias),legendSearchKey(cn));
+  }
+  openModal("刷新传奇之种",
+    '<div class="hint">点名生成的少年球员会进入自由市场。</div><div class="cheat-fields"><label for="cheat-legend-search">搜索传奇<input id="cheat-legend-search" type="search" placeholder="中文名或英文名"></label></div><div class="hint" id="cheat-legend-count" aria-live="polite"></div><div class="cheat-results" id="cheat-legend-results"></div>',
+    '<button onclick="closeModal()">关闭</button>');
+  const search=$("#cheat-legend-search"), results=$("#cheat-legend-results"), count=$("#cheat-legend-count");
+  search.oninput=()=>{
+    const query=legendSearchKey(search.value);
+    const matches=entries.filter(({keys})=>keys.some(key=>key.includes(query)));
+    count.textContent=matches.length>30?`前 30 名，共 ${matches.length} 人，请缩小搜索范围`:`找到 ${matches.length} 人`;
+    results.replaceChildren();
+    for(const {row} of matches.slice(0,30)){
+      const [name,cn,nat,pos]=row, p=players.get(name);
+      const status=p?(p.legend?"已生成":"原球员仍在档")+` · ${C(p.clubId)?.cn||"自由球员"}`:reborn.has(name)?"已重生":"可刷新";
+      const button=el("button","sm cheat-player",`<strong>${esc(cn)}</strong><small>${esc(nat)} · ${POS_CN[pos]} · ${esc(status)}</small>`);
+      button.disabled=!p&&reborn.has(name);
+      button.onclick=()=>p?showPlayer(p.id):confirmCheatLegend(row,search.value);
+      results.appendChild(button);
+    }
+  };
+  search.value=previousQuery;
+  search.oninput();
+}
+
+function confirmCheatLegend(row,query){
+  if(!cheatsEnabled()||!cheatActionAvailable())return;
+  const [name,cn,,pos,,born]=row, historical=HISTORICAL_LEGEND_BY_NAME.has(name);
+  if(!legendAvailable(name)){toast("球员已生成或原球员仍在档","warn");return;}
+  openModal(`刷新传奇之种 · ${esc(cn)}`,
+    `<p>${esc(cn)}将作为 ${historical?legendRebirthAge(born):15} 岁的${POS_CN[pos]}进入自由市场。</p>`,
+    '<button class="pri" id="cheat-legend-confirm">确认刷新</button><button id="cheat-legend-back">返回搜索</button>');
+  $("#cheat-legend-back").onclick=()=>cheatLegendDialog(query);
+  $("#cheat-legend-confirm").onclick=async()=>{
+    let p;
+    const saved=await applyCheat(()=>{
+      p=historical?spawnOneLegend(row):rebirthStar(...row.slice(0,5),true);
+      if(!p)return false;
+      news("传奇之种现身",`${p.cn}（${POS_CN[p.pos]}，${p.age} 岁）已进入自由市场。`,"good");
+    },`${cn}已进入自由市场`);
+    if(saved)showPlayer(p.id);
+  };
 }
 
 function cheatTransferBlock(p,c){
@@ -17079,12 +17588,13 @@ function cheatPlayerDialog(pid){
     `<div class="hint">${esc(C(p.clubId)?.cn||"自由球员")} · ${POS_CN[p.pos]} · ${p.age} 岁</div>
      <form id="cheat-player-form">
        <div class="cheat-fields">
+         <label for="cheat-age">年龄<input id="cheat-age" type="number" inputmode="numeric" min="${Math.min(15,p.age)}" max="${Math.max(60,p.age)}" value="${p.age}" required></label>
          <label for="cheat-ca">当前能力<input id="cheat-ca" type="number" inputmode="numeric" min="5" max="100" value="${ovr(p)}" required></label>
          <label for="cheat-pa">潜力<input id="cheat-pa" type="number" inputmode="numeric" min="5" max="100" value="${Math.round(p.pa/2)}" required></label>
          ${editContract?`<label for="cheat-contract">剩余合同年限<input id="cheat-contract" type="number" inputmode="numeric" min="0" max="6" value="${Math.max(0,p.contract-WORLD.season)}" required></label>`:""}
        </div>
      </form>
-     <div class="hint">${editContract?"合同填 0 表示本赛季末到期。":p.precontract?"该球员已预签，合同已锁定。":"自由球员暂无合同。"}${blocked?"<br>转会："+esc(blocked):""}</div>`,
+     <div class="hint">年龄可改为 15–60 岁，60 岁球员将在赛季交接时进入退役判定。<br>${editContract?"合同填 0 表示本赛季末到期。":p.precontract?"该球员已预签，合同已锁定。":"自由球员暂无合同。"}${blocked?"<br>转会："+esc(blocked):""}</div>`,
     `<button class="pri" type="submit" form="cheat-player-form">保存球员改动</button>
      ${transfer&&!blocked?`<button onclick="cheatTransferDialog(${pid})">指定转会费</button>`:""}
      <button onclick="closeModal()">取消</button>`);
@@ -17114,27 +17624,29 @@ function submitCheatPlayer(pid){
   if(!cheatsEnabled()||!cheatActionAvailable())return;
   const p=P(pid);
   if(!p||p.retired)return;
+  const inputAge=$("#cheat-age")?.valueAsNumber;
+  const age=inputAge===p.age?p.age:cheatNumber("cheat-age",15,60);
   const target=cheatNumber("cheat-ca",5,100), potential=cheatNumber("cheat-pa",5,100);
   const editContract=ownerOf(p)>=0&&!p.precontract, years=editContract?cheatNumber("cheat-contract",0,6):0;
+  if(age===null){toast("年龄须为 15 至 60 岁之间的整数","bad");return;}
   if(target===null||potential===null||years===null){toast("请填写有效的能力、潜力和合同年限","bad");return;}
   const changeCA=target!==ovr(p), changePA=potential!==Math.round(p.pa/2);
   const a=changeCA?cheatPlayerAttrs(p,target):p.a, ca=changeCA?calcCA(a,p.pos):p.ca;
   const pa=changePA||changeCA&&target===potential&&ca>p.pa?potential*2:p.pa;
   const contract=editContract&&years!==Math.max(0,p.contract-WORLD.season)?WORLD.season+years:p.contract;
   if((changeCA||changePA)&&ca>pa){toast("潜力必须达到当前能力","bad");return;}
-  if(!changeCA&&!changePA&&contract===p.contract){toast("球员资料没有改动","warn");return;}
+  const changeAge=age!==p.age;
+  if(!changeAge&&!changeCA&&!changePA&&contract===p.contract){toast("球员资料没有改动","warn");return;}
   applyCheat(()=>{
     const delta=ca-p.ca;
     if(delta){
       p.ca0=clamp((p.ca0??p.ca)+delta,10,pa);
       if(p.development?.season===WORLD.season)p.development.startCA+=delta;
     }
-    Object.assign(p,{a,ca,pa,contract});
+    Object.assign(p,{age,a,ca,pa,contract});
     p.value=calcValue(p);
-    if(changeCA){
-      assignPlaystyles(p);
-      if(p.clubId<0)p.wage=marketWage(p);
-    }
+    if(changeCA)assignPlaystyles(p);
+    if(p.clubId<0&&(changeAge||changeCA))p.wage=marketWage(p);
   },`${p.cn} 的资料已更新`);
 }
 function cheatTransferDialog(pid){
@@ -17937,6 +18449,16 @@ window.addEventListener("DOMContentLoaded",()=>{
   document.getElementById("tb-go").onclick=onContinue;
   document.addEventListener("keydown",e=>{
     if(e.key==="Escape"){ if(!$("#android-select-picker")?.open)closeModal(); return; }
+    if(e.key==="Tab"&&$("#modal").classList.contains("on")&&!$("#android-select-picker")?.open){
+      const dialog=$("#modal-box"), active=document.activeElement;
+      const controls=[...dialog.querySelectorAll('button,input,select,textarea,a[href],[tabindex="0"]')]
+        .filter(n=>!n.disabled&&n.tabIndex>=0&&!n.closest('[inert],[aria-hidden="true"]')&&n.getClientRects().length);
+      const first=controls[0], last=controls.at(-1);
+      if(!first||!controls.includes(active)||e.shiftKey&&active===first||!e.shiftKey&&active===last){
+        e.preventDefault();(e.shiftKey?last||dialog:first||dialog).focus();
+      }
+      return;
+    }
     if(e.defaultPrevented || e.isComposing || e.keyCode===229 || e.repeat ||
        (e.target&&e.target.closest&&e.target.closest("input,textarea,select,button,a[href],[contenteditable='true']"))) return;
     if(e.code==="Space" && VIEW==="match" && CURMATCH && !CURMATCH.done){ e.preventDefault(); toggleplay(); }
@@ -18137,6 +18659,8 @@ function adoptCandidate(obj){
   WORLD=obj; delete WORLD._saveStamp;
   migratePlayerNames();
   migrateAcademyClubs();
+  migrateCareerHistory();
+  restorePlayerAwardHonors();
   // 五国旧档的“欧洲其他”曾使用编号 5；按其明确国别和无国内联赛身份迁移，避免被误归入新增国家。
   WORLD.clubs.forEach(c=>{if(c.lg<0 && c.country && c.nation!==EURO_NATION && !WORLD.leagues.some(l=>l.nation===c.nation)) c.nation=EURO_NATION;});
   // 扩充联赛级别后编号发生变化，按国家与级别重映射，保留原赛程、积分及历史。
@@ -18264,7 +18788,9 @@ function renewalCost(p,w){
 }
 function legendAvailable(name){
   normalizeLegends();
-  return !WORLD.rebornLegends.includes(legendNameKey(name))&&!Object.values(WORLD.players).some(p=>!p.retired&&p.name===name);
+  const key=legendNameKey(name), template=HISTORICAL_LEGEND_BY_NAME.has(key)||STAR_REBIRTH_BY_NAME.has(legendSearchKey(key));
+  return !WORLD.rebornLegends.includes(key) &&
+    !Object.values(WORLD.players).some(p=>!p.retired&&(template?playerLegendKey(p)===key:p.name===name));
 }
 function findAwardPlayer(entry){
   if(entry.pid!=null) return P(entry.pid)||null;
@@ -18319,18 +18845,74 @@ function assertLoadable(obj){
 function validateV3Details(w){
   const fail=x=>{throw new Error("存档结构损坏："+x);},club=id=>Number.isInteger(id)&&!!w.clubs[id];
   const arr=(o,k)=>{if(o[k]!=null&&!Array.isArray(o[k]))fail(k);};
-  for(const k of ["offers","interest","playoffs","unemployed","clubVacancies","scoutReports","worldNews","precontracts"])arr(w,k);
+  for(const k of ["offers","interest","playoffs","unemployed","clubVacancies","scoutReports","worldNews","precontracts","careerPartialCompetitions","awardResults"])arr(w,k);
+  const integer=n=>Number.isSafeInteger(n)&&n>=0;
+  const awardDay=h=>h.day==null||integer(h.day);
+  const honorsValid=p=>{
+    arr(p,"honors");
+    for(const h of p.honors||[])if(typeof h!=="string"&&(!h||!Number.isInteger(h.s)||typeof h.t!=="string"||!awardDay(h)))fail("个人荣誉");
+  };
+  const validStats=stats=>stats==null||typeof stats==="object"&&!Array.isArray(stats)&&Object.entries(stats).every(([key,value])=>
+    key==="estimated"?typeof value==="boolean":key==="score"?Number.isFinite(value):Number.isFinite(value)&&value>=0);
+  const awardKeys=new Set();
+  for(const a of w.awardResults||[]){
+    if(!a||!Number.isInteger(a.s)||typeof a.comp!=="string"||typeof a.scope!=="string"||typeof a.title!=="string"||!Array.isArray(a.winners)||
+      !awardDay(a)||a.winners.some(x=>!x||typeof x.name!=="string"||(x.pid!=null&&!integer(x.pid))||
+        (x.coachId!=null&&x.coachId!=="player"&&!integer(x.coachId))||!validStats(x.stats)))fail("历届奖项");
+    const key=a.s+"|"+a.comp+"|"+a.title;
+    if(awardKeys.has(key))fail("重复奖项");
+    awardKeys.add(key);
+  }
+  const careerDate=e=>Number.isInteger(e?.s)&&Number.isInteger(e.d)&&e.d>=0;
+  if(w.careerTrackingFrom&&!careerDate(w.careerTrackingFrom))fail("生涯记录起点");
+  const career=p=>{
+    for(const key of ["careerMatches","careerEvents","careerLegacy"])arr(p,key);
+    honorsValid(p);
+    for(const r of p.careerMatches||[]){
+      if(!r||!Number.isInteger(r.s)||typeof r.comp!=="string"||!(club(r.team)||typeof r.team==="string")||
+        ![r.age,r.apps,r.starts,r.mins,r.g,r.a,r.rt,r.best,r.cs].every(integer)||r.apps<=0||r.age<=0||
+        r.starts>r.apps||r.best>r.apps||r.cs>r.apps)fail("生涯比赛记录");
+      if(r.roles!=null){
+        if(typeof r.roles!=="object"||Array.isArray(r.roles))fail("生涯位置记录");
+        for(const [group,row] of Object.entries(r.roles)){
+          if(!["gk","df","mf","fw"].includes(group)||!Array.isArray(row)||row.length!==4||!row.every(integer)||
+            row[0]>r.apps||row[1]>r.mins||row[3]>row[0]||(group!=="gk"&&row[3]>0))fail("生涯位置记录");
+        }
+      }
+    }
+    for(const r of p.careerLegacy||[])if(!r||!Number.isInteger(r.s)||!Number.isFinite(r.apps))fail("旧档生涯汇总");
+    for(const e of p.careerEvents||[])if(!e||typeof e.type!=="string"||!Number.isInteger(e.s))fail("生涯事件");
+  };
+  if(w.nationalCoachHonors!=null){
+    if(typeof w.nationalCoachHonors!=="object"||Array.isArray(w.nationalCoachHonors))fail("国家队教练档案");
+    for(const [id,coach] of Object.entries(w.nationalCoachHonors)){
+      if((id!=="player"&&(!/^\d+$/.test(id)||+id>(w.nextNationalCoachId||0)))||!coach||typeof coach.name!=="string"||
+        typeof coach.nation!=="string"||!Array.isArray(coach.honors))fail("国家队教练档案");
+      for(const h of coach.honors)if(!h||!Number.isInteger(h.s)||typeof h.t!=="string"||typeof h.team!=="string"||!awardDay(h))fail("国家队教练荣誉");
+    }
+  }
+  if(w.retiredCareers!=null){
+    if(typeof w.retiredCareers!=="object"||Array.isArray(w.retiredCareers))fail("退役档案");
+    for(const [id,p] of Object.entries(w.retiredCareers)){
+      if(!p||String(p.id)!==id||p.id>w.pid||w.players[id]||!p.retired||!careerDate(p.retiredAt)||
+        typeof p.cn!=="string"||typeof p.name!=="string"||!POSITIONS.includes(p.pos))fail("退役球员");
+      arr(p,"honors"); career(p);
+    }
+  }
   if(w.precontracts&&(new Set(w.precontracts).size!==w.precontracts.length||w.precontracts.some(id=>!w.players[id]?.precontract)))fail("预签索引");
   for(const c of w.clubs){
     for(const k of ["loanedOut","loanedIn","seasonRatings"])arr(c,k);
+    if(c.manager)honorsValid(c.manager);
     for(const pb of c.finance.payables||[]){
       if(!pb||!Number.isFinite(pb.amt)||pb.amt<0||typeof pb.name!=="string"||pb.to!=null&&!club(pb.to)||pb.due!=null&&!Number.isInteger(pb.due))fail("转会分期");
     }
     for(const id of c.loanedOut||[]){const p=w.players[id];if(!p?.loan||p.loan.owner!==c.id)fail("外租索引");}
     for(const id of c.loanedIn||[]){const p=w.players[id];if(!p?.loan||p.clubId!==c.id)fail("租入索引");}
   }
+  for(const coach of [...(w.unemployed||[]),...Object.values(w.nationManagers||{}),w.userCoach])if(coach)honorsValid(coach);
   for(const p of Object.values(w.players)){
     for(const k of ["pos2","honors","playstyles","playstylesPlus","trainPlan"])arr(p,k);
+    career(p);
     if(p.pos2&&!p.pos2.every(x=>POSITIONS.includes(x)))fail("第二位置");
     if(typeof p.cn!=="string"||typeof p.name!=="string")fail("球员姓名");
     if(p.loan){const L=p.loan;if(L.owner===L.to||!Number.isFinite(L.wageShare)||L.wageShare<0||L.wageShare>1||!Number.isFinite(L.untilAbs))fail("租借条款");}
